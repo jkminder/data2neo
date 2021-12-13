@@ -1,0 +1,33 @@
+ENTITY("Person"):
+    NODE("Person") person:
+        - ID = Person.ID
+        - FirstName = Person.FirstName
+        - LastName = Person.LastName
+        - Astaticattr = "HelloWorld!"
+    NODE("Language") language:
+        - ShortName = Person.NativeLanguage
+    RELATION(person, "speaks", language):
+        - Since = Person.DateOfBirth
+
+
+
+
+
+
+
+
+
+
+
+
+# IGNORE
+ENTITY("Person"):
+    NODE("Person") person:
+        - ID = Person.ID
+        - FirstName = Person.FirstName
+        - LastName = append(Person.LastName, " I appended something")
+        - Astaticattr = "HelloWorld!"
+    CONDITION(NODE("Language"), "resource['FirstName'] == 'Matthias'") language:
+        - ShortName = ASSERT_EQ(Person.NativeLanguage, "D")
+    RELATION(person, "speaks", language):
+        - Since = Person.DateOfBirth
