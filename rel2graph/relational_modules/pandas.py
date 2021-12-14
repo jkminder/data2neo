@@ -62,3 +62,7 @@ class PandasDataframeIterator(ResourceIterator):
     def reset_to_first(self) -> None:
         """Resets the iterator to point to the first element"""
         self._i = -1
+    
+    def __len__(self) -> None:
+        """Returns the total amount of resources in the iterator"""
+        return len(self._rows)
