@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """
-Classes and methods for parsing and compiling the config document into factories
+Classes and methods for parsing and compiling the config document into factories.
+
+A file is first read and precompiled and converted to a YAML compatible format. After that it is decoded based on the YAML specifications.
+Each entity is then again first precompiled into a string that represents exact Constructors for Objects. These strings are then parsed into instructions, which 
+is a list of [modulename, attribute] pairs (where attributes can be instructions as well). Finally the instructions are then compiled into factories.
 
 authors: Julian Minder
 """
@@ -23,7 +27,7 @@ class ConfigError(ValueError):
 
 """Represent rules that are applied to the config file for reformating certain modules"""
 _config_module_reformat_rules = [
-    ("NODE", "NodeFactory({{attributes}},[{args}],\"{{parent}}.{{id}}\")"),
+    ("NODE", "NodeFactory({{attributes}},[{args}],{{primary_key}}, \"{{parent}}.{{id}}\")"),
     ("RELATION", "RelationFactory({{attributes}},{1},{0},{2})"),
     ("MATCH", "Matcher(&None, {args})")
 ]
@@ -222,6 +226,18 @@ def _escape(config_str: str) -> str:
         config_str = config_str.replace(char, f"\{char}")
     return config_str
 
+def _precompile_file(filestream):
+    """
+    Reads the full content of a filestream and apply general reformating rules the the string. 
+    Is applied before decoding the string to yaml and makes sure that the syntax is YAML compatible
+    """
+    full_config_str = filestream.read()
+
+    # Convert primary key syntax to a YAML compatible format 
+    full_config_str = full_config_str.replace("+", "- +")
+
+    return full_config_str
+
 class ConfigEntityCompiler:
     """Compiles config data for an entity"""
     def __init__(self) -> None:
@@ -303,6 +319,14 @@ class ConfigEntityCompiler:
 
     def _precompile_attribute(self, config_str: str) -> str:
         """Precompiles an attribute"""
+        # Test if is primary key attribute
+        match = re.search("\s*[+](.*)", config_str)
+        primary = False
+        if match is not None:
+            primary = True
+            config_str = match.group(1) # remove primary marker (+)
+        
+
         # Parse Static Attributes (with key)
         key = re.search("\s*(\w*)\s*[=]", config_str).group(1)
         config_str = re.sub("\s*(\w*)\s*[=]\s*((\w*\()*)\s*(\".*?\")(.*)", lambda match : _convert(match, "{1}AttributeFactory(&\"{0}\",&None,&{3}){4}"), config_str)
@@ -316,7 +340,7 @@ class ConfigEntityCompiler:
         # Parse Dynamic Arguments (no key)
         config_str = self._precompile_dynamic_nokey_arguments(config_str)
 
-        return config_str, key
+        return config_str, key, primary
 
     def compile(self, entity_type, config_data):
         """Compiles config data into factories. 
@@ -342,18 +366,26 @@ class ConfigEntityCompiler:
             
             # Precompile attributes
             precompiled_attributes = []
+            primary_key = "&None"
             if attributes is not None:
                 for attribute in attributes:
-                    config, key = self._precompile_attribute(attribute)
+                    config, key, primary = self._precompile_attribute(attribute)
                     precompiled_attributes.append(config)
                     # if an id exist we save this attribute for later reference
                     if id is not None:
                         self._saved_attributes[f"{id}.{key}"] = config
+                    
+                    # if primary key we save it
+                    if primary:
+                        if primary_key == "&None":
+                            primary_key = key
+                        else:
+                            raise ConfigError(f"Error in config for entity '{self._entity_type}'{' in graph element with identifier - ' + id if id is not None else ''}: Only 1 primary key allowed")
             precompiled_graph_element = self._precompile_graph_element(element_config)
             
             # Add attributes to the string
             precompiled_attributes_str = "[" + ",".join(precompiled_attributes) + "]"
-            precompiled_graph_element = precompiled_graph_element.format(attributes=precompiled_attributes_str, parent=self._entity_type, id=id)
+            precompiled_graph_element = precompiled_graph_element.format(attributes=precompiled_attributes_str, parent=self._entity_type, id=id, primary_key = primary_key)
 
             # Remove compile markers
             precompiled_graph_element = precompiled_graph_element.replace("&", "")
@@ -381,7 +413,8 @@ def parse(filename):
     """
     logger.debug(f"Parsing config file '{filename}'")
     with open(filename, "r") as fstream:
-        decoded_yaml = load(fstream, FullLoader)
+        precompiled_string = _precompile_file(fstream)
+        decoded_yaml = load(precompiled_string, FullLoader)
     compiled = {}
     
     for entity_type, entity_config in decoded_yaml.items():

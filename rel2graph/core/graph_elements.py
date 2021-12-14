@@ -76,14 +76,17 @@ class SubGraph(py2neo.Subgraph,  GraphElement):
 class Node(py2neo.Node, SubGraph):
     """Node Abstraction of py2neo.Node"""
 
-    def __init__(self, labels: List[str], attributes: List[Attribute]) -> None:
+    def __init__(self, labels: List[Attribute], attributes: List[Attribute], primary_key: str = None) -> None:
         """Inits a Node with labels and attributes
         
         Args:
-            labels: List of string specifying the labels of the Node
-            attributes: List of attributes
+            labels: List of static attributes specifying the labels of the Node (first label will be the primary label)
+            attributes: List of attributes (only one can be primary)
+            primary_key: Optional key of the primary attribute. Used to merge the Node with existing nodes in the graph (default: None)
         """
         super().__init__(*[label.value for label in labels], **dict((attr.key, attr.value) for attr in attributes))
+        self.__primarylabel__ = labels[0].value
+        self.__primarykey__ = primary_key
 
 
 

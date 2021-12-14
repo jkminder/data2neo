@@ -11,4 +11,3 @@ authors: Julian Minder
 
 from .subgraph_condition import *
 from .attribute_assert import *
-from .subgraph_utils import *

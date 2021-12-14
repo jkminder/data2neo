@@ -157,17 +157,19 @@ class AttributeFactory(Factory):
 class NodeFactory(SubGraphFactory):
     """Factory for creating Nodes from a Resource"""
 
-    def __init__(self, attributes: List[AttributeFactory], labels: List[AttributeFactory], identifier: str = None) -> None:
+    def __init__(self, attributes: List[AttributeFactory], labels: List[AttributeFactory], primary_key: str = None, identifier: str = None) -> None:
         """Inits an NodeFactory with the following arguments
         
         Args:
             attributes: List of AttributeFactories for constructing the attributes for the node
             labels: List of AttributeFactories for constructing the labels for the node
+            primary_key: Optional key of the primary attribute. Used to merge the produced node with existing nodes in the graph (default: None)
             identifier: A string identifying this Factory instance. Can be None if factory doesn't need to save supplies
         """
         super().__init__(identifier)
         self._attributes = attributes
         self._labels = labels
+        self._primary_key = primary_key
 
     def construct(self, resource: Resource) -> Node:
         """Constructs an Node from a resource based on the the label and attribute factories provided
@@ -185,7 +187,7 @@ class NodeFactory(SubGraphFactory):
             return SubGraph()
         labels = [label_factory.construct(resource) for label_factory in self._labels]
         attributes = [attr_factory.construct(resource) for attr_factory in self._attributes]
-        return Node(labels, attributes)
+        return Node(labels, attributes, self._primary_key)
 
 @register_factory
 class RelationFactory(SubGraphFactory):
