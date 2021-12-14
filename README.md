@@ -5,12 +5,11 @@
 The library is built specifically for converting data into a [neo4j](https://neo4j.com/) graph. The library further supports extensive customization capabilities to clean and remodel data. As neo4j python client it uses the [py2neo](https://py2neo.org/2021.1/index.html) library.
 
 
-
  - [Latest Releases](https://github.com/sg-dev/rel2graph/tags)
  - *Documentation - coming soon*
  
 
-### Installation
+## Installation
 If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v0.1.1][latest_tag]):
 ```
 $ pip install git+ssh://git@github.com/sg-dev/rel2graph@v0.1.1
@@ -27,7 +26,7 @@ $ pip install **path-to-repository**
 ```
 The rel2graph libary supports Python 3.7+.
 
-### Quick Start
+## Quick Start
 A quick example for converting data in a [Pandas](https://pandas.pydata.org) dataframe into a graph. The full example code can be found under [examples](/examples). For more details, please checkout the [full documentation][wiki] (coming soon, I'm working on it :D ). We first define a *convertion schema* in a YAML style config file. In this config file we specify, which entites are converted into which nodes and which relations. 
 ##### **`schema.yaml`**
 ```yaml
