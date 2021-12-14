@@ -6,7 +6,10 @@ Main module that converts Relational Database entities into graphs
 
 authors: Julian Minder
 """
+from sre_constants import SRE_FLAG_UNICODE
 from typing import Dict, Tuple
+from queue import Queue, Empty
+import sys
 import logging
 import threading
 from enum import IntEnum
@@ -49,10 +52,11 @@ class WorkerConfig:
         self.counter_lock = threading.Lock()
 
 class Worker(threading.Thread):
-    def __init__(self, id: int, config: WorkerConfig) -> None:
+    def __init__(self, id: int, config: WorkerConfig, bucket: Queue) -> None:
         threading.Thread.__init__(self)
         self._worker_id = id
         self._config = config
+        self._bucket = bucket
         self._exit_flag = False
 
     def process(self) -> None:
@@ -70,15 +74,23 @@ class Worker(threading.Thread):
                 factory = self._config.factories[next_resource.type][int(self._config.work_type)]
             
             try:
-                subgraph = factory.construct(next_resource)   # 0 for node factories
+                subgraph = factory.construct(next_resource)
             except Exception as err:
                 logger.error(f"Encountered error when processing {'nodes' if self._config.work_type == WorkType.NODE else 'relations'} of resource type {next_resource.type}.\n{type(err)}: {err}\n")
                 raise err
 
             with self._config.graph_lock:
                 if self._config.work_type == WorkType.NODE:
-                    self._config.graph.create(subgraph)
+                # We need to loop through all the nodes and test if they need to be 
+                # merged or simply created (merging only possible if __primarykey__ is set)
+                    for node in subgraph.nodes:
+                        if node.__primarykey__ is not None:
+                            # If a primary key is existing we merge the node to the graph
+                            self._config.graph.merge(node)
+                        else:
+                            self._config.graph.create(node)
                 else:
+                    # Relationships are always merged
                     self._config.graph.merge(subgraph)
             
             with self._config.counter_lock:
@@ -89,11 +101,14 @@ class Worker(threading.Thread):
 
     def run(self) -> None:
         logger.debug("Starting Worker " + str(self._worker_id))
-        self.process()
+        try:
+            self.process()
+        except Exception:
+            self._bucket.put(sys.exc_info())
         logger.debug("Exiting Worker " + str(self._worker_id))
     
     def interrupt(self) -> None:
-        """Stops currently running worker"""
+        """Stops currently running worker (Worker will finish currently running convertion)"""
         self._exit_flag = True
 
 class WorkerPool:
@@ -101,38 +116,59 @@ class WorkerPool:
         self._n = num_workers
         self._config = config
         self._workers = []
+        self._bucket = Queue()
 
-    def start_workers(self):
+
+    def run(self):
         for i in range(self._n):
-            self._workers.append(Worker(i, self._config))
+            self._workers.append(Worker(i, self._config, self._bucket))
 
         for worker in self._workers:
             worker.start()
-        
-    def join(self) -> None:
+
+        while not self._config.done:
+            try:
+                exc = self._bucket.get(block=False)
+            except Empty:
+                time.sleep(0.1)
+            else:
+                _, exc_obj, _ = exc
+                logger.error(f"Cleaning up...")
+                self.interrupt()
+                self.join()
+                raise exc_obj
+        self.join()
+
+    def interrupt(self):
         # send sigint
         for worker in self._workers:
             worker.interrupt()
-
+    
+    def join(self) -> None:
         # wait for join
         for worker in self._workers:
             worker.join()
         
 class Converter:
-    is_instantiated = False
+    _is_instantiated = False
+    _instantiation_time = None
 
     def __init__(self, config_filename: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 20) -> None:
-        if Converter.is_instantiated:
+        if Converter._is_instantiated:
             logger.warn(f"Reinstantiating Converter, only one valid instance possible. Reinstantiation invalidates the old instance.")
         self._iterator = iterator
         self._graph = graph
         self._factories = parse(config_filename)
         self._num_workers = num_workers
-        self._processed_nodes = False # This is used to persist progress
+
         # register the node matcher
         Matcher.graph_matcher = NodeMatcher(graph)
 
-        Converter.is_instantiated = True
+        # Only one converter can exist, since we use global properties for the node matcher
+        # TODO: fix this? Is it necessary though? Could just stay a singleton.
+        Converter._is_instantiated = True
+        Converter._instantiation_time = time.time()
+        self._instantiation_time = Converter._instantiation_time
 
     @property
     def iterator(self) -> ResourceIterator:
@@ -144,24 +180,34 @@ class Converter:
         """Sets the resource iterator"""
         self._iterator = iterator
 
+    def _is_valid_instance(self):
+        if self._instantiation_time > Converter._instantiation_time:
+            raise Exception("Only one converter can exist per process and this converter is no longer valid, since a new one has been created.")
+    
     def __call__(self) -> None:
         """Runs the convertion and commits the produced nodes and relations to the graph"""
+        self._is_valid_instance()
+
+        logger.info(f"Running convertion with {self._num_workers} parallel workers.")
+
         start = time.time()
 
         n_nodes = 0
         n_relations = 0
 
-        if not self._processed_nodes:
-            worker_config = WorkerConfig(self.iterator, self._factories, WorkType.NODE, self._graph)
-            pool = WorkerPool(self._num_workers, worker_config)
+        logger.info("Starting creation of nodes.")
+        
+        worker_config = WorkerConfig(self.iterator, self._factories, WorkType.NODE, self._graph)
+        pool = WorkerPool(self._num_workers, worker_config)
 
-            logger.info("Starting creation of nodes.")
-
-            pool.start_workers()
-            while not worker_config.done:
-                time.sleep(0.5) # wait for workers to exit
+        try:
+            pool.run()
+        except KeyboardInterrupt as e:
+            # Cleanup
+            pool.interrupt()
             pool.join()
-            n_nodes += worker_config.counter
+            raise e
+        n_nodes += worker_config.counter
 
         # Create relations
         logger.info("Starting creation of relations.")
@@ -170,11 +216,13 @@ class Converter:
         worker_config = WorkerConfig(self.iterator, self._factories, WorkType.RELATION, self._graph)
         pool = WorkerPool(self._num_workers, worker_config)
 
-        pool.start_workers()
-        while not worker_config.done:
-            time.sleep(0.5) # wait for workers to exit
-        pool.join()
-
+        try:
+            pool.run()
+        except KeyboardInterrupt as e:
+            # Cleanup
+            pool.interrupt()
+            pool.join()
+            raise e        
         n_relations += worker_config.counter
 
         logger.info(f"Processed {n_nodes} nodes and {n_relations} relations (took {int(time.time()-start)}s)")

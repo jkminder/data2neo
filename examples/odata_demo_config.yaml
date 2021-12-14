@@ -1,29 +1,7 @@
 ENTITY("Person"):
     NODE("Person") person:
-        - ID = Person.ID
-        - FirstName = Person.FirstName
-        - LastName = Person.LastName
-        - Astaticattr = "HelloWorld!"
-    NODE("Language") language:
-        - ShortName = Person.NativeLanguage
-    RELATION(person, "speaks", language):
-        - Since = Person.DateOfBirth
-
-
-
-
-
-
-
-
-
-
-
-
-# IGNORE
-ENTITY("Person"):
-    NODE("Person") person:
-        - ID = Person.ID
+        + ID = Person.ID # This is a primary attribute, meaning that all Person nodes with the same ID are merged
+                         # Only one primary key is possible per node. If no primary keys are specified a new node is created everytime.
         - FirstName = Person.FirstName
         - LastName = append(Person.LastName, " I appended something")
         - Astaticattr = "HelloWorld!"
