@@ -36,7 +36,8 @@ class WorkType(IntEnum):
 class WorkerConfig:
     def __init__(self,iterator: ResourceIterator, factories: Dict[str, Tuple["SupplyChain", "SupplyChain"]],
                 work_type: WorkType, 
-                graph: Graph) -> None:
+                graph: Graph,
+                progress_bar: "tqdm.tqdm" = None) -> None:
         self.iterator = iterator
         self.done = False
         self.iterator_lock = threading.Lock()
@@ -50,6 +51,8 @@ class WorkerConfig:
 
         self.counter = 0
         self.counter_lock = threading.Lock()
+
+        self.progress_bar = progress_bar
 
 class Worker(threading.Thread):
     def __init__(self, id: int, config: WorkerConfig, bucket: Queue) -> None:
@@ -98,6 +101,10 @@ class Worker(threading.Thread):
                     self._config.counter += len(subgraph.nodes)
                 else:
                     self._config.counter += len(subgraph.relationships)
+
+            # Update the progress bar if enabled
+            if self._config.progress_bar is not None:
+                self._config.progress_bar.update(1)
 
     def run(self) -> None:
         logger.debug("Starting Worker " + str(self._worker_id))
@@ -170,6 +177,7 @@ class Converter:
         Converter._instantiation_time = time.time()
         self._instantiation_time = Converter._instantiation_time
 
+
     @property
     def iterator(self) -> ResourceIterator:
         """Gets the resource iterator"""
@@ -181,23 +189,35 @@ class Converter:
         self._iterator = iterator
 
     def _is_valid_instance(self):
-        if self._instantiation_time > Converter._instantiation_time:
-            raise Exception("Only one converter can exist per process and this converter is no longer valid, since a new one has been created.")
+        if self._instantiation_time < Converter._instantiation_time:
+            raise Exception("This converter is no longer a valid instance. Only 1 valid instance per process exists and all old instances are invalidated.")
     
-    def __call__(self) -> None:
-        """Runs the convertion and commits the produced nodes and relations to the graph"""
+    def __call__(self, progress_bar: "tdqd.tqdm" = None) -> None:
+        """Runs the convertion and commits the produced nodes and relations to the graph
+        
+        Args:
+            progress_bar: An optional tqdm instance for a progress bar
+        """
         self._is_valid_instance()
 
+        # Handle progress bar
+        pb = None
+        if progress_bar is not None:
+            pb = progress_bar(total=2*len(self._iterator))
+        
         logger.info(f"Running convertion with {self._num_workers} parallel workers.")
 
         start = time.time()
+
+        # Make sure iterator is reset
+        self.iterator.reset_to_first()
 
         n_nodes = 0
         n_relations = 0
 
         logger.info("Starting creation of nodes.")
         
-        worker_config = WorkerConfig(self.iterator, self._factories, WorkType.NODE, self._graph)
+        worker_config = WorkerConfig(self.iterator, self._factories, WorkType.NODE, self._graph, pb)  
         pool = WorkerPool(self._num_workers, worker_config)
 
         try:
@@ -213,7 +233,7 @@ class Converter:
         logger.info("Starting creation of relations.")
         self.iterator.reset_to_first()
 
-        worker_config = WorkerConfig(self.iterator, self._factories, WorkType.RELATION, self._graph)
+        worker_config = WorkerConfig(self.iterator, self._factories, WorkType.RELATION, self._graph, pb)
         pool = WorkerPool(self._num_workers, worker_config)
 
         try:

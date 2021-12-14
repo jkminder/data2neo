@@ -28,6 +28,11 @@ class ResourceIterator(ABC):
         """Resets the iterator to point to the first element"""
         pass
 
+    @abstractmethod
+    def __len__(self) -> None:
+        """Returns the total amount of resources in the iterator"""
+        pass
+
 class IteratorIterator(ResourceIterator):
     """Allows to Iterator over a list of Iterators"""
 
@@ -59,3 +64,10 @@ class IteratorIterator(ResourceIterator):
         self._i = 0
         for iterator in self._iterators:
             iterator.reset_to_first()
+
+    def __len__(self) -> None:
+        """Returns the total amount of resources in the iterator"""
+        total = 0
+        for iterator in self._iterators:
+            total += len(iterator)
+        return total
