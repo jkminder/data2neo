@@ -3,7 +3,8 @@ from setuptools import find_packages, setup
 requirements = [
     'py2neo>=2021.2.3',
     'pyodata>=1.7.1',
-    'tqdm>=4.62.3'
+    'pandas>=1.3.4',
+    'PyYAML>=6.0'
 ]
 
 setup(
