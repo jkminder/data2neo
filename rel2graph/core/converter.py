@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Main module that converts Relational Database entities into graphs
+Main module that converts Relational Database entities into graphs.
 
 authors: Julian Minder
 """
@@ -21,7 +21,7 @@ from .resource_iterator import ResourceIterator
 from .factories.registrar import register_factory
 from .graph_elements import NodeMatcher, Graph
 from .factories.matcher import Matcher
-from .config_parser import _index_of_closing_bracket, parse
+from .config_parser import parse
 import threading
 import time
 
@@ -34,10 +34,37 @@ class WorkType(IntEnum):
     RELATION = 1
 
 class WorkerConfig:
-    def __init__(self,iterator: ResourceIterator, factories: Dict[str, Tuple["SupplyChain", "SupplyChain"]],
+    """Config container including information, data and configuration of the convertion that has to be done.
+    
+    Attributes:
+        iterator:  A resource iterator containing the resource that need to be converted
+        iterator_lock: A lock for access to the iterator
+        done: A bool signifying where the conversion is done
+        factories: The factories that are used to convert the resources. A dictionary of <resource type, tuple<node factories, relation factoires>>
+        factories_lock: A lock for access to the factories
+        work_type: An enum specifying whether nodes or relations should be processed
+        graph: The graph object
+        graph_lock: The lock for access to the graph
+        counter: Amount of processed objects
+        counter_lock: A lock for access to the counter
+        progress_bar: An optional progress bar
+    """
+
+    def __init__(self, iterator: ResourceIterator, 
+                factories: Dict[str, Tuple["SupplyChain", "SupplyChain"]],
                 work_type: WorkType, 
                 graph: Graph,
                 progress_bar: "tqdm.tqdm" = None) -> None:
+        """Initialises a Worker config with the required data.
+        
+        Args:
+            iterator:  A resource iterator containing the resource that need to be converted
+            factories: The factories that are used to convert the resources. A dictionary of <resource type, tuple<node factories, relation factoires>>
+            work_type: An enum specifying whether nodes or relations should be processed
+            graph: The graph object, where the converted data is commited to
+            progress_bar: An optional progress bar object, that is updated for each completed conversion of a resource with progress_bar.update(1).
+                Suggested usage is with the tqdm module.
+        """
         self.iterator = iterator
         self.done = False
         self.iterator_lock = threading.Lock()
@@ -55,7 +82,16 @@ class WorkerConfig:
         self.progress_bar = progress_bar
 
 class Worker(threading.Thread):
+    """The Worker does the main conversion. It is build to be parallelised."""
+
     def __init__(self, id: int, config: WorkerConfig, bucket: Queue) -> None:
+        """Initialises a Worker.
+        
+        Args:
+            id: The worker id. Is only used for logging.
+            config: The worker config, specifying all details of the work
+            bucket: An exception queue. The worker puts any exception happening during execution in this queue.
+        """
         threading.Thread.__init__(self)
         self._worker_id = id
         self._config = config
@@ -63,13 +99,18 @@ class Worker(threading.Thread):
         self._exit_flag = False
 
     def process(self) -> None:
+        """
+        Main conversion processing. While the worker is not notified to stop (with the exit flag), 
+        it repeatedly askes the iterator for a next resource to process. If the iterator reports that the
+        data is traversed fully, the method returns.
+        """
         while not self._exit_flag:
             with self._config.iterator_lock:
                 next_resource = self._config.iterator.next()
 
             if next_resource is None:
                 self._config.done = True
-                return None # Processed all data -> worker is done
+                return # Processed all data -> worker is done
 
             logger.debug(f"Worker {self._worker_id}: Processing resource type: '{next_resource.type}'")
 
@@ -107,6 +148,10 @@ class Worker(threading.Thread):
                 self._config.progress_bar.update(1)
 
     def run(self) -> None:
+        """
+        Logs the start and end of the worker process. If an exception happens during processing
+        it is catched and put in the exception bucket.
+        """
         logger.debug("Starting Worker " + str(self._worker_id))
         try:
             self.process()
@@ -119,56 +164,86 @@ class Worker(threading.Thread):
         self._exit_flag = True
 
 class WorkerPool:
+    """The worker pool manages a pool of workers and abstracts any interaction with them."""
+
     def __init__(self, num_workers: int, config: WorkerConfig) -> None:
+        """Initialises a worker pool. 
+        
+        Args:
+            num_workers: Number of workers in the pool.
+            config: The worker config. Is passed to all workers.
+        """
         self._n = num_workers
         self._config = config
         self._workers = []
         self._bucket = Queue()
 
 
-    def run(self):
+    def run(self) -> None:
+        """
+        Creates the workers, starts them and waits for all of them to finish. If one
+        of the workers reports an exception, it interrupts all other workers and once all have
+        returns it propagates the exception further up.
+        """
         for i in range(self._n):
             self._workers.append(Worker(i, self._config, self._bucket))
 
         for worker in self._workers:
             worker.start()
 
+        # main loop 
         while not self._config.done:
+            # Check if an exception has been raised
             try:
                 exc = self._bucket.get(block=False)
             except Empty:
+                # Wait a bit
                 time.sleep(0.1)
             else:
+                # Exception has been raised -> clean up workers
                 _, exc_obj, _ = exc
                 logger.error(f"Cleaning up...")
                 self.interrupt()
                 self.join()
                 raise exc_obj
+        # wait for all workers to finish
         self.join()
 
-    def interrupt(self):
-        # send sigint
+    def interrupt(self) -> None:
+        """Sends iterruption signal to all workers."""
         for worker in self._workers:
             worker.interrupt()
     
     def join(self) -> None:
+        """Waits for all workers to finish."""
         # wait for join
         for worker in self._workers:
             worker.join()
         
 class Converter:
+    """The converter handles the whole conversion pipeline."""
     _is_instantiated = False
     _instantiation_time = None
 
     def __init__(self, config_filename: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 20) -> None:
+        """Initialises a converter. Note that this is a singleton and only the most recent instantiation is valid.
+        
+        Args:
+            config_filename: Path of the schema config file.
+            iterator: The resource iterator.
+            graph: The neo4j graph (from py2neo)
+            num_workers: The number of parallel workers. Please make sure that your usage supports parallelism. To use serial processing set this to 1. (default: 20)
+        """
         if Converter._is_instantiated:
             logger.warn(f"Reinstantiating Converter, only one valid instance possible. Reinstantiation invalidates the old instance.")
         self._iterator = iterator
         self._graph = graph
-        self._factories = parse(config_filename)
         self._num_workers = num_workers
 
-        # register the node matcher
+        # Parse the schema and compile it into factories
+        self._factories = parse(config_filename)
+
+        # register the node matcher -> TODO: maybe find a better solution than global variable. Problem is inclusion in compiler. Would also fix the singleton issue.
         Matcher.graph_matcher = NodeMatcher(graph)
 
         # Only one converter can exist, since we use global properties for the node matcher
@@ -188,16 +263,22 @@ class Converter:
         """Sets the resource iterator"""
         self._iterator = iterator
 
-    def _is_valid_instance(self):
+    def _is_valid_instance(self) -> None:
+        """Tests if a newer instance of the converter exists.
+        
+        Raises:
+            Exception: If a newer converter exists.
+        """
         if self._instantiation_time < Converter._instantiation_time:
             raise Exception("This converter is no longer a valid instance. Only 1 valid instance per process exists and all old instances are invalidated.")
     
     def __call__(self, progress_bar: "tdqd.tqdm" = None) -> None:
-        """Runs the convertion and commits the produced nodes and relations to the graph
+        """Runs the convertion and commits the produced nodes and relations to the graph.
         
         Args:
-            progress_bar: An optional tqdm instance for a progress bar
+            progress_bar: An optional tqdm like instance for a progress bar. 
         """
+        # Test whether converter instance is still valid
         self._is_valid_instance()
 
         # Handle progress bar
@@ -223,7 +304,8 @@ class Converter:
         try:
             pool.run()
         except KeyboardInterrupt as e:
-            # Cleanup
+            # KeyboardInterrupt is raised on the main exec thread
+            # -> Cleanup all workers
             pool.interrupt()
             pool.join()
             raise e

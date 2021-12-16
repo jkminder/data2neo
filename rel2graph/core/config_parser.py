@@ -25,7 +25,7 @@ class ConfigError(ValueError):
     pass
 
 
-"""Represent rules that are applied to the config file for reformating certain modules"""
+"""Represent rules that are applied to the config file for reformating certain modules."""
 _config_module_reformat_rules = [
     ("NODE", "NodeFactory({{attributes}},[{args}],{{primary_key}}, \"{{parent}}.{{id}}\")"),
     ("RELATION", "RelationFactory({{attributes}},{1},{0},{2})"),
