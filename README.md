@@ -6,7 +6,7 @@ The library is built specifically for converting data into a [neo4j](https://neo
 
 
  - [Latest Releases](https://github.com/sg-dev/rel2graph/tags)
- - [Documentation](wiki)
+ - [Documentation](/docs/contents.md)
  
 
 ## Installation
