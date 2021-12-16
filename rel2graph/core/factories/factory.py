@@ -22,20 +22,17 @@ logger = logging.getLogger(__name__)
 class Factory(ABC):
     """Abstract factory for creating GraphElements from a Resource
     
-    Static Attributes:
-        type: Used for Type determination by the registrar (Explicit Type Checking is not possible due to circular dependencies)
     Attributes:
-        id: A string that uniquely identifies this factory instantiation, usually a describing name
+        id: A string that identifies this factory instantiation, usually a describing name
     """
     
     @abstractmethod
     def __init__(self, identifier: str = None) -> None:
-        """Inits Factory with an identifier
+        """Inits Factory with an identifier.
         
         Args:
-            identifier: A string identifying this Factory instance, must be unique. Can be None if factory doesn't need to save unique supplies
-        Raises:
-            ValueError: A identifier is not unique and already in use
+            identifier: A string identifying this Factory instance. Can be None if factory doesn't need to save supplies.
+                (supplies are saved in the resource for later consumption by other factories)
         """
         super().__init__()
 
@@ -55,7 +52,7 @@ class Factory(ABC):
         """Abstract function for constructing a GraphElement from a Resource.
 
         Args:
-            resource: A Resource containing any information needed for the construction
+            resource: A Resource containing any information needed for the construction.
         Returns:
             A GraphElement (SubGraph or Attribute)
         """
@@ -67,7 +64,7 @@ class SubGraphFactory(Factory):
     """Abstract factory for creating SubGraphs from a Resource.
         
     Attributes:
-        identifier: A string identifying this Factory instance, must be unique
+        identifier: A string identifying this Factory instance.
     """
 
     @abstractmethod
@@ -98,14 +95,14 @@ class AttributeFactory(Factory):
         entity_attribute: A key of an attribute of the expected resource entity.
     """
 
-    def __init__(self, attribute_key: str, entity_attribute: str, static_attribute_value: str = None, primary_key: bool = False, identifier: str = None) -> None:
+    def __init__(self, attribute_key: str, entity_attribute: str, static_attribute_value: str = None, identifier: str = None) -> None:
         """Inits an AttributeFactory with the following arguments.
         
         Args:
             attribute_key: The key that any produced Attribute should have.
             entity_attribute: The key of the attribute that is extracted from the resource entity.
             static_attribute_value: (default: None) If this is set, then any produced attribute will have this static value.
-            identifier: A string identifying this Factory instance. Can be None if factory doesn't need to save supplies
+            identifier: A string identifying this Factory instance. Can be None if factory doesn't need to save supplies.
         """
         super().__init__(identifier)
         self._attribute_key = attribute_key

@@ -16,27 +16,26 @@ class Matcher:
     Static Attributes:
         graph_matcher: The graph matcher that is used to query the graph, must be set before querying
     """
-    graph_matcher = None
+    graph_matcher: NodeMatcher = None
 
 
     def __init__(self, node_id: str = None, *conditions: 'AttributeFactory') -> None:
-        """Inits a Matcher with either a node_id XOR a list of labels and conditions
+        """Inits a Matcher with either a node_id XOR a list of conditions
         
-        The object musst be initiated by either a node_id (exclusive) or a list of labels 
-        and conditions. If labels and conditions are set, the matcher will query the graph
-        for nodes matching all labels and all conditions. The condition represents a pair 
-        of a string (key) and a attributefactory that produces a value, 
-        such that the condition is true if node.key is exactly the value.
+        The object musst be initiated by either a node_id (exclusive) or a list conditions. 
+        Based on if an attribute_key is set, a condition is interpreted as 
+        label or as attribute condition. If conditions are set, the matcher will query the graph
+        for nodes matching all labels and all attribute conditions.
 
         Args:
             node_id: String that represents a unique node. The matcher will assume that the
                      searched node can be found in resources.supplies[node_id] upon calling
                      match(resource).
 
-            labels: Labels that the matcher will use to search the graph
-            conditions: Conditions (pair of Key (str) and AttributeFactory)
+            conditions: List of Conditions (AttributeFactories). If the attribute_key of the AttributeFactory
+                        is not set its interpreted as an label condition, else an attribute condition.
         Raises:
-            ValueError: Both node_id and labels or conditions are provided
+            ValueError: Neither node_id nor conditions are provided or no node_id and no label in conditions
         """
         if node_id is None and len(conditions) == 0:
             raise ValueError("Matcher: Either node_id and labels or conditions must be provided")

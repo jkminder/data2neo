@@ -18,7 +18,7 @@ from .factory import AttributeFactory, Factory, SubGraphFactory
 from .registrar import register_factory
 
 
-class FactoryWrapper(ABC):
+class FactoryWrapper(Factory, ABC):
     """Abstract FactoryWrapper that allows to insert pre and postprocessor functions that are called before and after 
     .construct of the wrapped factory. 
     

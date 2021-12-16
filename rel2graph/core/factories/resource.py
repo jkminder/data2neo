@@ -9,6 +9,7 @@ authors: Julian Minder
 """
 
 from abc import ABC, abstractmethod
+from typing import Dict, Any
 
 class Resource(ABC):
     """Abstract Factory Resource container
@@ -16,36 +17,35 @@ class Resource(ABC):
     Contains everything a factory needs to produce its output. 
     """
     def __init__(self) -> None:
-        """Inits a Resource
-        """
+        """Inits a Resource"""
         self._supplies = {}
 
     @property
-    def supplies(self):
+    def supplies(self) -> Dict:
         """Returns access to supplies from past factories"""
         return self._supplies
 
     @property
     @abstractmethod
-    def type(self):
+    def type(self) -> str:
         """Returns the type of the resource. Is used to select correct factory"""
         pass
 
     @abstractmethod
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> str:
         """
         Gets the value with key 'key'. 
         """
         pass
     
     @abstractmethod
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: str) -> None:
         """
         Sets the value of with key 'key'.
         """
         pass
 
-    def clear_supplies(self):
+    def clear_supplies(self) -> None:
         """Clears the supplies"""
         self._supplies.clear()
 

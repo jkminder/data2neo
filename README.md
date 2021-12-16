@@ -6,7 +6,7 @@ The library is built specifically for converting data into a [neo4j](https://neo
 
 
  - [Latest Releases](https://github.com/sg-dev/rel2graph/tags)
- - *Documentation - coming soon*
+ - [Documentation](wiki)
  
 
 ## Installation
@@ -77,8 +77,7 @@ converter = Converter("schema.yaml", iterator, graph)
 converter()
 ```
 
-
 [latest_version]: v0.1.1
 [latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v0.1.1
 [latest_wheel]: https://github.com/sg-dev/rel2graph/releases/download/v0.1.1/rel2graph-0.1.1-py3-none-any.whl
-[wiki]: /
+[wiki]: docs/contents.md
