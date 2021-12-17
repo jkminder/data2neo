@@ -18,5 +18,5 @@ coming soon...
 ## Developers
 If you intend to extend the library, please check out the [class diagram of the core of the library](assets/pdfs/class_diagram_core.pdf).
 
-| [⮕ </br>Schema Syntax](schema_syntax.md) |
+| [⭆ </br>Schema Syntax](schema_syntax.md) |
 |----------|
