@@ -3,7 +3,7 @@
 # Schema Syntax
 The *conversion schema* defines, which relational entities are converted to which graph elements (nodes and relations). As we have seen in the [Introduction](introduction.md), the `Converter` expects resources as inputs. A resource is a wrapper around a relational entity. Each resource has a *type* associated with it that corresponds to the *type* of entity it wraps. The *type* must be defined for every `Resource` instance and accessible at `Resource.type`. In the schema file we speficy for each *type* what the `Converter` should do when it encounters this *type*. The schema allows for one-to-one, one-to-many and many-to-one (with the help of [merging](#merging-nodes)) conversions of relational entities to graph elements (nodes and relations).
 
-We define this behavior in the schema file. The file follows a modified schema syntax. We will now look at our example from the [Quick Start](../README.md). 
+We define this behavior in the schema file. The file follows a modified YAML schema syntax. We will now look at our example from the [Quick Start](../README.md). 
 ```yaml
 ENTITY("Flower"):
     NODE("Flower") flower:
