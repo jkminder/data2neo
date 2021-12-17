@@ -46,7 +46,7 @@ class Attribute:
         
         Args:
             key: String signifying the key of the attribute
-            value: Can be any value that is allowed in the graph (String, Int, Float, Bool or a list of them)
+            value: Can be any value that is allowed in the graph (String, Int, Float, Bool)
         """
         super().__init__()
         self._key = key
@@ -59,7 +59,7 @@ class Attribute:
 
     @property
     def value(self):
-        """Any value that is allowed in the graph (String, Int, Float, Bool or a list of them)"""
+        """Any value that is allowed in the graph (String, Int, Float, Bool)"""
         #If the datetime, convert it to string
         if not isinstance(self._value, str):
             return str(self._value)

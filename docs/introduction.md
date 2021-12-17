@@ -4,14 +4,19 @@ This is the documentation for the *rel2graph* library. For developers intending 
 
 ## Table of Contents
 
-- [Quick Start](quickstart.md)
-- [Introduction](#Introduction)
-- [Schema Syntax](schema_syntax.md)
+- [Quick Start](../README.md)
+- [Basics](#Introduction)
+- [Schema Syntax](schema_syntax.md) # Done
+- [Customizing Resource and ResourceIterators](resourcecustomization.md)
 - [Building your own Wrappers](wrappers.md)
 
 
 ## Introduction
-...
-## Devs
+coming soon...
+
+## Basics
+## Developers
 If you intend to extend the library, please check out the [class diagram of the core of the library](assets/pdfs/class_diagram_core.pdf).
 
+| [⮕ </br>Schema Syntax](schema_syntax.md) |
+|----------|

@@ -22,8 +22,6 @@ class FactoryWrapper(Factory, ABC):
     """Abstract FactoryWrapper that allows to insert pre and postprocessor functions that are called before and after 
     .construct of the wrapped factory. 
     
-    Static Attributes:
-        type: Used for Type determination by the registrar (Explicit Type Checking is not possible due to circular dependencies)
     Attributes:
         factory: The wrapped factory
     """
