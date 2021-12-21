@@ -29,7 +29,7 @@ The main converter object handling all the conversion. The converter keeps its p
 
 **Parameters**:
 * **config_filename**: *str*\
-Path to conversion schema configuration file. Must follow the 
+Path to conversion schema configuration file. Must follow the schema syntax.
 * **iterator**: *[ResourceIterator](#resourceiterator)*\
 Iterator of the data that should be converted.
 * **iterator**: *[py2neo.Graph](https://py2neo.org/2021.1/workflow.html#py2neo.Graph)*\
@@ -42,6 +42,7 @@ Number of parallel threads working. Note that only interaction with the resource
 
 **Methods**:
 * **\_\_call\_\_(progress_bar = None, skip_nodes = False, skip_relations = False)**:\
+    Starts the converter.
     **Parameters**:
     * **progress_bar**: [tqdm.tqdm](https://tqdm.github.io/)\
     A custom uninizialised progress bar (link to object). If None, no progress bar is displayed.
@@ -49,7 +50,13 @@ Number of parallel threads working. Note that only interaction with the resource
     EXPERIMENTAL: Will skip processing all nodes. WARNING: Only recommended if you know the library well. Will produce problems with identifiers.
     * *skip_relations*: bool\
     EXPERIMENTAL: Will skip processing all relations. WARNING: Only recommended if you know the library well.
-    
+* **reload_config(config_filename)**:\
+    Reload the conversion schema from disk from the config file.
+    **Parameters**:
+    * **config_filename**: str\
+    Path to conversion schema configuration file. Must follow the schema syntax.
+
+
 **Usage**
 ```python
 # Construct with 1 worker
@@ -177,7 +184,7 @@ Gets the wrapped odata entity.
     **Return type:** str
 * **\_\_getitem__(key)**:\
     Retrieves a value with *key* key from the underlying odata entity.\
-    **Parameters**\
+    **Parameters**:
     * **key**: str\
     The key that should be retrieved from the odata entity.\
     **Return type:** str

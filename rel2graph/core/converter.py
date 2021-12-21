@@ -178,10 +178,15 @@ class Worker(threading.Thread):
         """Stops currently running worker (Worker will finish currently running convertion)"""
         self._exit_flag = True
 
-    def reinstantiate(self) -> None:
-        """Makes the worker ready to restart work"""
+    def reinstantiate(self, bucket: Queue) -> None:
+        """Makes the worker ready to restart work.
+        
+        Args:
+            bucket: An exception queue. The worker puts any exception happening during execution in this queue.
+        """
         threading.Thread.__init__(self, name=self.name)
         self._exit_flag = False
+        self._bucket = bucket
     
 class WorkerPool:
     """The worker pool manages a pool of workers and abstracts any interaction with them."""
@@ -241,8 +246,10 @@ class WorkerPool:
     
     def reinstantiate(self) -> None:
         """Makes the workers ready to restart work"""
+        # Make sure the exception bucket is emtpy
+        self._bucket = Queue()
         for worker in self._workers:
-            worker.reinstantiate()
+            worker.reinstantiate(bucket=self._bucket)
 
     def join(self) -> None:
         """Waits for all workers to finish."""
@@ -307,6 +314,17 @@ class Converter:
         self._processed_nodes = False
         self._processed_relations = False
 
+    def reload_config(self, config_filename: str) -> None:
+        """Can be used to reload the schema configuration, without changing the state
+        of the Converter.
+        
+        Args:
+            config_filename: Path of the schema config file.
+        """
+        self._factories = parse(config_filename)
+        if self._worker_pool is not None:
+            self._worker_pool.config.factories = self._factories
+        
     def _is_valid_instance(self) -> None:
         """Tests if a newer instance of the converter exists.
         
