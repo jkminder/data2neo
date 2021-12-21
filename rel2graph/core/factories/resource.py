@@ -32,6 +32,19 @@ class Resource(ABC):
         pass
 
     @abstractmethod
+    def __repr__(self) -> str:
+        """
+        Gets a string representation of the resource. Only used for logging.
+
+        Should follow the format:
+        NameOfResource 'TypeOfResource' (DetailsAboutResource)
+
+        Example-Implementation:
+        f"{super().__repr__()} ({self.somedetail})"
+        """
+        return f"{self.__class__.__name__} '{self.type}'"
+
+    @abstractmethod
     def __getitem__(self, key) -> str:
         """
         Gets the value with key 'key'. 

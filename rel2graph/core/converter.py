@@ -64,6 +64,7 @@ class WorkerConfig:
             graph: The graph object, where the converted data is commited to
             progress_bar: An optional progress bar object, that is updated for each completed conversion of a resource with progress_bar.update(1).
                 Suggested usage is with the tqdm module.
+            n_resources: A counter for all processed resources
         """
         self.iterator = iterator
         self.done = False
@@ -80,6 +81,7 @@ class WorkerConfig:
         self.counter_lock = threading.Lock()
 
         self.progress_bar = progress_bar
+        self.n_resources = 0
 
 class Worker(threading.Thread):
     """The Worker does the main conversion. It is build to be parallelised."""
@@ -92,11 +94,16 @@ class Worker(threading.Thread):
             config: The worker config, specifying all details of the work
             bucket: An exception queue. The worker puts any exception happening during execution in this queue.
         """
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name=f"Worker-{id}")
         self._worker_id = id
         self._config = config
         self._bucket = bucket
         self._exit_flag = False
+
+        # The work item is used to remember on what resource the worker is working on. 
+        # If an exception is raised during its processing and the cause of the exception is external (network or similar)
+        # the user can restart the converter and the worker will redo the work on work_item -> no element is lost
+        self._work_item = None
 
     def process(self) -> None:
         """
@@ -105,14 +112,19 @@ class Worker(threading.Thread):
         data is traversed fully, the method returns.
         """
         while not self._exit_flag:
-            with self._config.iterator_lock:
-                next_resource = self._config.iterator.next()
+            if self._work_item is not None:
+                # We first test if the worker still has a work item (happens if exception gets raised during execution)
+                next_resource = self._work_item
+            else:
+                with self._config.iterator_lock:
+                    next_resource = self._config.iterator.next()
+                    self._work_item = next_resource
 
             if next_resource is None:
                 self._config.done = True
                 return # Processed all data -> worker is done
 
-            logger.debug(f"Worker {self._worker_id}: Processing resource type: '{next_resource.type}'")
+            logger.debug(f"Processing {next_resource}")
 
             with self._config.factories_lock:
                 factory = self._config.factories[next_resource.type][int(self._config.work_type)]
@@ -120,7 +132,7 @@ class Worker(threading.Thread):
             try:
                 subgraph = factory.construct(next_resource)
             except Exception as err:
-                logger.error(f"Encountered error when processing {'nodes' if self._config.work_type == WorkType.NODE else 'relations'} of resource type {next_resource.type}.\n{type(err)}: {err}\n")
+                logger.error(f"Encountered error when processing {'nodes' if self._config.work_type == WorkType.NODE else 'relations'} of {next_resource}.\n{type(err)}: {err}\n")
                 raise err
 
             with self._config.graph_lock:
@@ -136,8 +148,11 @@ class Worker(threading.Thread):
                 else:
                     # Relationships are always merged
                     self._config.graph.merge(subgraph)
-            
+
+            self._work_item = None # Remove work item
+
             with self._config.counter_lock:
+                self._config.n_resources += 1
                 if self._config.work_type == WorkType.NODE:
                     self._config.counter += len(subgraph.nodes)
                 else:
@@ -163,6 +178,11 @@ class Worker(threading.Thread):
         """Stops currently running worker (Worker will finish currently running convertion)"""
         self._exit_flag = True
 
+    def reinstantiate(self) -> None:
+        """Makes the worker ready to restart work"""
+        threading.Thread.__init__(self, name=self.name)
+        self._exit_flag = False
+    
 class WorkerPool:
     """The worker pool manages a pool of workers and abstracts any interaction with them."""
 
@@ -178,6 +198,10 @@ class WorkerPool:
         self._workers = []
         self._bucket = Queue()
 
+    @property
+    def config(self) -> WorkerConfig:
+        """Returns the pool config"""
+        return self._config
 
     def run(self) -> None:
         """
@@ -185,8 +209,9 @@ class WorkerPool:
         of the workers reports an exception, it interrupts all other workers and once all have
         returns it propagates the exception further up.
         """
-        for i in range(self._n):
-            self._workers.append(Worker(i, self._config, self._bucket))
+        if len(self._workers) == 0:
+            for i in range(self._n):
+                self._workers.append(Worker(i, self._config, self._bucket))
 
         for worker in self._workers:
             worker.start()
@@ -214,6 +239,11 @@ class WorkerPool:
         for worker in self._workers:
             worker.interrupt()
     
+    def reinstantiate(self) -> None:
+        """Makes the workers ready to restart work"""
+        for worker in self._workers:
+            worker.reinstantiate()
+
     def join(self) -> None:
         """Waits for all workers to finish."""
         # wait for join
@@ -252,6 +282,16 @@ class Converter:
         Converter._instantiation_time = time.time()
         self._instantiation_time = Converter._instantiation_time
 
+        # State information
+        self._processed_nodes = False
+        self._processed_relations = False
+
+        # Progress counters
+        self._n_nodes = 0
+        self._n_relations = 0
+
+        # Worker pool
+        self._worker_pool = None
 
     @property
     def iterator(self) -> ResourceIterator:
@@ -263,6 +303,10 @@ class Converter:
         """Sets the resource iterator"""
         self._iterator = iterator
 
+        # Update state
+        self._processed_nodes = False
+        self._processed_relations = False
+
     def _is_valid_instance(self) -> None:
         """Tests if a newer instance of the converter exists.
         
@@ -272,59 +316,83 @@ class Converter:
         if self._instantiation_time < Converter._instantiation_time:
             raise Exception("This converter is no longer a valid instance. Only 1 valid instance per process exists and all old instances are invalidated.")
     
-    def __call__(self, progress_bar: "tdqd.tqdm" = None) -> None:
+    def _setup_worker_pool(self, type, pb = None) -> None:
+        if self._worker_pool is None:
+                config = WorkerConfig(self.iterator, self._factories, type,  self._graph, pb)  
+                self._worker_pool = WorkerPool(self._num_workers, config)
+        else:
+            logger.info("Continuing previous work...")
+            self._worker_pool.reinstantiate()
+    
+    def __call__(self, progress_bar: "tdqd.tqdm" = None, skip_nodes = False, skip_relations = False) -> None:
         """Runs the convertion and commits the produced nodes and relations to the graph.
         
         Args:
             progress_bar: An optional tqdm like instance for a progress bar. 
+            skip_nodes: (default: False) If true creation of nodes will be skiped. ATTENTION: this might lead to problems if you use identifiers.
+            skip_relation: If true creation of relations will be skiped (default: False)
         """
         # Test whether converter instance is still valid
         self._is_valid_instance()
 
-        # Handle progress bar
+        # Handle progress bar (create new or update it)
         pb = None
         if progress_bar is not None:
             pb = progress_bar(total=2*len(self._iterator))
-        
+            if self._processed_nodes:
+                pb.update(len(self._iterator))
+            if self._worker_pool is not None:
+                self._worker_pool.config.progress_bar = pb
+                self._worker_pool.config.progress_bar.update(self._worker_pool.config.n_resources)
+        else:
+            if self._worker_pool is not None:
+                self._worker_pool.config.progress_bar = None
+            
         logger.info(f"Running convertion with {self._num_workers} parallel workers.")
 
         start = time.time()
 
-        # Make sure iterator is reset
-        self.iterator.reset_to_first()
+        if not skip_nodes and not self._processed_nodes:
+            self._setup_worker_pool(WorkType.NODE, pb)
+                
+            logger.info("Starting creation of nodes.")
 
-        n_nodes = 0
-        n_relations = 0
+            try:
+                self._worker_pool.run()
+            except KeyboardInterrupt as e:
+                # KeyboardInterrupt is raised on the main exec thread
+                # -> Cleanup all workers
+                self._worker_pool.interrupt()
+                self._worker_pool.join()
+                raise e
+            self._n_nodes += self._worker_pool.config.counter
 
-        logger.info("Starting creation of nodes.")
-        
-        worker_config = WorkerConfig(self.iterator, self._factories, WorkType.NODE, self._graph, pb)  
-        pool = WorkerPool(self._num_workers, worker_config)
+            # Clean up after nodes creation
+            self.iterator.reset_to_first()
+            self._processed_nodes = True # update state
+            self._worker_pool = None 
+        else:
+            logger.info("Skipping creation of nodes.")
 
-        try:
-            pool.run()
-        except KeyboardInterrupt as e:
-            # KeyboardInterrupt is raised on the main exec thread
-            # -> Cleanup all workers
-            pool.interrupt()
-            pool.join()
-            raise e
-        n_nodes += worker_config.counter
+        if not self._processed_relations and not skip_relations:    
+            # Create relations
+            logger.info("Starting creation of relations.")
 
-        # Create relations
-        logger.info("Starting creation of relations.")
-        self.iterator.reset_to_first()
+            self._setup_worker_pool(WorkType.RELATION, pb)
 
-        worker_config = WorkerConfig(self.iterator, self._factories, WorkType.RELATION, self._graph, pb)
-        pool = WorkerPool(self._num_workers, worker_config)
+            try:
+                self._worker_pool.run()
+            except KeyboardInterrupt as e:
+                # KeyboardInterrupt is raised on the main exec thread
+                # -> Cleanup all workers
+                self._worker_pool.interrupt()
+                self._worker_pool.join()
+                raise e
+            self._n_relations += self._worker_pool.config.counter
 
-        try:
-            pool.run()
-        except KeyboardInterrupt as e:
-            # Cleanup
-            pool.interrupt()
-            pool.join()
-            raise e        
-        n_relations += worker_config.counter
+            # Update state
+            self._processed_relations = True
+        else:
+            logger.info("Skipping creation of relations.")
 
-        logger.info(f"Processed {n_nodes} nodes and {n_relations} relations (took {int(time.time()-start)}s)")
+        logger.info(f"Processed in total {self._n_nodes} nodes and {self._n_relations} relations (this run took {int(time.time()-start)}s)")

@@ -44,6 +44,12 @@ class PandasDataframeResource(Resource):
         # We make sure that we don't change the initial series and keep track of changes in the resource
         self._changed_values[key] = value
 
+    def __repr__(self) -> str:
+        """
+        Gets a string representation of the resource. Only used for logging.
+        """
+        return f"{super().__repr__()} (row {self._series.name})"
+
 class PandasDataframeIterator(ResourceIterator):
     """Implements a Iterator that works based on a list of oData Entities."""
 

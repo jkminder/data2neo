@@ -39,6 +39,12 @@ class ODataResource(Resource):
         """
         setattr(self._entity, key, value)
 
+    def __repr__(self) -> str:
+        """
+        Gets a string representation of the resource. Only used for logging.
+        """
+        return f"{super().__repr__()} {self._entity}"
+
     @property
     def odata_entity(self):
         """Returns the oData Entity behind the resource"""
