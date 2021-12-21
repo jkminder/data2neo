@@ -10,9 +10,9 @@ The library is built specifically for converting data into a [neo4j](https://neo
  
 
 ## Installation
-If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v0.1.1][latest_tag]):
+If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v0.2.1][latest_tag]):
 ```
-$ pip install git+ssh://git@github.com/sg-dev/rel2graph@v0.1.1
+$ pip install git+ssh://git@github.com/sg-dev/rel2graph@v0.2.1
 ```
 
 If you don't have ssh set up, download the latest wheel [here][latest_wheel] and install the wheel with:
@@ -77,7 +77,7 @@ converter = Converter("schema.yaml", iterator, graph)
 converter()
 ```
 
-[latest_version]: v0.1.1
-[latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v0.1.1
+[latest_version]: v0.2.1
+[latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v0.2.1
 [latest_wheel]: https://github.com/sg-dev/rel2graph/releases/download/v0.1.1/rel2graph-0.1.1-py3-none-any.whl
 [wiki]: docs/introduction.md
