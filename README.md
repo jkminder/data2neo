@@ -7,7 +7,7 @@ The library is built specifically for converting data into a [neo4j](https://neo
 
  - [Latest Releases](https://github.com/sg-dev/rel2graph/tags)
  - [Documentation][wiki]
- 
+ - [Developer Interface](docs/api.md)
 
 ## Installation
 If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v0.1.1][latest_tag]):

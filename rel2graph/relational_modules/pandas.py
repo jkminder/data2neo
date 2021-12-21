@@ -14,10 +14,17 @@ import pandas as pd
 
 
 
-class PandasDataframeResource(Resource):
-    """Implementation of the oData Resource. Enables access to an odata entity"""
+class PandasSeriesResource(Resource):
+    """Implementation of the pandas Resource. Enables access to an pandas series"""
 
     def __init__(self, series: pd.core.series.Series, type: str) -> None:
+        """
+        Wraps a pandas series and is used as input data object for the converter. May hold additional supplies to pass data between factories.
+        
+        Args:
+            series: Wrapped pandas series.
+            type: Name of type that this series is an entity of.
+        """
         super().__init__()
         self._series = series
         self._type = type
@@ -28,6 +35,11 @@ class PandasDataframeResource(Resource):
         """Returns the type of the resource. Is used to select correct factory"""
         return self._type
 
+    @property
+    def series(self):
+        """Gets the wrapped pandas series"""
+        return self._series
+        
     def __getitem__(self, key):
         """
         Gets the value with key 'key'. 
@@ -55,10 +67,10 @@ class PandasDataframeIterator(ResourceIterator):
 
     def __init__(self, dataframe: pd.core.frame.DataFrame, type: str) -> None:
         super().__init__()
-        self._rows = [PandasDataframeResource(dataframe.loc[i], type) for i in range(len(dataframe))]
+        self._rows = [PandasSeriesResource(dataframe.loc[i], type) for i in range(len(dataframe))]
         self._i = -1
 
-    def next(self) -> Resource:
+    def next(self) -> PandasSeriesResource:
         """Gets the next resource. Returns None if the range is traversed"""
         self._i += 1
         if self._i >= len(self._rows):
