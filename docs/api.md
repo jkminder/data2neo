@@ -51,7 +51,7 @@ Number of parallel threads working. Note that only interaction with the resource
     * *skip_relations*: bool\
     EXPERIMENTAL: Will skip processing all relations. WARNING: Only recommended if you know the library well.
 * **reload_config(config_filename)**:\
-    Reload the conversion schema from disk from the config file.
+    Reload the conversion schema from disk from the config file.\
     **Parameters**:
     * **config_filename**: str\
     Path to conversion schema configuration file. Must follow the schema syntax.
