@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Tests for OData relational module
+
+authors: Julian Minder
+"""
+
 import pytest
 
 from rel2graph.relational_modules.odata import ODataResource, ODataListIterator
@@ -15,6 +24,7 @@ class DemoEntity:
 
     def __repr__(self):
         return "(OData Entity Representation)"
+        
 @pytest.fixture
 def example_entity():
     return DemoEntity("Max", "Muster", 1, "Person")

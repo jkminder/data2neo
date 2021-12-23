@@ -19,7 +19,7 @@ from .factories import resource
 
 from .resource_iterator import ResourceIterator
 from .factories.registrar import register_factory
-from .graph_elements import NodeMatcher, Graph
+from .graph_elements import NodeMatcher, Graph, SubGraph
 from .factories.matcher import Matcher
 from .config_parser import parse
 import threading
@@ -135,19 +135,27 @@ class Worker(threading.Thread):
                 logger.error(f"Encountered error when processing {'nodes' if self._config.work_type == WorkType.NODE else 'relations'} of {next_resource}.\n{type(err)}: {err}\n")
                 raise err
 
-            with self._config.graph_lock:
-                if self._config.work_type == WorkType.NODE:
+            if self._config.work_type == WorkType.NODE:
                 # We need to loop through all the nodes and test if they need to be 
                 # merged or simply created (merging only possible if __primarykey__ is set)
-                    for node in subgraph.nodes:
-                        if node.__primarykey__ is not None:
-                            # If a primary key is existing we merge the node to the graph
-                            self._config.graph.merge(node)
-                        else:
-                            self._config.graph.create(node)
-                else:
-                    # Relationships are always merged
-                    self._config.graph.merge(subgraph)
+                to_merge = SubGraph() | SubGraph(None, subgraph.relationships) # Relations are merge by default
+                to_create = SubGraph()
+                for node in subgraph.nodes:
+                    if node.__primarykey__ is not None:
+                        # If a primary key is existing we merge the node to the graph
+                        to_merge |= node
+                    else:
+                        to_create |= node
+                
+                # Merging nodes requires serialization (synchronous executions)
+                # Using locks to enforce this
+                with self._config.graph_lock:
+                    self._config.graph.merge(to_merge)
+                # Creating nodes do not rely synchronous executions
+                self._config.graph.create(to_create)
+            else:
+                # Relationships are always merged and do not need to be synchronous
+                self._config.graph.merge(subgraph)
 
             self._work_item = None # Remove work item
 
@@ -258,9 +266,14 @@ class WorkerPool:
             worker.join()
         
 class Converter:
-    """The converter handles the whole conversion pipeline."""
+    """The converter handles the whole conversion pipeline.
+    
+    Args:
+        no_reinstantiation_warnings: Turns of singleton reinstantiation warnings (Default: False)
+    """
     _is_instantiated = False
     _instantiation_time = None
+    no_instantiation_warnings = False
 
     def __init__(self, config_filename: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 20) -> None:
         """Initialises a converter. Note that this is a singleton and only the most recent instantiation is valid.
@@ -271,7 +284,7 @@ class Converter:
             graph: The neo4j graph (from py2neo)
             num_workers: The number of parallel workers. Please make sure that your usage supports parallelism. To use serial processing set this to 1. (default: 20)
         """
-        if Converter._is_instantiated:
+        if Converter._is_instantiated and not Converter.no_instantiation_warnings:
             logger.warn(f"Reinstantiating Converter, only one valid instance possible. Reinstantiation invalidates the old instance.")
         self._iterator = iterator
         self._graph = graph

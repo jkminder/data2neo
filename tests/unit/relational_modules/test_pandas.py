@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Tests for Pandas relational module
+
+authors: Julian Minder
+"""
+
 import pytest
 
 from rel2graph.relational_modules.pandas import PandasSeriesResource, PandasDataframeIterator
