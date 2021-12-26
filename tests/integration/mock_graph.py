@@ -6,6 +6,7 @@ Py2neo mock modules, that emulate the behavior of a neo4j database. Used for tes
 
 authors: Julian Minder
 """
+from threading import Lock
 
 class MockNodeResult:
     def __init__(self, set) -> None:
@@ -41,6 +42,9 @@ class MockGraph:
         self.nodes = []
         self.relations = []
         self.matcher = MockNodeMatcher(self)
+        self.nodes_lock = Lock()
+        self.relations_lock = Lock()
+
     def delete_all(self):
         self.nodes = []
         self.relations = []
@@ -48,13 +52,14 @@ class MockGraph:
     def add_node(self, node):
         node.identity = MockGraph.current_node_id
         MockGraph.current_node_id += 1
-        self.nodes.append(node)
+        with self.nodes_lock:
+            self.nodes.append(node)
 
     def create(self, subgraph):
         for node in subgraph.nodes:
             self.add_node(node)
-        
-        self.relations.extend(subgraph.relationships)
+        with self.relations_lock:
+            self.relations.extend(subgraph.relationships)
 
     def merge(self, subgraph):
         for relation in subgraph.relationships:
@@ -68,7 +73,8 @@ class MockGraph:
                     for key in relation.keys():
                         rel[key] = relation[key]
             if not found:
-                self.relations.append(relation)
+                with self.relations_lock:
+                    self.relations.append(relation)
 
 
         for node in subgraph.nodes:
