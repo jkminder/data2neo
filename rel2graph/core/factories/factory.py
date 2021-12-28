@@ -184,7 +184,7 @@ class NodeFactory(SubGraphFactory):
             return SubGraph()
         labels = [label_factory.construct(resource) for label_factory in self._labels]
         attributes = [attr_factory.construct(resource) for attr_factory in self._attributes]
-        return Node(labels, attributes, self._primary_key)
+        return Node([l for l in labels if l is not None], [attr for attr in attributes if attr is not None], self._primary_key)
 
 @register_factory
 class RelationFactory(SubGraphFactory):

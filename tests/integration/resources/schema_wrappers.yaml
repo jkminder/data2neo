@@ -1,0 +1,31 @@
+ENTITY("ATTRPRE"):
+  NODE("MyType") node:
+    - First = attr_pre_change(ATTRPRE.First)
+    - Second = attr_pre_condition(ATTRPRE.Second)
+    - Third = attr_pre_new(ATTRPRE.Forth)
+ENTITY("ATTRPOST"):
+  NODE(attr_post_append("MyType")):
+    - First = attr_post_append(ATTRPOST.First)
+    - Second = attr_post_append(attr_post_append(ATTRPOST.Second))
+    - Third = attr_post_append(attr_pre_change(ATTRPOST.First))
+    - Forth = attr_post_append_parametrized(ATTRPOST.Third, "-value")
+ENTITY("ATTRWRAPPER"):
+  NODE("MyType"):
+    - First = AttrWrapper(ATTRWRAPPER.First, "Test1", "Test2")
+ENTITY("SGPRE"):
+  sg_pre_change(NODE("From")) from:
+    - First = SGPRE.First
+  sg_pre_change(NODE("To")) to:
+  sg_pre_condition(NODE("WillNotBeCreated")):
+  sg_pre_change_parametrized(RELATION(from, "relates to", to), "Second", "CHANGED"):
+    - Second = SGPRE.Second
+    - First = SGPRE.First
+  sg_pre_condition(RELATION(from, "notexisting", to)):
+ENTITY("SGPOST"):
+  sg_post_add(NODE("From")) from:
+    - First = SGPOST.First
+  sg_post_condition(NODE("NotExisting")):
+ENTITY("SGWRAPPER"):
+  SGWrapper(NODE("From"), "Test1", "Test2"):
+    - First = SGFULL.First
+    - Fifth = SGFULL.Fifth

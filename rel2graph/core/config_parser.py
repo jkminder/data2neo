@@ -255,7 +255,7 @@ class ConfigEntityCompiler:
         """
         return re.sub(f"([\([{allowed_presymbols}])\s*((\".*?\")||\d*)(?=\s*[]\),])", lambda match : "{0}AttributeFactory(&None,&None,&{1})".format(match.group(1), _escape(match.group(2))), config_str)
 
-    def _precompile_dynamic_nokey_arguments(self, config_str: str, allowed_presymbols="[^\"=]") -> str:
+    def _precompile_dynamic_nokey_arguments(self, config_str: str, allowed_presymbols="(,") -> str:
         """Converts dynamic arguments either from entities or nodes into AttributeFactory Constructor strings.
         If the dynamic argument refers to a node it will copy the attribute string from the saved_attributes dict.
         
@@ -267,9 +267,10 @@ class ConfigEntityCompiler:
             Precompiled string
         """
         # Parse Dynamic Entity Attributes without key
-        for match in re.finditer(f"{allowed_presymbols}\s*(\w*)[^&][.](\w*)", config_str):
-            if match.group(1) == self._entity_type:
-                config_str = re.sub(match.group(0), _convert(match, "AttributeFactory(&None,\"{1}\",&None)"), config_str)
+        for match in re.finditer(f"(?!\"=)([{allowed_presymbols}])\s*(\w+)(?!&)[.](?!&)(\w+)", config_str):
+            print("0:" + str(match.group(0)) + "| 1:" + match.group(2) + "|")
+            if match.group(2) == self._entity_type:
+                config_str = re.sub(match.group(0), _convert(match, "{0}AttributeFactory(&None,\"{2}\",&None)"), config_str)
             else:
                 # TODO: Inefficient since dynamic attributes are recomputed and not extracted
                 # Need structure to dynamically extract information from an existing node
@@ -288,15 +289,16 @@ class ConfigEntityCompiler:
     def _precompile_graph_element(self, config_str: str) -> str:
         """Precompiles a graph element (Node or Relation)"""
         # Convert ids into Matchers
-        for id in self._ids:
-            config_str = re.sub(f"{id}(?!\s*$)", f"Matcher(&\"{{parent}}&.{id}\")", config_str)
+        for id in self._ids: 
+            # The first lookahead makes sure that an even amount of \" are after the match -> the id is not in a string
+            config_str = re.sub(f"([^.])({id})(?=([^\"]*\"[^\"]*\")*[^\"]*$)(?!\s*:\s*$)", f"\g<1>Matcher(&\"{{parent}}&.{id}\")", config_str)
         
         # Parse Static Argument Attributes (no key)
         config_str = self._precompile_static_nokey_arguments(config_str)
 
         # Parse Dynamic Attributes for nodes with key    
         config_str = re.sub("\s*(\w*)\s*[=]\s*((\w*\()*)\s*(\w+)[.](\w*)", lambda match : _convert(match, "{1}AttributeFactory(&\"{0}\",&\"{4}\",&None)"), config_str)
-
+        print("Before", config_str)
         # Parse Dynamic Arguments (no key)
         config_str = self._precompile_dynamic_nokey_arguments(config_str)
 
@@ -389,13 +391,13 @@ class ConfigEntityCompiler:
 
             # Remove compile markers
             precompiled_graph_element = precompiled_graph_element.replace("&", "")
+            print(precompiled_graph_element)
 
             # append to list
             precompiled_entity.append(precompiled_graph_element)
         
         # Convert to instructions
         node_instructions, relation_instructions = _parse_to_instructions(precompiled_entity)
-
         # Compile instructions to factories
         node_factories, relation_factories = _compile(node_instructions), _compile(relation_instructions)
         return self._entity_type, (get_factory("SupplyChain")(node_factories, "NodeSupplyChain"), get_factory("SupplyChain")(relation_factories, "RelationSupplyChain"))

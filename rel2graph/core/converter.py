@@ -147,12 +147,13 @@ class Worker(threading.Thread):
                     else:
                         to_create |= node
                 
+                # Creating nodes do not rely synchronous executions
+                self._config.graph.create(to_create)
+                
                 # Merging nodes requires serialization (synchronous executions)
                 # Using locks to enforce this
                 with self._config.graph_lock:
                     self._config.graph.merge(to_merge)
-                # Creating nodes do not rely synchronous executions
-                self._config.graph.create(to_create)
             else:
                 # Relationships are always merged and do not need to be synchronous
                 self._config.graph.merge(subgraph)

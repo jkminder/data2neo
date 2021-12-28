@@ -1,7 +1,7 @@
 import pandas as pd
 
 ## test input data ##
-schema_file_name = "tests/integration/resources/test_pandas_schema.yaml"
+schema_file_name = "tests/integration/resources/schema_end_to_end.yaml"
 
 no_duplicates = ("Person", pd.DataFrame({
     "ID": [1,2,3,4],
@@ -42,10 +42,10 @@ person_nodes = [
 ]
 
 species_nodes = [
-        (["Species", "BioEntity"], {"Name": "versicolor"}),
-        (["Species", "BioEntity"], {"Name": "virginica"}),
-        (["Species", "BioEntity"], {"Name": "roseabluma"}),
-        (["Species", "BioEntity"], {"Name": "roseabluma"}),
+        (["Species", "BioEntity", "versicolor"], {"Name": "versicolor"}),
+        (["Species", "BioEntity", "virginica"], {"Name": "virginica"}),
+        (["Species", "BioEntity", "roseabluma"], {"Name": "roseabluma"}),
+        (["Species", "BioEntity", "roseabluma"], {"Name": "roseabluma"}),
 ]
 
 flower_nodes = [(["Flower"], {"sepal_length": f["sepal_length"], "sepal_width": f["sepal_width"], 
@@ -53,11 +53,11 @@ flower_nodes = [(["Flower"], {"sepal_length": f["sepal_length"], "sepal_width": 
 
 is_relations = [((["Flower"], {"sepal_length": f["sepal_length"], "sepal_width": f["sepal_width"], 
         "petal_length": f["petal_length"], "petal_width": f["petal_width"]}),"is", 
-        (["Species", "BioEntity"], {"Name": f["species"]}), {}) for f in iris[1].iloc]
+        (["Species", "BioEntity", f["species"]], {"Name": f["species"]}), {}) for f in iris[1].iloc]
 
 likes_relations = [((["Person"], {"ID": p["ID"], "FirstName": p["FirstName"], 
         "Renamed": p["LastName"], "Static": "staticstring"}),"likes", 
-        (["Species", "BioEntity"], {"Name": p["FavoriteFlower"]}), {"Since":"4ever", "EntityAttribute": p["ID"]}) for p in no_duplicates[1].iloc]
+        (["Species", "BioEntity", p["FavoriteFlower"]], {"Name": p["FavoriteFlower"]}), {"Since":"4ever", "EntityAttribute": p["ID"]}) for p in no_duplicates[1].iloc]
 
 person_only_nodes_only_result = {
     "nodes": person_nodes, 

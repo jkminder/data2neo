@@ -6,7 +6,7 @@ from .core.factories.registrar import (
                             register_attribute_preprocessor,
                             register_subgraph_postprocessor,
                             register_subgraph_preprocessor,
-                            register_factory
+                            register_wrapper
                             )
 from .core.factories.matcher import Matcher
 from .core.graph_elements import Attribute

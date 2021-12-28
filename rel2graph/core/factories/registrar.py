@@ -79,3 +79,10 @@ def register_subgraph_preprocessor(function):
     # Static attribute factories. We need to convert them back.
     logger.debug(f"Registered subgraph preprocessor '{function.__name__}'.")
     _registry[function.__name__] = lambda factory, *args: get_factory("SubGraphFactoryWrapper")(factory, lambda resource: function(resource, *[arg.static_attribute_value for arg in args]), None)
+
+def register_wrapper(wrapper):
+    """Registers a full wrapper"""
+    # TODO Slightly ugly fix here since the config parser converts all string arguments to 
+    # Static attribute factories. We need to convert them back.
+    logger.debug(f"Registered wrapper '{wrapper.__name__}'.")
+    _registry[wrapper.__name__] = lambda factory, *args: wrapper(factory,  *[arg.static_attribute_value for arg in args])

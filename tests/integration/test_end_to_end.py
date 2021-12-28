@@ -14,8 +14,8 @@ from rel2graph.relational_modules.pandas import PandasDataframeIterator
 from rel2graph import IteratorIterator
 from mock_graph import MockGraph
 from helpers import compare, update_matcher
-from resources.data import no_duplicates, duplicates, before_update, person_only_nodes_only_result, schema_file_name
-from resources.data import iris, flower_only_result, full_result
+from resources.data_end_to_end import no_duplicates, duplicates, before_update, person_only_nodes_only_result, schema_file_name
+from resources.data_end_to_end import iris, flower_only_result, full_result
 
 # Turn off reinstantiation warnings
 Converter.no_instantiation_warnings = True
