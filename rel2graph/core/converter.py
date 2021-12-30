@@ -176,12 +176,12 @@ class Worker(threading.Thread):
         Logs the start and end of the worker process. If an exception happens during processing
         it is catched and put in the exception bucket.
         """
-        logger.debug("Starting Worker " + str(self._worker_id))
+        logger.debug(f"Starting Worker " + str(self._worker_id))
         try:
             self.process()
         except Exception:
             self._bucket.put(sys.exc_info())
-        logger.debug("Exiting Worker " + str(self._worker_id))
+        logger.debug(f"Exiting Worker " + str(self._worker_id))
     
     def interrupt(self) -> None:
         """Stops currently running worker (Worker will finish currently running convertion)"""
@@ -231,13 +231,19 @@ class WorkerPool:
             worker.start()
 
         # main loop 
-        while not self._config.done:
+        while True:
+            if self._config.done:
+                # wait for all workers to finish
+                self.join()
+                # We still need to check if any of the workers reported an exception
             # Check if an exception has been raised
             try:
                 exc = self._bucket.get(block=False)
             except Empty:
-                # Wait a bit
-                time.sleep(0.1)
+                if self._config.done:
+                    return # all workers done and no exception reported
+                time.sleep(0.00001)
+                continue
             else:
                 # Exception has been raised -> clean up workers
                 _, exc_obj, _ = exc
@@ -245,8 +251,7 @@ class WorkerPool:
                 self.interrupt()
                 self.join()
                 raise exc_obj
-        # wait for all workers to finish
-        self.join()
+
 
     def interrupt(self) -> None:
         """Sends iterruption signal to all workers."""
@@ -356,7 +361,7 @@ class Converter:
             logger.info("Continuing previous work...")
             self._worker_pool.reinstantiate()
     
-    def __call__(self, progress_bar: "tdqd.tqdm" = None, skip_nodes = False, skip_relations = False) -> None:
+    def __call__(self, progress_bar: "tdqm.tqdm" = None, skip_nodes = False, skip_relations = False) -> None:
         """Runs the convertion and commits the produced nodes and relations to the graph.
         
         Args:

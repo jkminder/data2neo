@@ -268,7 +268,6 @@ class ConfigEntityCompiler:
         """
         # Parse Dynamic Entity Attributes without key
         for match in re.finditer(f"(?!\"=)([{allowed_presymbols}])\s*(\w+)(?!&)[.](?!&)(\w+)", config_str):
-            print("0:" + str(match.group(0)) + "| 1:" + match.group(2) + "|")
             if match.group(2) == self._entity_type:
                 config_str = re.sub(match.group(0), _convert(match, "{0}AttributeFactory(&None,\"{2}\",&None)"), config_str)
             else:
@@ -298,7 +297,7 @@ class ConfigEntityCompiler:
 
         # Parse Dynamic Attributes for nodes with key    
         config_str = re.sub("\s*(\w*)\s*[=]\s*((\w*\()*)\s*(\w+)[.](\w*)", lambda match : _convert(match, "{1}AttributeFactory(&\"{0}\",&\"{4}\",&None)"), config_str)
-        print("Before", config_str)
+
         # Parse Dynamic Arguments (no key)
         config_str = self._precompile_dynamic_nokey_arguments(config_str)
 
@@ -391,7 +390,6 @@ class ConfigEntityCompiler:
 
             # Remove compile markers
             precompiled_graph_element = precompiled_graph_element.replace("&", "")
-            print(precompiled_graph_element)
 
             # append to list
             precompiled_entity.append(precompiled_graph_element)

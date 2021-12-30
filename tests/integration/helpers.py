@@ -1,4 +1,7 @@
+import logging
 from rel2graph.core.factories.matcher import Matcher
+from rel2graph import register_subgraph_preprocessor
+from threading import Lock
 
 def update_matcher(graph):
     """Hack to use mock matcher"""
@@ -60,3 +63,23 @@ def compare_relations(graph, result):
 def compare(graph, result):
     compare_nodes(graph, result)
     compare_relations(graph, result)
+
+
+## For state recovery tests
+class StateRecoveryException(Exception):
+    pass
+
+class Counter:
+    count = 0
+    lock = Lock()
+
+@register_subgraph_preprocessor
+def stop_after_10(resource):
+    log = logging.getLogger("rel2graph")
+    with Counter.lock:
+        Counter.count += 1
+        log.debug("Counter:"+ str(Counter.count))
+        if Counter.count > 10:
+            Counter.count = 0
+            raise StateRecoveryException
+    return resource
