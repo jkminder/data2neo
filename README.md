@@ -80,4 +80,4 @@ converter()
 [latest_version]: v0.2.1
 [latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v0.2.1
 [latest_wheel]: https://github.com/sg-dev/rel2graph/releases/download/v0.2.1/rel2graph-0.2.1-py3-none-any.whl
-[wiki]: docs/introduction.md
+[wiki]: docs/documentation.md
