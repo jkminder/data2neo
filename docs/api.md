@@ -43,6 +43,7 @@ Number of parallel threads working. Note that only interaction with the resource
 **Methods**:
 * **\_\_call\_\_(progress_bar = None, skip_nodes = False, skip_relations = False)**:\
     Starts the converter.
+    
     **Parameters**:
     * **progress_bar**: [tqdm.tqdm](https://tqdm.github.io/)\
     A custom uninizialised progress bar (link to object). If None, no progress bar is displayed.
@@ -51,7 +52,8 @@ Number of parallel threads working. Note that only interaction with the resource
     * *skip_relations*: bool\
     EXPERIMENTAL: Will skip processing all relations. WARNING: Only recommended if you know the library well.
 * **reload_config(config_filename)**:\
-    Reload the conversion schema from disk from the config file.\
+    Reload the conversion schema from disk from the config file.
+    
     **Parameters**:
     * **config_filename**: str\
     Path to conversion schema configuration file. Must follow the schema syntax.
@@ -74,8 +76,9 @@ Implements [ResourceIterator](#resourceiterator). Iterates over a list of iterat
 
 **Methods**:
 * **next( )**:\
-    Gets the next resource that should be converted. If an iterator is traversed, it will return the first element of the next iterator in the list of iterators. Returns None if all the iterators are traversed.\
-    **Return type:** [Resource](#resource)\
+    Gets the next resource that should be converted. If an iterator is traversed, it will return the first element of the next iterator in the list of iterators. Returns None if all the iterators are traversed.
+    
+    **Return type:** [Resource](#resource)
 * **reset_to_first( )**:\
     Resets the iterator to point to the first element of the range (of the first iterator).
 * **\_\_len__( )** :\
@@ -112,20 +115,24 @@ The type/name of the resource as a string. Used to determine the correct factory
     ```NameOfResource 'TypeOfResource' (DetailsAboutResource)```\
     Example-Implementation:\
     `return f"{super().__repr__()} ({self.somedetail})"`\
+    
     **Return type:** str
 * 🟨 **\_\_getitem__(key)** :\
     Retrieves a value with key key from the underlying relational entity.
+    
     **Parameters:**
     * **key**: str\
     The key that should be retrieved from the underlying entity.
+    
     **Return type:** str
 * 🟨 **\_\_setitem__(key, value)** :\
-    Sets a value with key key from the underlying relational entity.\
+    Sets a value with key key from the underlying relational entity.
+    
     **Parameters**
     * **key**: str\
     The key that should be set from the underlying entity.
     * **value**: str\
-    The value that should be set in the underlying entity.\
+    The value that should be set in the underlying entity.
  
 * **clear_supplies**( )\
     Clears the supplies.
@@ -141,12 +148,14 @@ Iterates over a range of resources. Since the converter needs to run over the da
 
 **Methods**:
 * 🟨 **next( )** :\
-    Gets the next resource that should be converted. Returns None if the range is traversed.\
+    Gets the next resource that should be converted. Returns None if the range is traversed.
+    
     **Return type:** [Resource](#resource)
 * 🟨 **reset_to_first( )** :\
     Resets the iterator to point to the first element of the range.
 * 🟨 **\_\_len__( )** :\
-    Retrieves the length of the underlying range. Is ONLY used for progress reporting. Can be approximate.\
+    Retrieves the length of the underlying range. Is ONLY used for progress reporting. Can be approximate.
+    
     **Return type:** int
     
 For an example of an implementation of a resource check out [ODataResourceIterator](#odataresourceiterator).
@@ -180,16 +189,20 @@ Gets the wrapped odata entity.
 
 **Methods**:
 * **\_\_repr__( )**:\
-    A string representation of the resource. Used for logging purposes. Returns `ODataResource '{type}' {entity}`. Where type is the resource type and entity the string represenation of the odata entity.\
+    A string representation of the resource. Used for logging purposes. Returns `ODataResource '{type}' {entity}`. Where type is the resource type and entity the string represenation of the odata entity.
+    
     **Return type:** str
 * **\_\_getitem__(key)**:\
-    Retrieves a value with *key* key from the underlying odata entity.\
+    Retrieves a value with *key* key from the underlying odata entity.
+    
     **Parameters**:
     * **key**: str\
-    The key that should be retrieved from the odata entity.\
+    The key that should be retrieved from the odata entity.
+    
     **Return type:** str
 * **\_\_setitem__(key, value)**:\
-    Sets a value with key key from the underlying odata entity.\
+    Sets a value with key key from the underlying odata entity.
+    
     **Parameters**:
     * **key**: str\
     The key that should be set from the odata entity.
@@ -210,12 +223,14 @@ List of OData entities.\
 
 **Methods**:
 * **next( )**:\
-    Gets the next resource that should be converted. Returns None if the list is traversed.\
+    Gets the next resource that should be converted. Returns None if the list is traversed.
+    
     **Return type:** [ODataResource](#odataresource)
 * **reset_to_first( )**:\
     Resets the iterator to point to the first element of the range.\
 * **\_\_len__( )** :\
-    Retrieves the length of the list of odata entities.\
+    Retrieves the length of the list of odata entities.
+    
     **Return type:** int
 
 </br>
@@ -247,16 +262,20 @@ Gets the wrapped pandas series.
 
 **Methods**:
 * **\_\_repr__( )**:\
-    A string representation of the resource. Used for logging purposes. Returns `PandasSeriesResource '{type}' (row {series.name})`. Where type is the resource type and series.name the name of the series, which is, if not specifically changed, the row in the dataframe.\
+    A string representation of the resource. Used for logging purposes. Returns `PandasSeriesResource '{type}' (row {series.name})`. Where type is the resource type and series.name the name of the series, which is, if not specifically changed, the row in the dataframe.
+    
     **Return type:** str
 * **\_\_getitem__(key)**:\
-    Retrieves a value from *column* key from the pandas series.\
+    Retrieves a value from *column* key from the pandas series.
+    
     **Return type:** str
+    
     **Parameters**:
     * **key**: str\
     The column that should be retrieved from the pandas series.\
 * **\_\_setitem__(key, value)**:\
-    Sets a value with column key from the pandas series.\
+    Sets a value with column key from the pandas series.
+    
     **Parameters**:
     * **key**: str\
     The *column* key that should be set from the pandas series.
@@ -279,11 +298,13 @@ Name of type of data that the dataframe contains entities of.
 
 **Methods**:
 * **next( )**:\
-    Gets the next resource that should be converted. Returns None if the dataframe is traversed.\
+    Gets the next resource that should be converted. Returns None if the dataframe is traversed.
+    
     **Return type:** [PandasSeriesResource](#pandasseriesresource)
 * **reset_to_first( )**:\
     Resets the iterator to point to the first element of the range.
 * **\_\_len__( )** :\
-    Retrieves the length of the dataframe (amount of rows).\
+    Retrieves the length of the dataframe (amount of rows).
+    
     **Return type:** int
     
