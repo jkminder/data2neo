@@ -10,7 +10,7 @@ authors: Julian Minder
 import pytest 
 
 from rel2graph import Converter
-from rel2graph.relational_modules.pandas import PandasDataframeIterator
+from rel2graph.relational_modules.pandas import PandasDataFrameIterator
 from rel2graph import IteratorIterator
 from mock_graph import MockGraph
 from helpers import compare, update_matcher, StateRecoveryException
@@ -37,7 +37,7 @@ def graph():
         (iris, flower_only_result)]
 )
 def test_single_type(graph, data, result, workers):
-    iterator = PandasDataframeIterator(data[1], data[0])
+    iterator = PandasDataFrameIterator(data[1], data[0])
     converter = Converter(schema_file_name, iterator, graph, num_workers=workers)
     update_matcher(graph) #REQUIRED to use mock matcher
     # run 
@@ -53,14 +53,14 @@ def test_single_type(graph, data, result, workers):
 )
 def test_node_update(graph, initial_data, data, result, workers):
     # initial data
-    iterator = PandasDataframeIterator(initial_data[1], initial_data[0])
+    iterator = PandasDataFrameIterator(initial_data[1], initial_data[0])
     converter = Converter(schema_file_name, iterator, graph, num_workers=workers)
     update_matcher(graph) #REQUIRED to use mock matcher
     # run initial data
     converter()
 
     # updated data
-    iterator = PandasDataframeIterator(data[1], data[0])
+    iterator = PandasDataFrameIterator(data[1], data[0])
     converter = Converter(schema_file_name, iterator, graph, num_workers=workers)
     update_matcher(graph) #REQUIRED to use mock matcher
     # run updated data
@@ -76,8 +76,8 @@ def test_node_update(graph, initial_data, data, result, workers):
 )
 def test_two_types(graph, data_type_1, data_type_2, result, workers):
     iterator = IteratorIterator([
-        PandasDataframeIterator(data_type_1[1], data_type_1[0]),
-        PandasDataframeIterator(data_type_2[1], data_type_2[0])
+        PandasDataFrameIterator(data_type_1[1], data_type_1[0]),
+        PandasDataFrameIterator(data_type_2[1], data_type_2[0])
     ])
     converter = Converter(schema_file_name, iterator, graph, num_workers=workers)
     update_matcher(graph) #REQUIRED to use mock matcher
@@ -94,8 +94,8 @@ def test_two_types(graph, data_type_1, data_type_2, result, workers):
 )
 def test_state_recovery(graph, data_type_1, data_type_2, result, workers):
     iterator = IteratorIterator([
-        PandasDataframeIterator(data_type_1[1], data_type_1[0]+"StateRecovery"),
-        PandasDataframeIterator(data_type_2[1], data_type_2[0]+"StateRecovery")
+        PandasDataFrameIterator(data_type_1[1], data_type_1[0]+"StateRecovery"),
+        PandasDataFrameIterator(data_type_2[1], data_type_2[0]+"StateRecovery")
     ])
     converter = Converter(schema_file_name, iterator, graph, num_workers=workers)
     update_matcher(graph) #REQUIRED to use mock matcher
