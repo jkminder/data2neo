@@ -281,7 +281,7 @@ class Converter:
     _instantiation_time = None
     no_instantiation_warnings = False
 
-    def __init__(self, config_filename: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 20) -> None:
+    def __init__(self, config_filename: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 1) -> None:
         """Initialises a converter. Note that this is a singleton and only the most recent instantiation is valid.
         
         Args:
