@@ -19,7 +19,7 @@ from .factories import resource
 
 from .resource_iterator import ResourceIterator
 from .factories.registrar import register_factory
-from .graph_elements import NodeMatcher, Graph, SubGraph
+from .graph_elements import NodeMatcher, Graph, Subgraph
 from .factories.matcher import Matcher
 from .config_parser import parse
 import threading
@@ -135,28 +135,33 @@ class Worker(threading.Thread):
                 logger.error(f"Encountered error when processing {'nodes' if self._config.work_type == WorkType.NODE else 'relations'} of {next_resource}.\n{type(err)}: {err}\n")
                 raise err
 
-            if self._config.work_type == WorkType.NODE:
-                # We need to loop through all the nodes and test if they need to be 
-                # merged or simply created (merging only possible if __primarykey__ is set)
-                to_merge = SubGraph() | SubGraph(None, subgraph.relationships) # Relations are merge by default
-                to_create = SubGraph()
-                for node in subgraph.nodes:
-                    if node.__primarykey__ is not None:
-                        # If a primary key is existing we merge the node to the graph
-                        to_merge |= node
-                    else:
-                        to_create |= node
+            # We sort the subgraph based on if its parts should be 
+            # merged or just created. This is selected based on if the
+            # __primarykey__ property is set. Note that for relations 
+            # this only matters if you use the GraphWithParallelRelations from
+            # rel2graph.py2neo_extensions (otherwise relations are always merged)
+            to_merge = Subgraph()
+            to_create = Subgraph()
+            for node in subgraph.nodes:
+                if node.__primarykey__ is not None:
+                    # If a primary key is existing we merge the node to the graph
+                    to_merge |= node
+                else:
+                    to_create |= node
+            for relation in subgraph.relationships:
+                if getattr(relation, "__primarykey__", None) is not None:
+                    # If a primary key is existing we merge the relation to the graph
+                    to_merge |= relation
+                else:
+                    to_create |= relation
+
+            # Creating does not rely on synchronous executions
+            self._config.graph.create(to_create)
                 
-                # Creating nodes do not rely synchronous executions
-                self._config.graph.create(to_create)
-                
-                # Merging nodes requires serialization (synchronous executions)
-                # Using locks to enforce this
-                with self._config.graph_lock:
-                    self._config.graph.merge(to_merge)
-            else:
-                # Relationships are always merged and do not need to be synchronous
-                self._config.graph.merge(subgraph)
+            # Merging nodes requires serialization (synchronous executions)
+            # Using locks to enforce this
+            with self._config.graph_lock:
+                self._config.graph.merge(to_merge)
 
             self._work_item = None # Remove work item
 

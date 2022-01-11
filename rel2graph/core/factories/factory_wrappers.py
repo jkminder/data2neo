@@ -13,8 +13,8 @@ from typing import Callable
 
 
 from .resource import Resource
-from ..graph_elements import Attribute, GraphElement, SubGraph
-from .factory import AttributeFactory, Factory, SubGraphFactory
+from ..graph_elements import Attribute, GraphElement, Subgraph
+from .factory import AttributeFactory, Factory, SubgraphFactory
 from .registrar import register_factory
 
 
@@ -63,31 +63,31 @@ class FactoryWrapper(Factory, ABC):
     
 
 @register_factory
-class SubGraphFactoryWrapper(FactoryWrapper, SubGraphFactory):
-    """Factory Wrapper for any SubGraphFactory. Allows to insert pre and post processor functions that are called on the 
+class SubgraphFactoryWrapper(FactoryWrapper, SubgraphFactory):
+    """Factory Wrapper for any SubgraphFactory. Allows to insert pre and post processor functions that are called on the 
     resource/subgraph respectivelly before and after the .construct function of the wrapped factory. This factory behaves like 
-    a normal SubGraphFactory and can be wrapped again.
+    a normal SubgraphFactory and can be wrapped again.
     
     Attributes:
-        factory: The wrapped SubGraphFactory
+        factory: The wrapped SubgraphFactory
     """
 
-    def __init__(self, factory: SubGraphFactory, preprocessor: Callable[[Resource], Resource] = None, postprocessor: Callable[[SubGraph], SubGraph] = None, identifier: str = None) -> None:
+    def __init__(self, factory: SubgraphFactory, preprocessor: Callable[[Resource], Resource] = None, postprocessor: Callable[[Subgraph], Subgraph] = None, identifier: str = None) -> None:
         """Inits the SubGraphFactoryWrapper with an factory and a post and preprocessor
         
         Args:
             identifier: A string identifying this Factory instance, must be unique
-            factory: The SubGraphFactory that should be wrapped
+            factory: The SubgraphFactory that should be wrapped
             preprocessor: A callable that takes a Resource, processes it and returns a resource (which is then passed to the factory). (default: None) 
-            postprocessor: A callabel that takes the SubGraph, processes it and returns another SubGraph. (default: None)
+            postprocessor: A callabel that takes the Subgraph, processes it and returns another Subgraph. (default: None)
             identifier: A string identifying this Factory instance, must be unique. Can be None if factory doesn't need to save unique supplies
 
         """
         # super will call the First Parent class (first element in mro) -> FactoryWrapper init
         FactoryWrapper.__init__(self, factory, preprocessor=preprocessor, postprocessor=postprocessor)
-        SubGraphFactory.__init__(self, identifier if identifier is not None else factory.id)
+        SubgraphFactory.__init__(self, identifier if identifier is not None else factory.id)
 
-    def construct(self, resource: Resource) -> SubGraph:
+    def construct(self, resource: Resource) -> Subgraph:
         """Runs the preprocessor on the resource, uses the factory to construct an SubGraph from the resource
         and runs the postprocessor on this SubGraph.
 
@@ -97,7 +97,7 @@ class SubGraphFactoryWrapper(FactoryWrapper, SubGraphFactory):
             resource: A Resource containing any information needed for the construction
         """
         if resource is None:
-            return SubGraph()
+            return Subgraph()
         return FactoryWrapper.construct(self, resource)
 
 

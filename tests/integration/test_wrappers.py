@@ -11,8 +11,8 @@ import pytest
 import pandas as pd
 
 from rel2graph import Converter
-from rel2graph import AttributeFactoryWrapper, SubGraphFactoryWrapper
-from rel2graph.core.graph_elements import Node, Relation, SubGraph
+from rel2graph import AttributeFactoryWrapper, SubgraphFactoryWrapper
+from rel2graph.core.graph_elements import Node, Relation, Subgraph
 from rel2graph.relational_modules.pandas import PandasDataFrameIterator
 from rel2graph import register_wrapper, register_attribute_postprocessor, register_attribute_preprocessor, register_subgraph_postprocessor, register_subgraph_preprocessor
 from rel2graph import Attribute
@@ -99,10 +99,10 @@ def sg_post_add(subgraph):
 
 @register_subgraph_postprocessor
 def sg_post_condition(subgraph):
-    return SubGraph() # empty subgraph
+    return Subgraph() # empty subgraph
 
 @register_wrapper
-class SGWrapper(SubGraphFactoryWrapper):
+class SGWrapper(SubgraphFactoryWrapper):
     def __init__(self, factory, attribute, another_attribute):
         super().__init__(factory)
         self._attribute = attribute

@@ -45,6 +45,10 @@ class MockGraph:
         self.nodes_lock = Lock()
         self.relations_lock = Lock()
 
+        # Dummy variables to simulate graph
+        self.service = object() # Dummy service
+        self.name = "MockGraph"
+
     def delete_all(self):
         self.nodes = []
         self.relations = []
@@ -55,27 +59,32 @@ class MockGraph:
         with self.nodes_lock:
             self.nodes.append(node)
 
+    def _merge_relation(self, relation):
+        found = False   
+        for rel in self.relations:
+            if relation.start_node.identity == rel.start_node.identity and \
+                relation.end_node.identity == rel.end_node.identity and \
+                    relation.type == rel.type:
+                found = True
+                # update relation
+                for key in relation.keys():
+                    rel[key] = relation[key]
+        if not found:
+            with self.relations_lock:
+                self.relations.append(relation)
+                relation.graph = self
+
     def create(self, subgraph):
         for node in subgraph.nodes:
-            self.add_node(node)
-        with self.relations_lock:
-            self.relations.extend(subgraph.relationships)
+            if node.identity is None:
+                self.add_node(node)
+        for relation in subgraph.relationships:
+            if relation.graph is None:
+                self._merge_relation(relation)
 
     def merge(self, subgraph):
         for relation in subgraph.relationships:
-            found = False
-            for rel in self.relations:
-                if relation.start_node.identity == rel.start_node.identity and \
-                    relation.end_node.identity == rel.end_node.identity and \
-                        relation.type == rel.type:
-                    found = True
-                    # update relation
-                    for key in relation.keys():
-                        rel[key] = relation[key]
-            if not found:
-                with self.relations_lock:
-                    self.relations.append(relation)
-
+            self._merge_relation(relation)
 
         for node in subgraph.nodes:
             old_node = None

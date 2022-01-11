@@ -1,0 +1,13 @@
+ENTITY("entity"):
+  NODE("noattr") a:
+  NODE("nopk") b:
+    - attr = "someattr"
+  NODE("pk") c:
+    + pk = entity.pk
+    - attr = "someattr"
+  RELATION(a, "noattr", c):
+  RELATION(a, "nopk", c):
+    - attr = "someattr"
+  RELATION(a, "pk", c):
+    + pk = entity.pk
+    - attr = "someattr"

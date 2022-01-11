@@ -2,18 +2,18 @@
 # -*- coding: utf-8 -*-
 
 """
-Elements that represents any entity in a Neo4j graph or interactions with the graph. SubGraph, Node and Relation are abstractions of the py2neo node and relation.
+Elements that represents any entity in a Neo4j graph or interactions with the graph. Subgraph, Node and Relation are abstractions of the py2neo node and relation.
 This allows us to customize their functionality and one could easily exchange the neo4j driver. 
 
 Inheritance Structure:
 
     GraphElement
         |- Attribute
-        |- SubGraph
+        |- Subgraph
             |- Node
             |- Relation
 
-TODO: If you want to change the underlying driver, be sure to update the classes SubGraph, Node, Relation and NodeMatcher.
+TODO: If you want to change the underlying driver, be sure to update the classes Subgraph, Node, Relation and NodeMatcher.
 
 authors: Julian Minder
 """
@@ -67,13 +67,13 @@ class Attribute:
 
 
 
-class SubGraph(py2neo.Subgraph,  GraphElement):
-    """SubGraph Abstraction of py2neo.SubGraph"""
+class Subgraph(py2neo.Subgraph,  GraphElement):
+    """Subgraph Abstraction of py2neo.Subgraph"""
     pass
 
 
 
-class Node(py2neo.Node, SubGraph):
+class Node(py2neo.Node, Subgraph):
     """Node Abstraction of py2neo.Node"""
 
     def __init__(self, labels: List[Attribute], attributes: List[Attribute], primary_key: str = None) -> None:
@@ -90,7 +90,7 @@ class Node(py2neo.Node, SubGraph):
 
 
 
-class Relation(py2neo.Relationship, SubGraph):
+class Relation(py2neo.Relationship, Subgraph):
     """Relation Abstraction of py2neo.Relationship"""
 
     def __init__(self, from_node: Node, type: str, to_node: Node, attributes: List[Attribute]) -> None:

@@ -14,7 +14,7 @@ import logging
 
 from .resource import Resource
 from .matcher import Matcher
-from ..graph_elements import Attribute, GraphElement, Node, Relation, SubGraph
+from ..graph_elements import Attribute, GraphElement, Node, Relation, Subgraph
 from .registrar import register_factory
 
 logger = logging.getLogger(__name__)
@@ -54,29 +54,29 @@ class Factory(ABC):
         Args:
             resource: A Resource containing any information needed for the construction.
         Returns:
-            A GraphElement (SubGraph or Attribute)
+            A GraphElement (Subgraph or Attribute)
         """
         pass
 
 
 
-class SubGraphFactory(Factory):
-    """Abstract factory for creating SubGraphs from a Resource.
+class SubgraphFactory(Factory):
+    """Abstract factory for creating Subgraphs from a Resource.
         
     Attributes:
         identifier: A string identifying this Factory instance.
     """
 
     @abstractmethod
-    def construct(self, resource: Resource) -> SubGraph:
+    def construct(self, resource: Resource) -> Subgraph:
         """Abstract function for constructing a GraphElement from a Resource.
 
-        If the resource is None, then this method will return an empty SubGraph.
+        If the resource is None, then this method will return an empty Subgraph.
 
         Args:
             resource: A Resource containing any information needed for the construction
         Returns:
-            A GraphElement (SubGraph or Attribute)
+            A GraphElement (Subgraph or Attribute)
         """
         pass
 
@@ -151,7 +151,7 @@ class AttributeFactory(Factory):
 
 
 @register_factory
-class NodeFactory(SubGraphFactory):
+class NodeFactory(SubgraphFactory):
     """Factory for creating Nodes from a Resource"""
 
     def __init__(self, attributes: List[AttributeFactory], labels: List[AttributeFactory], primary_key: str = None, identifier: str = None) -> None:
@@ -172,7 +172,7 @@ class NodeFactory(SubGraphFactory):
         """Constructs an Node from a resource based on the the label and attribute factories provided
         when the instance was initialised.
         
-        If the resource is None, then this method will return an empty SubGraph
+        If the resource is None, then this method will return an empty Subgraph
 
         Args:
             resource: A Resource containing any information needed for the construction
@@ -181,13 +181,13 @@ class NodeFactory(SubGraphFactory):
         """
 
         if resource is None:
-            return SubGraph()
+            return Subgraph()
         labels = [label_factory.construct(resource) for label_factory in self._labels]
         attributes = [attr_factory.construct(resource) for attr_factory in self._attributes]
         return Node([l for l in labels if l is not None], [attr for attr in attributes if attr is not None], self._primary_key)
 
 @register_factory
-class RelationFactory(SubGraphFactory):
+class RelationFactory(SubgraphFactory):
     """Factory for creating Relations from a Resource
     
     The RelationFactory is initialised with two Matcher objects (from_matcher and to_matcher) that specify how to
@@ -195,7 +195,7 @@ class RelationFactory(SubGraphFactory):
     kartesian product between the set that the from_matcher returns and the set that the to_matcher returns.
     """
 
-    def __init__(self, attributes: List[AttributeFactory], type: AttributeFactory, from_matcher: Matcher, to_matcher: Matcher, identifier: str = None) -> None:
+    def __init__(self, attributes: List[AttributeFactory], type: AttributeFactory, from_matcher: Matcher, to_matcher: Matcher, primary_key: str = None, identifier: str = None) -> None:
         """Inits an NodeFactory with the following arguments
         
         Args:
@@ -204,47 +204,52 @@ class RelationFactory(SubGraphFactory):
             from_matcher: Matcher object that returns the from-nodes for the relations
             to_matcher: Matcher object that return the to-nodes for the relations
             identifier: A string identifying this Factory instance. Can be None if factory doesn't need to save supplies
+            primary_key: Optional key of the primary attribute. Used to merge the produced node with existing nodes in the graph (default: None)
+
         """
         super().__init__(identifier)
         self._attributes = attributes
         self._type = type
         self._from_matcher = from_matcher
         self._to_matcher = to_matcher
+        self._primary_key = primary_key
 
-    def construct(self, resource: Resource) -> SubGraph:
+    def construct(self, resource: Resource) -> Subgraph:
         """Constructs one or more Relations from a resource based on the the label/attribute factories and the from and to matchers provided
         when the instance was initialised.
 
-        If the resource is None, then this method will return an empty SubGraph.
+        If the resource is None, then this method will return an empty Subgraph.
 
         Args:
             resource: A Resource containing any information needed for the construction
         Returns:
-            A SubGraphs consisting of the constructed Relations
+            A Subgraphs consisting of the constructed Relations
         """
         if resource is None:
-            return SubGraph()
+            return Subgraph()
         from_nodes = self._from_matcher.match(resource)
         to_nodes = self._to_matcher.match(resource)
         type = self._type.construct(resource)
         logger.debug(f"For relation type {type.value} matched {len(from_nodes)} from_nodes and {len(to_nodes)} to nodes")
         attributes = [attr_factory.construct(resource) for attr_factory in self._attributes]
-        relations = SubGraph()
+        relations = Subgraph()
         for from_node in from_nodes:
             for to_node in to_nodes:
-                relations = relations | Relation(from_node, type, to_node, attributes)
+                relation = Relation(from_node, type, to_node, attributes)
+                relation.__primarykey__ = self._primary_key
+                relations = relations | relation
         return relations
 
 
 @register_factory
-class SupplyChain(SubGraphFactory):
+class SupplyChain(SubgraphFactory):
     """Represents a chain of factories that are processed after eachother
     
     Attributes:
         factories: The list of factories in the supplychain
     """
 
-    def __init__(self,  factories: List[SubGraphFactory] = None, identifier: str = None) -> None:
+    def __init__(self,  factories: List[SubgraphFactory] = None, identifier: str = None) -> None:
         """Inits a SupplyChain with factories
         
         Be aware that the order of the factories matters, since they are processed in order.
@@ -256,28 +261,28 @@ class SupplyChain(SubGraphFactory):
         self._factories = factories
 
     @property
-    def factories(self) -> List[SubGraphFactory]:
+    def factories(self) -> List[SubgraphFactory]:
         """The list of factories in the supplychain"""
         return self._factories
     
-    def append_factory(self, factory: SubGraphFactory) -> None:
+    def append_factory(self, factory: SubgraphFactory) -> None:
         """Appends a factory to the end of the supply chain
         
         Args:
             factory: A factory"""
         self._factories.append(factory)
 
-    def construct(self, resource: Resource) -> SubGraph:
-        """Constructs a SubGraph by running all the factories in the supplychain in order.
+    def construct(self, resource: Resource) -> Subgraph:
+        """Constructs a Subgraph by running all the factories in the supplychain in order.
         
-        If the resource is None, then this method will return an empty SubGraph.
+        If the resource is None, then this method will return an empty Subgraph.
 
         Args:
             resource: A Resource containing any information needed for the construction
         Returns:
-            A subgraph
+            A Subgraph
         """
-        subgraph = SubGraph()
+        subgraph = Subgraph()
 
         if resource is not None:
             for factory in self._factories:

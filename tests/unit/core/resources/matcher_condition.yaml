@@ -1,0 +1,12 @@
+ENTITY("entity"):
+  NODE("node") identifier:
+  RELATION(identifier, "static", MATCH("entity", Name= "static")):
+  RELATION(identifier, "dyn", MATCH("entity", Dyn =entity.dyn)):
+  RELATION(identifier, "static-dyn", MATCH("entity", Name= "static", Dyn= entity.dyn)):
+  RELATION(identifier, "static-dyn", MATCH("entity", Name ="static", Dyn =entity.dyn)):
+  RELATION(identifier, "static-dyn", MATCH("entity", Name = "static", Dyn = entity.dyn)):
+  RELATION(identifier, "static-dyn", MATCH("entity",Name="static",Dyn=entity.dyn)):
+  RELATION(identifier, "two-static", MATCH("entity", Name= "static", Name2= "static2")):
+  RELATION(identifier, "two-dyn", MATCH("entity", Dyn = entity.dyn, Dyn2 = entity.dyn2)):
+  RELATION(identifier, "two-dyn-two-static", MATCH("entity", Name= "static", Name2= "static2", Dyn = entity.dyn, Dyn2 = entity.dyn2)):
+

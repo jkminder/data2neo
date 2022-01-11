@@ -28,7 +28,7 @@ class ConfigError(ValueError):
 """Represent rules that are applied to the config file for reformating certain modules."""
 _config_module_reformat_rules = [
     ("NODE", "NodeFactory({{attributes}},[{args}],{{primary_key}}, \"{{parent}}.{{id}}\")"),
-    ("RELATION", "RelationFactory({{attributes}},{1},{0},{2})"),
+    ("RELATION", "RelationFactory({{attributes}},{1},{0},{2},{{primary_key}})"),
     ("MATCH", "Matcher(&None, {args})")
 ]
 
@@ -290,21 +290,19 @@ class ConfigEntityCompiler:
         # Convert ids into Matchers
         for id in self._ids: 
             # The first lookahead makes sure that an even amount of \" are after the match -> the id is not in a string
-            config_str = re.sub(f"([^.])({id})(?=([^\"]*\"[^\"]*\")*[^\"]*$)(?!\s*:\s*$)", f"\g<1>Matcher(&\"{{parent}}&.{id}\")", config_str)
+            config_str = re.sub(f"([^.\w])({id})(?=([^\"]*\"[^\"]*\")*[^\"]*$)(?!\s*:\s*$)", f"\g<1>Matcher(&\"{{parent}}&.{id}\")", config_str)
         
         # Parse Static Argument Attributes (no key)
-        config_str = self._precompile_static_nokey_arguments(config_str)
+        config_str = self._precompile_static_nokey_arguments(config_str, ",")
+
+        # Parse Static Attributes (with key)
+        config_str = re.sub("\s*(\w*)\s*[=]\s*((\w*\()*)\s*(\".*?\")", lambda match : _convert(match, "{1}AttributeFactory(&\"{0}\",&None,&{3})"), config_str)
 
         # Parse Dynamic Attributes for nodes with key    
         config_str = re.sub("\s*(\w*)\s*[=]\s*((\w*\()*)\s*(\w+)[.](\w*)", lambda match : _convert(match, "{1}AttributeFactory(&\"{0}\",&\"{4}\",&None)"), config_str)
 
         # Parse Dynamic Arguments (no key)
         config_str = self._precompile_dynamic_nokey_arguments(config_str)
-
-        # Parse MATCH keywords (require specific handling due to args and kwargs)
-        #match_args, match_start, match_end = _parse_module(config_str, "MATCH")
-        #if match_start is not None:
-            #config_str = config_str[:match_start] + "Matcher(&None," + ",".join(match_args) + config_str[match_end:]
 
         # Parse main element
         for module, rule in _config_module_reformat_rules:
