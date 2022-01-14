@@ -7,12 +7,18 @@ For a Quick Start Example please refer to the [ReadMe](../README.md).
 
 ## Contents
 
-- [Quick Start Example](../README.md)
 - [Introduction](#introduction) 
 - [Converter](#converter)
     - [Statefullness](#statefullness)
     - [Logging and progress monitoring](#logging-and-progress-monitoring)
 - [Schema Syntax](#schema-syntax)
+    - [Entity](#entity)
+    - [Node](#node)
+    - [Attributes](#attributes)
+    - [Relation](#relation)
+    - [Match](#match)
+    - [Merging Nodes](#merging-nodes)
+    - [Wrappers](#wrappers)
 - [Customizing Resource and ResourceIterators](#customizing-resource-and-resourceiterators)
     - [Resource](#resource)
     - [ResourceIterator](#resource-iterator)
@@ -26,6 +32,8 @@ For a Quick Start Example please refer to the [ReadMe](../README.md).
     - [Preprocessors](#preprocessors)
     - [Postprocessors](#postprocessors)
     - [Full Wrappers](#full-wrappers)
+- [Py2neo Extensions](#py2neo-extensions)
+    - [Graph with parallel relations](#graph-with-parallel-relations)
 - [Information for developers](#information-for-developers)
     - [Testing](#testing)
 </br>
@@ -197,7 +205,7 @@ If we expect that a node is created multiple times and we want to ensure that it
 
 For this purpose, we can specify a **primary attribute** and a **primary label** to merge a node with the graph. The **primary label** is always the first one mentioned, so we reformulate the node definition to `NODE(`**`primary_label`***`, label2, ...`*`)`. The **primary attribute** is set by replacing the `-` in the attribute definition with a `+`:
 `+`*`attribute_name`*`=`*`type.entity_attribute_name`*
-If the `Converter` detects that a primary attribute* is set, it will only create a new node if **no** node with the same primary label and primary attribute exists in the graph. If the node already exists, it is updated, i.e. new attributes are added and existing attributes are updated according to the specified values. 
+If the `Converter` detects that a *primary attribute* is set, it will only create a new node if **no** node with the same primary label and primary attribute exists in the graph. If the node already exists, it is updated, i.e. new attributes are added and existing attributes are updated according to the specified values. 
 
 We can also use this to create nodes with informations from different entity types. For example lets assume we had an entity "Person" and an entity "Employee", both of them containing a per-person-unique property:
 
@@ -226,6 +234,14 @@ ENTITY("Employee"):
 ```
 If you now supply for every person both entities to the converter the resulting nodes will have all the attributes `id`, `name` and `employer`. Note if you don't supply both entities for a person the node will only contain the information from the single entity that it got.
 
+### Merging Relations
+By default py2neo merges all relations (between nodes *a* and *b* only one relation of type *type* can exist). If your require such parallel relations, use the `GraphWithParallelRelations` instead of the default py2neo graph, read more about it [here](#py2neo-extensions). If you use the `GraphWithParallelRelations` you can explicitly merge relations by specifying a **primary attribute**. The syntax is exactly the same as for nodes:
+```yaml
+    RELATION(from, "type", to):
+        + primary_attribute = Entity.ID
+        - other_attribute = Entity.other
+```
+If you don't specify a primary attribute and two entities result in the same *from* and *to* node, two relations will be created in parallel.
 ### Wrappers
 If you have registered wrappers (see [here](#building-your-own-wrappers)) you can refer to them in the **conversion schema**. You simply use the syntax `NameOfWrapper(`wrappedcontent`)`, similar to how you call a function. Find examples below.
 
@@ -465,7 +481,21 @@ ENTITY("type"):
     ...
     REQUIRED(RELATION(from, "relation type", MATCH("other", key="value")), "No match for label other and key=value"):
 ```
-
+## Py2neo Extensions
+The rel2graph library relies on py2neo for the connection to a neo4j graph. As py2neo is limited for certain usecases, this library provides some useful extensions.
+### Graph with parallel relations
+Py2neo does not allow the creation of parallel relations: Two parallel relations of the same type between the same two nodes. If two parallel relations are created, they are automatically merged.
+<img src="assets/images/parallel_relations.png" width="300"/>
+Use the `GraphWithParallelRelations` class to initiate your graph before passing it to the rel2graph [`Converter`](api.md#Converter) to allow for such parallel relations. The `GraphWithParallelRelations` behaves like a normal py2neo graph but supports the creation and the merging of parallel relations. 
+```python
+from rel2graph.py2neo_extensions import GraphWithParallelRelations
+from rel2graph import Converter ...
+graph = GraphWithParallelRelations(scheme="http", host="localhost", port=7474,  auth=('neo4j', 'password'))
+iterator = ...
+converter = Converter(config_filename, iterator, graph)
+converter()
+```
+Note that only `graph.create` and `graph.merge` are tested. No other functionality is guaranteed. It is suggested to use the normal `py2neo.Graph` class for interaction with a graph other than for a conversion with rel2graph. Querying a neo4j graph with parallel relations should be no problem with the normal `py2neo.Graph` class.
 ## Information for developers
 If you intend to extend the library, please check out the [class diagram of the core of the library](assets/pdfs/class_diagram_core.pdf).
 ### Testing
