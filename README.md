@@ -9,7 +9,7 @@ The library is built specifically for converting data into a [neo4j](https://neo
  - [Documentation][wiki]
  - [Developer Interface](docs/api.md)
 
-Note: The py2neo library does not support parallel relations of the same type (same source, same target and same type). If your graph requires such parallel relations please checkout the provided [py2neo extensions](/docs/documentation.md#py2neo-extensions).
+Note: The [py2neo](https://py2neo.org/2021.1/index.html) library does not support parallel relations of the same type (same source, same target and same type). If your graph requires such parallel relations please checkout the provided [py2neo extensions](/docs/documentation.md#py2neo-extensions).
 ## Installation
 If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v0.2.2][latest_tag]):
 ```

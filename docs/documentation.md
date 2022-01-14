@@ -49,7 +49,7 @@ This chapter will give you an overview of how *rel2graph* works and a first intu
 
 <img src="assets/images/factory.png" alt="drawing" width="800"/>
 
-Since there might be different types of resources, we build a factory per resource type. One specifies all the "blueprints" for all the factories in a **conversion schema** file. A [`Converter`](api.md#Converter), the main object of *rel2graph*, will take this file and construct all the factories based on your "blueprints". For a set of supplied resources the [`Converter`](api.md#Converter) will automatically select the correct factory, use it to produce a graph out of the resource and merge the produced graph with the full [neo4j](https://neo4j.com/) graph. We supply resources to the converter with a [`ResourceIterator`](api.md#ResourceIterator). This iterator keeps track of what the next resource to process is. The [`Resource`](api.md#Resource) and [`ResourceIterator`](api.md#ResourceIterator) classes can be fully customised. A simple version of it might just point to a specific element in a list of resources, as visualised in the image below. The [`Converter`](api.md#Converter) iteratively asks the [`ResourceIterator`](api.md#ResourceIterator) for the next resource until the iterator reports no more resources to process.
+Since there might be different types of resources, we build a factory per resource type. One specifies all the "blueprints" for all the factories in thr **conversion schema** file. A [`Converter`](api.md#Converter), the main object of *rel2graph*, will take this file and construct all the factories based on your "blueprints". For a set of supplied resources the [`Converter`](api.md#Converter) will automatically select the correct factory, use it to produce a graph out of the resource and merge the produced graph with the full [neo4j](https://neo4j.com/) graph. We supply resources to the converter with a [`ResourceIterator`](api.md#ResourceIterator). This iterator keeps track of what the next resource to process is. The [`Resource`](api.md#Resource) and [`ResourceIterator`](api.md#ResourceIterator) classes can be fully customised. A simple version of it might just point to a specific element in a list of resources, as visualised in the image below. The [`Converter`](api.md#Converter) iteratively asks the [`ResourceIterator`](api.md#ResourceIterator) for the next resource until the iterator reports no more resources to process.
 
 <img src="assets/images/overview.png" alt="drawing" width="800"/>
 
@@ -63,7 +63,7 @@ The next chapters will go into detail about these 4 parts. In later chapters, we
 
 <img src="assets/images/wrapper.jpg" alt="drawing" width="600"/>
 
-If you wrap a node factory, a wrapper first preprocesses the resource, then creates the node with the wrapped factory, and postprocess the created node itself. A wrapper behaves like a factory and can be wrapped into another wrapper. This allows you to insert arbitrary customisation into the conversion and adapt it to your use-case.
+A wrapper behaves like a factory and can be wrapped into another wrapper. This allows you to insert arbitrary customisation into the conversion and adapt it to your use-case.
 ## Converter
 The [`Converter`](api.md#Converter) handles the main conversion of the relational data. It is initialised with the *conversion schema filename*, the iterator and the graph. 
 ```python
@@ -141,7 +141,7 @@ The **conversion schema** defines which relational entities are converted to whi
 
 Note that the **conversion schema** compiler that the [`Converter`](api.md#Converter) uses to parse the provided schema is limited and does little syntax and no semantic checking. Make sure that you write correct **conversion schema syntax**. Otherwise, problems or weird behaviour might arise during runtime.
 
-We define this behaviour in the schema file. The file follows a modified YAML schema syntax. We will now look at our example from the [Quick Start](../README.md). 
+We define the **conversion schema** in a schema file. The file follows a modified YAML schema syntax. We will now look at our example from the [Quick Start](../README.md). 
 ```yaml
 ENTITY("Flower"):
     NODE("Flower") flower:
@@ -182,13 +182,15 @@ A node is defined with `NODE(`*label1, label2, ...*`)`; in between the brackets,
 `NODE(`*`label1, label2, ...`*`) `**`identifier`**`:`
 
 ### Attributes
-We can define its attributes under a node or a relation as follows (indented following YAML format):
+We can define the attributes of a node or a relation under it as follows (indented following YAML format):
 `-`*`attribute_name`*`=`*`type.entity_attribute_name`*
 Going back to our example, if the node with identifier **flower** should have an attribute named `sepal_length` that contains the value of the attribute `sepal_length` of the entity "Flower", we write 
 `- sepal_length  = Flower.sepal_length`.
 The attribute name of the node/relation must not be the same as the one of the entity. We could also do 
 `- sl  = Flower.sepal_length` 
 to get a node with attribute `sl`.
+
+We can also set static attribute values (static strings) with `- attribute_name = "some string"`.
 
 ### Relation
 A relation is declared with `RELATION(`*source node(s)*`,`*relation type*`,`*destination node(s)*`)`. The relation type is a simple string that represents the relation's name. This will create a relation on the kartesian product of the *source node(s)* and the *destination node(s)* (from all sources to all destinations). We have two options on how to set source and destination nodes: 
@@ -261,9 +263,8 @@ SGWRAPPER2(SGWRAPPER1(NODE("Flower"))):
 Note that the library does no semantic checking of your schema. If you apply an attribute wrapper to a node or a relation, the outcome is undefined and might result in unexpected behaviour/exceptions during runtime.
 
 ## Customising Resource and ResourceIterator
-The [`Resource`](api.md#Resource) and [`ResourceIterator`](api.md#ResourceIterator) classes are abstract classes and need to be implemented for your specific relational input data type. The library comes with implementations for a few [relational modules](#existing-relational-modules). Implementing them is easy; see below for an explanation or check out [one of the already implemented modules](./../rel2graph/relational_modules/pandas.py). 
+The [`Resource`](api.md#Resource) and [`ResourceIterator`](api.md#ResourceIterator) classes are abstract classes and need to be implemented for your specific relational input data type. The library comes with implementations for a few [relational modules](#existing-relational-modules). If you data type is not supported, you can easily create implementations for your data; see below for an explanation or check out [one of the already implemented modules](./../rel2graph/relational_modules/pandas.py). 
 
-A note on **multithreading**: If you intend to multithread your conversion with multiple workers (see chapter [Converter](#converter)), be aware that `iterator.next()` is not parallelised. If you want to leverage multiple threads for loading remote data, you must implement this in the [`Resource`](api.md#Resource) class (in `__getitem__`).
 
 If you think your implementations could be helpful for others as well, read through the chapter [Information for Developers](#information-for-developers) and create a pull request.
 ### Resource
@@ -340,6 +341,9 @@ class MyIterator(ResourceIterator):
         """
         ...
 ```
+
+A note on **multithreading**: If you intend to multithread your conversion with multiple workers (see chapter [Converter](#converter)), be aware that `iterator.next()` is not parallelised. If you want to leverage multiple threads for loading remote data, you must implement this in the [`Resource`](api.md#Resource) class (in `__getitem__`).
+
 ### IteratorIterator
 The [`IteratorIterator`](api.md#iteratoriterator) allows you to iterate over multiple "sub"-iterators. There are no restrictions on the "sub"-iterators, as long as they are of type [`ResourceIterator`](api.md#resourceiterator). Since an [`IteratorIterator`](api.md#iteratoriterator) is also of type [`ResourceIterator`](api.md#resourceiterator), it can be used recursively.
 ```python
@@ -350,7 +354,7 @@ itit = IteratorIterator([iterator1, iterator2])
 ```
 ### Existing relational modules
 #### Pandas
-With the [`PandasDataFrameIterator`](api.md#pandasdataframeiterator) you can wrap a [pandas dataframe](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html?highlight=dataframe#pandas). If you pass a pandas dataframe to the [`PandasDataFrameIterator`](api.md#pandasdataframeiterator) it will automatically create [`PandasSeriesResource`](api.md#pandasseriesresource)s out of all rows (series) and iterate over them. Since a dataframe has no type assiciated, you need to also provide a type name.
+With the [`PandasDataFrameIterator`](api.md#pandasdataframeiterator) you can wrap a [pandas dataframe](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html?highlight=dataframe#pandas). If you pass a pandas dataframe to the [`PandasDataFrameIterator`](api.md#pandasdataframeiterator) it will automatically create [`PandasSeriesResource`](api.md#pandasseriesresource)s out of all rows (series) and iterate over them. Since a dataframe has no type associated, you need to also provide a type name.
 ```python
 from rel2graph.relational_modules.pandas import PandasDataframeIterator
 iterator = PandasDataframeIterator(pandas.Dataframe(...), "MyType")
@@ -363,11 +367,13 @@ iterator = ODataListIterator([entity1, entity2,...])
 ```
 
 ## Building your own Wrappers
-A wrapper allows you to inject custom code into the conversion. A wrapper inserts preprocessing and postprocessing before and after a wrapped factory. There are three possibilities on how to create such factory wrappers. The simplest way is to define either a **preprocessor** (processing the [`Resource`](api.md#Resource) before it is passed to the factory) or a **postprocessor** (processing the factory's output). They are created by writing a simple python function. If you need more sophisticated functionality that uses both, you can define a entire wrapper class. This chapter will guide you through the creation of your own wrappers.
+A wrapper allows you to inject custom code into the conversion. A wrapper inserts preprocessing and postprocessing before and after a wrapped factory. There are three possibilities on how to create such factory wrappers. The simplest way is to define either a **preprocessor** (processing the [`Resource`](api.md#Resource) before it is passed to the factory) or a **postprocessor** (processing the factory's output). They are created by writing a simple python function. If you need more sophisticated functionality that uses both, you can define an entire wrapper class. This chapter will guide you through the creation of your own wrappers.
+
 <img src="assets/images/wrapper.jpg" alt="drawing" width="400"/>
 
 ### Background
-First, we need to be aware of the different factory types *rel2graph* uses. The input of every factory is always a resource, but depending on the type the output varies. To write wrappers, we need to distinguish the two main factory types: **SubGraphFactories** and **AttributeFactories**. 
+First, we need to be aware of the different factory types *rel2graph* uses. The input of every factory is always a resource, but depending on the type the output varies. To write wrappers, we need to distinguish the two main factory types: **SubgraphFactories** and **AttributeFactories**. 
+
 <img src="assets/images/factory_hierarchy.png" alt="drawing" width="400"/>
 
 #### AttributeFactories
@@ -378,12 +384,12 @@ myattr = Attribute("mykey", "myvalue")
 key = myattr.key # get the key of the attribute
 value = myattr.value # get the value of the attribute
 ```
-An `Attribute` is immutable, so it can't be changed. If you want to change it, you need to create a new one. 
+An `Attribute` is immutable, so it can't be changed. If you want to change an existing attribute, you must create a new one with the key/value of the existing attribute including the change and return the new attribute.
 
-Whenever you refer to an entity attribute, the parser in the [`Converter`](api.md#Converter) will create an *AttributeFactory* (for example `mykey = EntityName.attribute` or just `EntityName.attribute`). Note that a static attribute will also create an AttributeFactory that will ignore the entity (for example, `key = "staticstring"`). Given a resource the AttributeFactory that is created from `mykey = EntityName.attribute` will produce the attribute `Attribute("mykey", **value at resource.attribute**)`.
+Whenever you refer to an entity attribute, the parser in the [`Converter`](api.md#Converter) will create an *AttributeFactory* (for example `mykey = EntityName.attribute` or just `EntityName.attribute`). Note that a static attribute will also create an AttributeFactory that will just ignore the input resource (for example, `key = "staticstring"`). Given a resource the AttributeFactory that is created from `mykey = EntityName.attribute` will produce the attribute `Attribute("mykey", **value at resource.attribute**)`.
 
-#### SubGraphFactories
-*SubGraphFactories* produce, as the name suggests, a py2neo [Subgraph](https://py2neo.org/2021.1/data/index.html#subgraph-objects) object containing py2neo [Nodes](https://py2neo.org/2021.1/data/index.html#node-objects) and [Relationships](https://py2neo.org/2021.1/data/index.html#relationship-objects). When your write `NODE(...)` or `RELATION(...)` in the schema file, the parser will create a *NodeFactory* or a *RelationFactory*, respectively, out of your specification. Both of them are *SubGraphFactories*. The *NodeFactory* returns a subgraph with a maximum of one node, and the *RelationFactory* returns a subgraph with an arbitrary number of relationships. The nodes and relations of a subgraph can be accessed with `subgraph.nodes` and `subgraph.relationships`. Please check out the documentation of the py2neo objects for details about how to operate with them (click on the links).
+#### SubgraphFactories
+*SubgraphFactories* produce, as the name suggests, a py2neo [Subgraph](https://py2neo.org/2021.1/data/index.html#subgraph-objects) object containing py2neo [Nodes](https://py2neo.org/2021.1/data/index.html#node-objects) and [Relationships](https://py2neo.org/2021.1/data/index.html#relationship-objects). When your write `NODE(...)` or `RELATION(...)` in the schema file, the parser will create a *NodeFactory* or a *RelationFactory*, respectively, out of your specification. Both of them are *SubgraphFactories*. The *NodeFactory* returns a subgraph with a maximum of one node, and the *RelationFactory* returns a subgraph with an arbitrary number of relationships. The nodes and relations of a subgraph can be accessed with `subgraph.nodes` and `subgraph.relationships`. Please check out the documentation of the py2neo objects for details about how to operate with them (click on the links).
 
 ### Registering
 When we write a pre/postprocessor function or a wrapper class, we need to register it such that the [`Converter`](api.md#Converter) knows of its existence. Registering is done with python **decorators**. When registering pre/postprocessors we need to specify if it's for an *AttributeFactory* or a *SubGraphFactory*. A wrapper class needs no further specification. The following decorators are available for registering:
@@ -404,13 +410,13 @@ Some examples:
 from rel2graph import register_attribute_preprocessor, register_subgraph_preprocessor
 
 @register_attribute_preprocessor
-def my_attr_preprocessor(resource):
+def my_attr_preprocessor(resource: Resource) -> Resource:
     # do something to the resource
     ...
     return resource
 
 @register_subgraph_preprocessor
-def only_create_subgraph_if_preprocessor(resource, key, value="can also have a default value"):
+def only_create_subgraph_if_preprocessor(resource: Resource, key: str, value="can also have a default value": str) -> Resource:
     """Only creates the subgraph if resource[key] == value"""
     if resource[key] != value:
         return None # do not create this subgraph
@@ -419,7 +425,7 @@ def only_create_subgraph_if_preprocessor(resource, key, value="can also have a d
 `schema.yaml`
 ```yaml
 ENTITY("type"):
-    my_subgraph_preprocessor(NODE("label"), "somekey", "specificvalue"):
+    only_create_subgraph_if_preprocessor(NODE("label"), "somekey", "specificvalue"):
         - mykey = my_attr_preprocessor(type.myvalue)
 ```
 The node "label" is only created if the attribute "somekey" of the "type" resource is exactly "specificvalue".
@@ -432,13 +438,13 @@ Some examples:
 from rel2graph import register_attribute_postprocessor, register_subgraph_postprocessor, Attribute
 
 @register_attribute_postprocessor
-def attr_append_postprocessor(attribute, value=" appendix"):
+def attr_append_postprocessor(attribute: Attribute, value=" appendix": str) -> Attribute:
     """Append the value to the attribute"""
     new_attr = Attribute(attribute.key, attribute.value + value) # Attribute is immutable -> create new
     return new_attr
 
 @register_subgraph_postprocessor
-def my_subgraph_postprocessor(subgraph):
+def my_subgraph_postprocessor(subgraph: Subgraph) -> Subgraph:
     # do something with the subgraph
     ...
     return subgraph
@@ -446,32 +452,33 @@ def my_subgraph_postprocessor(subgraph):
 `schema.yaml`
 ```yaml
 ENTITY("type"):
-    my_subgraph_postprocessor(NODE(attr_append_preprocessor("label"))):
-        - mykey = attr_append_postprocessor(attr_append_preprocessor(type.myvalue)) # you can mix pre and postprocessors
+    my_subgraph_postprocessor(NODE(attr_append_postprocessor("label"))):
+        - mykey = an_attr_preprocessor(attr_append_postprocessor(type.myvalue)) # you can mix pre and postprocessors
         - another = attr_append_postprocessor("static value", "i append this")
 ```
 This will create a node with label "label appendix". The value of the attribute "another" is "static valuei append this".
 
 ### Full Wrappers
-If you require more sophisticated functionality, like, for example, passing information from preprocessing to postprocessing or a state, you can create full wrapper classes. They need to inherit from either `SubGraphFactoryWrapper` or `AttributeFactoryWrapper`. Their constructor takes as the first parameter the wrapped factory, with which the parent's constructor is called. As for pre/postprocessor functions, the constructor can take static string arguments from the schema file. Further, the wrapper class needs to implement the `construct(resource)` method. To get the resulting product of the wrapped factory, call `super().construct(resource)` in your `construct` function.
+If you require more sophisticated functionality, like, for example, passing information from preprocessing to postprocessing or a state, you can create full wrapper classes. They need to inherit from either `SubgraphFactoryWrapper` or `AttributeFactoryWrapper`. Their constructor takes as the first parameter the wrapped factory, with which the parent's constructor is called. As for pre/postprocessor functions, the constructor can take static string arguments from the schema file. Further, the wrapper class needs to implement the `construct(resource)` method. To get the resulting product of the wrapped factory, call `super().construct(resource)` in your `construct` function.
 
 The following example checks that at least one relation exists in the resulting subgraph, iff the provided resource is not None. This could not be done with simple pre/postprocessor functions. Obviously, everything that can be done with pre/postprocessor functions can also be done with full wrapper classes. 
 ```python
 from rel2graph import SubGraphFactoryWrapper, register_wrapper
 
 @register_wrapper
-class REQUIRE(SubGraphFactoryWrapper):
-    def __init__(factory, static_string_parameter):
+class REQUIRED(SubgraphFactoryWrapper):
+    def __init__(factory: SubgraphFactory, static_string_parameter: str):
         super().__init__(factory)
         self.error_msg = static_string_parameter
 
-    def construct(resource):
+    def construct(resource: Resource) -> Subgraph:
         subgraph = super().construct(resource)
         if resource is None:
             return subgraph # resource was None -> no check
         else:
             if len(subgraph.relationships) == 0:
                 raise Exception(self.error_msg)
+            return subgraph # condition is met -> return produced subgraph
 ```
 `schema.yaml`
 ```yaml
@@ -480,13 +487,13 @@ ENTITY("type"):
     REQUIRED(RELATION(from, "relation type", MATCH("other", key="value")), "No match for label other and key=value"):
 ```
 ## Py2neo Extensions
-The rel2graph library relies on py2neo for the connection to a neo4j graph. As py2neo is limited for specific use-cases, this library provides some useful extensions.
+The rel2graph library relies on py2neo for the connection to a neo4j graph. As py2neo is limited for specific use-cases, this library provides some helpful extensions.
 ### Graph with parallel relations
 Py2neo does not allow the creation of parallel relations: Two parallel relations of the same type between the same two nodes. If two parallel relations are created, they are automatically merged.
 
 <img src="assets/images/parallel_relations.png" width="300"/>
 
-Use the `GraphWithParallelRelations` class to initiate your graph before passing it to the rel2graph [`Converter`](api.md#Converter) to allow for such parallel relations. The `GraphWithParallelRelations` behaves like a normal py2neo graph but supports the creation and the merging of parallel relations. 
+Use the `GraphWithParallelRelations` class to initiate your graph before passing it to the rel2graph [`Converter`](api.md#Converter) to allow for such parallel relations. The `GraphWithParallelRelations` behaves like a normal py2neo graph but supports the creation of parallel relations. If you want to merge relations with a `GraphWithParallelRelations` you can specify a [primary attribute for a relation](#merging-relations).
 ```python
 from rel2graph.py2neo_extensions import GraphWithParallelRelations
 from rel2graph import Converter ...
@@ -495,7 +502,7 @@ iterator = ...
 converter = Converter(config_filename, iterator, graph)
 converter()
 ```
-Note that only `graph.create` and `graph.merge` are tested. No other functionality is guaranteed. It is suggested to use the normal `py2neo.Graph` class for interaction with a graph other than a conversion with rel2graph. Querying a neo4j graph with parallel relations should be no problem with the normal `py2neo.Graph` class.
+Note that only `graph.create` and `graph.merge` are tested. No other functionality is guaranteed. It is suggested to use the normal `py2neo.Graph` class for interaction with a graph other than a conversion with rel2graph. Querying a neo4j graph with parallel relations should be no problem with the normal `py2neo.Graph` class. 
 
 ## Information for developers
 If you intend to extend the library, please check out the [class diagram of the core of the library](assets/pdfs/class_diagram_core.pdf).
