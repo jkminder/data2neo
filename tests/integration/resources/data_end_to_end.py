@@ -59,6 +59,15 @@ likes_relations = [((["Person"], {"ID": p["ID"], "FirstName": p["FirstName"],
         "Renamed": p["LastName"], "Static": "staticstring"}),"likes", 
         (["Species", "BioEntity", p["FavoriteFlower"]], {"Name": p["FavoriteFlower"]}), {"Since":"4ever", "EntityAttribute": p["ID"]}) for p in no_duplicates[1].iloc]
 
+likes_relations_parallel = [((["Person"],  {"ID": "1", "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_parallel", 
+        (["Species", "BioEntity", "virginica"], {"Name": "virginica"}), {"pk": i}) for i in [1,2,3,4]]
+
+likes_relations_parallel = [((["Person"],  {"ID": "1", "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_parallel", 
+        (["Species", "BioEntity", "virginica"], {"Name": "virginica"}), {"pk": i}) for i in [1,2,3,4]]
+
+likes_relations_merged = [((["Person"],  {"ID": "1", "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_merged", 
+        (["Species", "BioEntity", "virginica"], {"Name": "virginica"}), {"pk": "1"})]
+
 person_only_nodes_only_result = {
     "nodes": person_nodes, 
     "relations": []
@@ -73,4 +82,11 @@ full_result = {
     "nodes": person_nodes + species_nodes + flower_nodes, 
     "relations": is_relations + likes_relations
 }
+
+result_parallel = {
+    "nodes": person_nodes + species_nodes, 
+    "relations": likes_relations_parallel + likes_relations_merged
+}
+
+
 ######################

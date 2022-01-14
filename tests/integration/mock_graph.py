@@ -48,39 +48,54 @@ class MockGraph:
         # Dummy variables to simulate graph
         self.service = object() # Dummy service
         self.name = "MockGraph"
+        self._allow_parallel_relations = False
+        
+    @property
+    def allow_parallel_relations(self):
+        return self._allow_parallel_relations
 
+    @allow_parallel_relations.setter
+    def allow_parallel_relations(self, value):
+        self._allow_parallel_relations = value
+    
     def delete_all(self):
         self.nodes = []
         self.relations = []
 
-    def add_node(self, node):
+    def create_node(self, node):
         node.identity = MockGraph.current_node_id
         MockGraph.current_node_id += 1
         with self.nodes_lock:
             self.nodes.append(node)
+
+    def create_relation(self, relation):
+        relation.graph = self
+        with self.relations_lock:
+            self.relations.append(relation)
 
     def _merge_relation(self, relation):
         found = False   
         for rel in self.relations:
             if relation.start_node.identity == rel.start_node.identity and \
                 relation.end_node.identity == rel.end_node.identity and \
-                    relation.type == rel.type:
+                    type(relation).__name__ == type(rel).__name__:
                 found = True
                 # update relation
                 for key in relation.keys():
                     rel[key] = relation[key]
         if not found:
-            with self.relations_lock:
-                self.relations.append(relation)
-                relation.graph = self
+            self.create_relation(relation)
 
     def create(self, subgraph):
         for node in subgraph.nodes:
             if node.identity is None:
-                self.add_node(node)
+                self.create_node(node)
         for relation in subgraph.relationships:
             if relation.graph is None:
-                self._merge_relation(relation)
+                if not self._allow_parallel_relations:
+                    self._merge_relation(relation)
+                else:
+                    self.create_relation(relation)
 
     def merge(self, subgraph):
         for relation in subgraph.relationships:
@@ -97,7 +112,7 @@ class MockGraph:
             if old_node is None:    
                 match = self.matcher.match(node.__primarylabel__, **{node.__primarykey__: node[node.__primarykey__]})
                 if len(match.all()) == 0:
-                    self.add_node(node)
+                    self.create_node(node)
                     continue
                 elif len(match.all()) > 1:
                     raise ValueError("Multiple nodes found to merge")

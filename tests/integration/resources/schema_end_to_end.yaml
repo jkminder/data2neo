@@ -37,3 +37,18 @@ ENTITY("PersonStateRecovery"):
     stop_after_10(RELATION(person, "likes", MATCH("Species", Name=PersonStateRecovery.FavoriteFlower))):
         - Since = "4ever"
         - EntityAttribute = PersonStateRecovery.ID
+
+ENTITY("FlowerParallel"):
+    NODE("Species", "BioEntity", FlowerParallel.species) species:
+        + Name = Flower.species
+    
+ENTITY("PersonParallel"):
+    NODE("Person") person:
+        + ID = PersonParallel.ID
+        - FirstName = PersonParallel.FirstName
+        - Renamed = PersonParallel.LastName
+        - Static = "staticstring"
+    RELATION(MATCH("Person", ID = "1"), "likes_parallel", MATCH("Species", Name="virginica")):
+        - pk = PersonParallel.ID
+    RELATION(MATCH("Person", ID = "1"), "likes_merged", MATCH("Species", Name="virginica")):
+        + pk = "1"
