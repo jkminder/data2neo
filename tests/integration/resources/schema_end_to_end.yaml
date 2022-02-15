@@ -48,7 +48,7 @@ ENTITY("PersonParallel"):
         - FirstName = PersonParallel.FirstName
         - Renamed = PersonParallel.LastName
         - Static = "staticstring"
-    RELATION(MATCH("Person", ID = "1"), "likes_parallel", MATCH("Species", Name="virginica")):
+    RELATION(MATCH("Person", ID = 1), "likes_parallel", MATCH("Species", Name="virginica")):
         - pk = PersonParallel.ID
-    RELATION(MATCH("Person", ID = "1"), "likes_merged", MATCH("Species", Name="virginica")):
-        + pk = "1"
+    RELATION(MATCH("Person", ID = 1), "likes_merged", MATCH("Species", Name="virginica")):
+        + pk = 1

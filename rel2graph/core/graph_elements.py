@@ -20,7 +20,8 @@ authors: Julian Minder
 
 from abc import ABC
 from typing import List, Union
-
+from datetime import datetime,date
+import numbers
 import py2neo
 
 
@@ -31,17 +32,15 @@ class GraphElement(ABC):
     """
     pass
 
-
 class Attribute:
     """Represents an attribute in an Node or in an Relation.
     
     Attributes:
         key: String signifying the key of the attribute
         value: Can be any value that is allowed in the graph 
-               If can also be a list of values (e.g. if this represents some sort of foreign key)
     """
 
-    def __init__(self, key: str, value: Union[str, int, float, bool, List[Union[str, int, float, bool]]]) -> None:
+    def __init__(self, key: str, value: Union[str, int, float, bool, datetime]) -> None:
         """Inits an attribute with a key and a value
         
         Args:
@@ -60,8 +59,8 @@ class Attribute:
     @property
     def value(self):
         """Any value that is allowed in the graph (String, Int, Float, Bool)"""
-        #If the datetime, convert it to string
-        if not isinstance(self._value, str):
+        # If the value is not allowed in neo4j it is converted to strings
+        if not isinstance(self._value, (numbers.Number, str, bool, date, datetime)):
             return str(self._value)
         return self._value
 
@@ -111,3 +110,4 @@ class NodeMatcher(py2neo.NodeMatcher):
 class Graph(py2neo.Graph):
     """Graph Abstraction of py2neo.Graph"""
     pass
+

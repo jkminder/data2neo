@@ -16,7 +16,7 @@ def eq_node(rnode, gnode):
         return False
     # same properties
     for (key, value) in rnode[1].items():
-        if str(gnode[key]) != str(value):
+        if gnode[key] != value:
             return False
     return True
 
@@ -32,7 +32,7 @@ def eq_relation(rrel, grel):
         return False
     # same properties
     for (key, value) in rrel[3].items():
-        if str(grel[key]) != str(value):
+        if grel[key] != value:
             return False
     return True
     

@@ -58,6 +58,7 @@ def register_attribute_postprocessor(function):
     # Static attribute factories. We need to convert them back
     logger.debug(f"Registered attribute postprocessor '{function.__name__}''.")
     _registry[function.__name__] = lambda factory, *args: get_factory("AttributeFactoryWrapper")(factory, None, lambda attribute: function(attribute, *[arg.static_attribute_value for arg in args]))
+    return function
 
 def register_attribute_preprocessor(function):
     """Registers an attribute preprocessor"""
@@ -65,6 +66,7 @@ def register_attribute_preprocessor(function):
     # Static attribute factories. We need to convert them back
     logger.debug(f"Registered attribute preprocessor '{function.__name__}'.")
     _registry[function.__name__] = lambda factory, *args: get_factory("AttributeFactoryWrapper")(factory, lambda resource: function(resource, *[arg.static_attribute_value for arg in args]), None)
+    return function
 
 def register_subgraph_postprocessor(function):
     """Registers a subgraph postprocessor"""
@@ -72,6 +74,7 @@ def register_subgraph_postprocessor(function):
     # Static attribute factories. We need to convert them back
     logger.debug(f"Registered subgraph postprocessor '{function.__name__}'.")
     _registry[function.__name__] = lambda factory, *args: get_factory("SubgraphFactoryWrapper")(factory, None, lambda attribute: function(attribute, *[arg.static_attribute_value for arg in args]))
+    return function
 
 def register_subgraph_preprocessor(function):
     """Registers a subgraph preprocessor"""
@@ -79,6 +82,7 @@ def register_subgraph_preprocessor(function):
     # Static attribute factories. We need to convert them back.
     logger.debug(f"Registered subgraph preprocessor '{function.__name__}'.")
     _registry[function.__name__] = lambda factory, *args: get_factory("SubgraphFactoryWrapper")(factory, lambda resource: function(resource, *[arg.static_attribute_value for arg in args]), None)
+    return function
 
 def register_wrapper(wrapper):
     """Registers a full wrapper"""
@@ -86,3 +90,4 @@ def register_wrapper(wrapper):
     # Static attribute factories. We need to convert them back.
     logger.debug(f"Registered wrapper '{wrapper.__name__}'.")
     _registry[wrapper.__name__] = lambda factory, *args: wrapper(factory,  *[arg.static_attribute_value for arg in args])
+    return wrapper

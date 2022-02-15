@@ -73,3 +73,33 @@ def test_relations_primary():
             assert(rf._primary_key is None)
         if type in ["pk"]:
             assert(rf._primary_key == "pk")
+
+def check_types(list_of_attribuets):
+    for (key, value) in list_of_attribuets:
+            if key == "myint":
+                assert(isinstance(value, int) and value==1)
+            elif key == "mystr":
+                assert(isinstance(value, str) and value=="1")
+            elif key == "myfloat":
+                assert(isinstance(value, float) and value==1.1)
+            elif key == "myTrue":
+                assert(isinstance(value, bool) and value)
+            elif key == "myFalse":
+                assert(isinstance(value, bool) and not value)
+            else:
+                assert(False) # not possible
+
+def test_typing():
+    """Test if different types for static arguments are correctly parsed"""
+    node_supplychain, relation_supplychain = parse(get_filepath("typing"))["entity"]
+
+    for nf in node_supplychain.factories:
+        attributes = af2str(nf._attributes)
+        check_types(attributes)
+
+    for rf in relation_supplychain.factories:
+        # check to matcher
+        fm = rf._to_matcher
+        conditions = af2str(fm._conditions)
+        check_types(conditions)
+

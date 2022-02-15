@@ -35,10 +35,10 @@ iris = ("Flower", pd.DataFrame({
 
 ## test result data ##
 person_nodes = [
-        (["Person"], {"ID": "1", "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),
-        (["Person"], {"ID": "2", "FirstName": "Fritz", "Renamed": "SomeGuy", "Static": "staticstring"}),
-        (["Person"], {"ID": "3", "FirstName": "Hans", "Renamed": "Müller", "Static": "staticstring"}),
-        (["Person"], {"ID": "4", "FirstName": "Rudolfo", "Renamed": "Muster", "Static": "staticstring"})
+        (["Person"], {"ID": 1, "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),
+        (["Person"], {"ID": 2, "FirstName": "Fritz", "Renamed": "SomeGuy", "Static": "staticstring"}),
+        (["Person"], {"ID": 3, "FirstName": "Hans", "Renamed": "Müller", "Static": "staticstring"}),
+        (["Person"], {"ID": 4, "FirstName": "Rudolfo", "Renamed": "Muster", "Static": "staticstring"})
 ]
 
 species_nodes = [
@@ -59,14 +59,14 @@ likes_relations = [((["Person"], {"ID": p["ID"], "FirstName": p["FirstName"],
         "Renamed": p["LastName"], "Static": "staticstring"}),"likes", 
         (["Species", "BioEntity", p["FavoriteFlower"]], {"Name": p["FavoriteFlower"]}), {"Since":"4ever", "EntityAttribute": p["ID"]}) for p in no_duplicates[1].iloc]
 
-likes_relations_parallel = [((["Person"],  {"ID": "1", "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_parallel", 
+likes_relations_parallel = [((["Person"],  {"ID": 1, "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_parallel", 
         (["Species", "BioEntity", "virginica"], {"Name": "virginica"}), {"pk": i}) for i in [1,2,3,4]]
 
-likes_relations_parallel = [((["Person"],  {"ID": "1", "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_parallel", 
+likes_relations_parallel = [((["Person"],  {"ID": 1, "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_parallel", 
         (["Species", "BioEntity", "virginica"], {"Name": "virginica"}), {"pk": i}) for i in [1,2,3,4]]
 
-likes_relations_merged = [((["Person"],  {"ID": "1", "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_merged", 
-        (["Species", "BioEntity", "virginica"], {"Name": "virginica"}), {"pk": "1"})]
+likes_relations_merged = [((["Person"],  {"ID": 1, "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_merged", 
+        (["Species", "BioEntity", "virginica"], {"Name": "virginica"}), {"pk": 1})]
 
 person_only_nodes_only_result = {
     "nodes": person_nodes, 

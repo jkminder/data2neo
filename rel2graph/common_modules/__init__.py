@@ -9,5 +9,4 @@ Import this module to register them in your program.
 authors: Julian Minder
 """
 
-from .subgraph_condition import *
-from .attribute_assert import *
+from .util import *

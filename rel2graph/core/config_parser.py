@@ -153,8 +153,19 @@ def _string_to_instructions(config_str: str) -> List[Any]:
         # Handle empty list of args
         args = _split_arguments(config_str[end_e+1:-1]) # because we need to remove the closing bracket
         instructions.extend(args)
-    else:
-        return config_str.strip("\"").replace("\\", "") if config_str != 'None' else None
+    else: # static argument -> parse to type
+        if config_str == "None":
+            return None
+        elif config_str.startswith('"__FLOATFLAG__'):
+            return float(config_str[15:-1])
+        elif config_str.startswith('"__INTFLAG__'):
+            return int(config_str[13:-1])
+        elif config_str == '"__BOOLFLAG__ True"':
+            return True
+        elif config_str == '"__BOOLFLAG__ False"':
+            return False
+        else:
+            return config_str.strip("\"").replace("\\", "") # string
     return instructions
 
 def _parse_to_instructions(config_data: List[str]) -> Tuple[List[Any], List[Any]]:
@@ -226,6 +237,21 @@ def _escape(config_str: str) -> str:
         config_str = config_str.replace(char, f"\{char}")
     return config_str
 
+def _precompile_nonstring_types(match):
+    """
+    Escapes ints, bools and floats to temporary strings, because compilation unit only deals with string types. The compiler will 
+    convert these back to their type. E.g. "1.243" is converted to '"__FLOAT__(1.234)"'.
+    """
+    match = match.group(0)
+    if '.' in match and match.replace('.','',1).isdigit():
+        return f'"__FLOATFLAG__ {match}"'
+    elif match.isdigit():
+        return f'"__INTFLAG__ {match}"'
+    elif match in ["True", "False"]:
+        return f'"__BOOLFLAG__ {match}"'
+    else:
+        return match
+
 def _precompile_file(filestream):
     """
     Reads the full content of a filestream and apply general reformating rules the the string. 
@@ -235,6 +261,9 @@ def _precompile_file(filestream):
 
     # Convert primary key syntax to a YAML compatible format 
     full_config_str = full_config_str.replace("+", "- +")
+
+    # Escape static nonstring arguments 
+    full_config_str = re.sub("\"[^\"]*\"|[a-zA-Z0-9_.]+", _precompile_nonstring_types, full_config_str)
 
     return full_config_str
 
@@ -252,7 +281,7 @@ class ConfigEntityCompiler:
             allowed_presymbols: symbols that are allowed before a static argument as a string (concated together) (default = ",=")
         Returns:
             Precompiled string
-        """
+        """        
         return re.sub(f"([\([{allowed_presymbols}])\s*((\".*?\")||\d*)(?=\s*[]\),])", lambda match : "{0}AttributeFactory(&None,&None,&{1})".format(match.group(1), _escape(match.group(2))), config_str)
 
     def _precompile_dynamic_nokey_arguments(self, config_str: str, allowed_presymbols="(,") -> str:

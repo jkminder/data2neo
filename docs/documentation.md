@@ -9,6 +9,7 @@ For a Quick Start Example please refer to the [ReadMe](../README.md).
 - [Introduction](#introduction) 
 - [Converter](#converter)
     - [Statefullness](#statefullness)
+    - [Data types](#data-types)
     - [Logging and progress monitoring](#logging-and-progress-monitoring)
 - [Schema Syntax](#schema-syntax)
     - [Entity](#entity)
@@ -31,6 +32,7 @@ For a Quick Start Example please refer to the [ReadMe](../README.md).
     - [Preprocessors](#preprocessors)
     - [Postprocessors](#postprocessors)
     - [Full Wrappers](#full-wrappers)
+- [Common modules](#common-modules)
 - [Py2neo Extensions](#py2neo-extensions)
     - [Graph with parallel relations](#graph-with-parallel-relations)
 - [Information for developers](#information-for-developers)
@@ -111,6 +113,11 @@ converter()
 ```
 The converter will just continue where it left off with the new *conversion schema*. 
 
+### Data types
+Neo4j supports the following datatypes: **Number** (int or float), **String**, **Boolean**, **Point** as well as **temporal types** (Date, Time, LocalTime, DateTime, LocalDateTime, Duration) ([more here](https://neo4j.com/docs/cypher-manual/current/syntax/values/)). The py2graph library does currently not support **Points**. For all other types it will keep the type of the input. So if your resource provides ints/floats it will commit them as ints/floats to the graph. If you require a specific conversion you need to create your own custom wrappers. For **temporal values** the library uses the datetime/date objects of the python [datetime](https://docs.python.org/3/library/datetime.html) library. If you want to commit a date(time) value to the graph make sure it is a date(time) object. All inputs that are not of type: [numbers.Number](https://docs.python.org/3/library/numbers.html) (includes int & float), str, bool, [date](https://docs.python.org/3/library/datetime.html), [datetime](https://docs.python.org/3/library/datetime.html) are converted to strings before beeing commited to neo4j.
+
+For converting strings to datetime/date the library provides some predefined wrappers. See [here](#common-modules) for more details.
+
 ### Logging and progress monitoring
 The whole rel2graph library uses the standard python [logging](https://docs.python.org/3/howto/logging.html) library. See an example of how to use it below. For more information, check out the [official documentation](https://docs.python.org/3/howto/logging.html).
 ```python
@@ -190,8 +197,13 @@ The attribute name of the node/relation must not be the same as the one of the e
 `- sl  = Flower.sepal_length` 
 to get a node with attribute `sl`.
 
-We can also set static attribute values (static strings) with `- attribute_name = "some string"`.
-
+We can also set static attribute values (*strings, ints, floats or bools (True/False)* ) with 
+```
+- a_static_string_attribute = "some string"
+- a_static_bool = True
+- a_static_int = 1
+- a_static_flaot = 1.123
+```
 ### Relation
 A relation is declared with `RELATION(`*source node(s)*`,`*relation type*`,`*destination node(s)*`)`. The relation type is a simple string that represents the relation's name. This will create a relation on the kartesian product of the *source node(s)* and the *destination node(s)* (from all sources to all destinations). We have two options on how to set source and destination nodes: 
 - Use a node identifier (note that it must appear above the relation declaration under the same entity). This allows us to set a single node. E.g. in our example, we have defined the two nodes with identifiers `flower` and `species`. We can now define a relation between those two with `RELATION(flower, "is", species)`.
@@ -486,6 +498,17 @@ ENTITY("type"):
     ...
     REQUIRED(RELATION(from, "relation type", MATCH("other", key="value")), "No match for label other and key=value"):
 ```
+## Common modules
+The rel2graph library comes with some predefined wrappers. To use any of them you must import them:
+```
+import rel2graph.common_modules
+```
+- **DATETIME**:
+The DATETIME attribute wrapper allows to convert strings into datetime objects. It uses the datetime strptime function to convert the strings to datetime based on some formatting. The default formating string is `"%Y-%m-%dT%H:%M:%S"`. You can provide your own formating string as static argument in the conversion schema: `- datetime = DATETIME(entity.datetime_as_str, "%Y/%m/%d %H:%M:%S")`. Check the [datetime documentation](https://docs.python.org/3/library/datetime.html) for details about how strptime works.
+- **DATE**:
+The DATE attribute wrapper allows to convert strings into date objects. It uses the datetime strptime function to convert the strings to datetime based on some formatting and from there into just a date. The default formating string is `"%Y-%m-%d"`. You can provide your own formating string as static argument in the conversion schema: `- date = DATETIME(entity.date_as_str, "%Y/%m/%d  %H:%M:%S")`. Check the [datetime documentation](https://docs.python.org/3/library/datetime.html) for details about how strptime works. If the attribute passed to DATE contains also time information, this is simply stripped away (the format string still must fit the exact format of your attribute).
+
+
 ## Py2neo Extensions
 The rel2graph library relies on py2neo for the connection to a neo4j graph. As py2neo is limited for specific use-cases, this library provides some helpful extensions.
 ### Graph with parallel relations
