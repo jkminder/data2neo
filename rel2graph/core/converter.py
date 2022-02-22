@@ -416,6 +416,10 @@ class Converter:
         else:
             logger.info("Skipping creation of nodes.")
 
+        # Update total of progress bar
+        if pb is not None:
+            pb.total = 2*len(self._iterator)
+            
         if not self._processed_relations and not skip_relations:    
             # Create relations
             logger.info("Starting creation of relations.")
