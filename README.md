@@ -82,6 +82,8 @@ converter = Converter("schema.yaml", iterator, graph)
 # Start the conversion
 converter()
 ```
+# Known issues
+If you encounter a bug or an unexplainable behavior, please check the [known issues](https://github.com/sg-dev/rel2graph/labels/bug) list. If your issue is not found, submit a new one.
 
 [latest_version]: v0.4.2
 [latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v0.4.2
