@@ -132,8 +132,7 @@ class Worker(threading.Thread):
             try:
                 subgraph = factory.construct(next_resource)
             except Exception as err:
-                logger.error(f"Encountered error when processing {'nodes' if self._config.work_type == WorkType.NODE else 'relations'} of {next_resource}.\n{type(err)}: {err}\n")
-                raise err
+                raise type(err)(f"Encountered error when processing {'nodes' if self._config.work_type == WorkType.NODE else 'relations'} of {next_resource}.\n{type(err)}: {err}\n")
 
             # We sort the subgraph based on if its parts should be 
             # merged or just created. This is selected based on if the
@@ -184,7 +183,8 @@ class Worker(threading.Thread):
         logger.debug(f"Starting Worker " + str(self._worker_id))
         try:
             self.process()
-        except Exception:
+        except Exception as err:
+            logger.error(str(err))
             self._bucket.put(sys.exc_info())
         logger.debug(f"Exiting Worker " + str(self._worker_id))
     

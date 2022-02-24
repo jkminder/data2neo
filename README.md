@@ -11,9 +11,9 @@ The library is built specifically for converting data into a [neo4j](https://neo
 
 Note: The [py2neo](https://py2neo.org/2021.1/index.html) library does not support parallel relations of the same type (same source, same target and same type). If your graph requires such parallel relations please checkout the provided [py2neo extensions](/docs/documentation.md#py2neo-extensions).
 ## Installation
-If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v0.4.1][latest_tag]):
+If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v0.4.2][latest_tag]):
 ```
-$ pip install git+ssh://git@github.com/sg-dev/rel2graph@v0.4.1
+$ pip install git+ssh://git@github.com/sg-dev/rel2graph@v0.4.2
 ```
 
 If you don't have ssh set up, download the latest wheel [here][latest_wheel] and install the wheel with:
@@ -83,7 +83,7 @@ converter = Converter("schema.yaml", iterator, graph)
 converter()
 ```
 
-[latest_version]: v0.4.1
-[latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v0.4.1
-[latest_wheel]: https://github.com/sg-dev/rel2graph/releases/download/v0.4.1/rel2graph-0.4.1-py3-none-any.whl
+[latest_version]: v0.4.2
+[latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v0.4.2
+[latest_wheel]: https://github.com/sg-dev/rel2graph/releases/download/v0.4.2/rel2graph-0.4.2-py3-none-any.whl
 [wiki]: docs/documentation.md
