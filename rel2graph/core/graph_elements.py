@@ -60,7 +60,7 @@ class Attribute:
     def value(self):
         """Any value that is allowed in the graph (String, Int, Float, Bool)"""
         # If the value is not allowed in neo4j it is converted to strings
-        if not isinstance(self._value, (numbers.Number, str, bool, date, datetime)):
+        if not self._value is None and not isinstance(self._value, (numbers.Number, str, bool, date, datetime)):
             return str(self._value)
         return self._value
 
