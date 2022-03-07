@@ -12,6 +12,11 @@ authors: Julian Minder
 import pytest
 
 from rel2graph.core.config_parser import parse
+from rel2graph import register_attribute_preprocessor
+
+@register_attribute_preprocessor
+def WRAPPER(resource):
+    return resource
 
 def get_rel_type(relation_factory):
     return relation_factory._type.static_attribute_value
@@ -103,3 +108,16 @@ def test_typing():
         conditions = af2str(fm._conditions)
         check_types(conditions)
 
+def test_dynkeys():
+    node_supplychain, relation_supplychain = parse(get_filepath("dynamic_keys"))["entity"]
+    
+    for nf in node_supplychain.factories:
+        for label in nf._labels:
+            assert(label._entity_attribute == "dynamic_key")
+        for attr in nf._attributes:
+            assert(attr._entity_attribute == "dynamic_key")
+    
+    for rf in relation_supplychain.factories:
+        assert(rf._type._entity_attribute == "dynamic_key")
+        for attr in nf._attributes:
+            assert(attr._entity_attribute == "dynamic_key")

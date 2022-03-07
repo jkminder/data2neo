@@ -136,14 +136,14 @@ def _string_to_instructions(config_str: str) -> List[Any]:
         end_e = config_str[end_e+1:].find("[")
     if end_e >= 0 and end > end_e:
         # unpack list
-        args = _split_arguments(config_str[end_e+1:-1]) # because we need to remove the closing bracket
+        args = _split_arguments(config_str.strip()[end_e+1:-1]) # because we need to remove the closing bracket
         arg_instructions = []
         for arg in args:
             arg_instructions.append(_string_to_instructions(arg))
         instructions.extend(arg_instructions)
     elif end > 0:
         instructions.append(config_str[:end])
-        args = _split_arguments(config_str[end+1:-1]) # because we need to remove the closing bracket
+        args = _split_arguments(config_str.strip()[end+1:-1]) # because we need to remove the closing bracket
 
         arg_instructions = []
         for arg in args:
@@ -151,7 +151,7 @@ def _string_to_instructions(config_str: str) -> List[Any]:
         instructions.append(arg_instructions)
     elif end_e >= 0 and len(config_str) == 2:
         # Handle empty list of args
-        args = _split_arguments(config_str[end_e+1:-1]) # because we need to remove the closing bracket
+        args = _split_arguments(config_str.strip()[end_e+1:-1]) # because we need to remove the closing bracket
         instructions.extend(args)
     else: # static argument -> parse to type
         if config_str == "None":
@@ -298,7 +298,9 @@ class ConfigEntityCompiler:
         # Parse Dynamic Entity Attributes without key
         for match in re.finditer(f"(?!\"=)([{allowed_presymbols}])\s*(\w+)(?!&)[.](?!&)(\w+)", config_str):
             if match.group(2) == self._entity_type:
-                config_str = re.sub(match.group(0), _convert(match, "{0}AttributeFactory(&None,\"{2}\",&None)"), config_str)
+                tmp = match.groups()
+                null = match.groups(0)
+                config_str = re.sub(_escape(match.group(0)), _convert(match, "{0}AttributeFactory(&None,\"{2}\",&None)"), config_str)
             else:
                 # TODO: Inefficient since dynamic attributes are recomputed and not extracted
                 # Need structure to dynamically extract information from an existing node
@@ -316,6 +318,9 @@ class ConfigEntityCompiler:
         
     def _precompile_graph_element(self, config_str: str) -> str:
         """Precompiles a graph element (Node or Relation)"""
+        # Remove identity
+        config_str = config_str[:_index_of_closing_bracket(config_str, 0)+1]
+
         # Convert ids into Matchers
         for id in self._ids: 
             # The first lookahead makes sure that an even amount of \" are after the match -> the id is not in a string
