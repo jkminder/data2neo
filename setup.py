@@ -9,11 +9,11 @@ requirements = [
 setup(
     name = "rel2graph", 
     packages = find_packages(),
-    version = "0.4.5",
+    version = "0.4.6",
     description = "Library for converting relational data into graph data (neo4j)",
     author = "Julian Minder",
-    author_email = "jminder@ethz.ch",
-    url = "github.com/sg-dev/rel2graph",
+    author_email = "jminder@ethz.ch",   
+    url = "github.com/sg-dev/rel2graph",    
     install_requires = requirements,
     python_requires = ">=3.7"
 )
