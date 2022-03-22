@@ -1,0 +1,9 @@
+ENTITY("entity"):
+  NODE("label"):
+    + uid = "First"
+  
+  NODE("label"):
+    + uid = "Second"
+
+  NODE("label"):
+    + uid = "Third"

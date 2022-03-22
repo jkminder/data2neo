@@ -389,42 +389,43 @@ class ConfigEntityCompiler:
         
         precompiled_entity = []
 
-        for element_config, attributes in config_data.items():
-            # Grab id
-            match = re.search("[\)]\s*(\w+)\s*$", element_config)
-            id = None
-            if match is not None:
-                id = match.group(1)
-                self._ids.add(id)
-            
-            # Precompile attributes
-            precompiled_attributes = []
-            primary_key = "&None"
-            if attributes is not None:
-                for attribute in attributes:
-                    config, key, primary = self._precompile_attribute(attribute)
-                    precompiled_attributes.append(config)
-                    # if an id exist we save this attribute for later reference
-                    if id is not None:
-                        self._saved_attributes[f"{id}.{key}"] = config
-                    
-                    # if primary key we save it
-                    if primary:
-                        if primary_key == "&None":
-                            primary_key = key
-                        else:
-                            raise ConfigError(f"Error in config for entity '{self._entity_type}'{' in graph element with identifier - ' + id if id is not None else ''}: Only 1 primary key allowed")
-            precompiled_graph_element = self._precompile_graph_element(element_config)
-            
-            # Add attributes to the string
-            precompiled_attributes_str = "[" + ",".join(precompiled_attributes) + "]"
-            precompiled_graph_element = precompiled_graph_element.format(attributes=precompiled_attributes_str, parent=self._entity_type, id=id, primary_key = primary_key)
+        if config_data is not None:
+            for element_config, attributes in config_data.items():
+                # Grab id
+                match = re.search("[\)]\s*(\w+)\s*$", element_config)
+                id = None
+                if match is not None:
+                    id = match.group(1)
+                    self._ids.add(id)
+                
+                # Precompile attributes
+                precompiled_attributes = []
+                primary_key = "&None"
+                if attributes is not None:
+                    for attribute in attributes:
+                        config, key, primary = self._precompile_attribute(attribute)
+                        precompiled_attributes.append(config)
+                        # if an id exist we save this attribute for later reference
+                        if id is not None:
+                            self._saved_attributes[f"{id}.{key}"] = config
+                        
+                        # if primary key we save it
+                        if primary:
+                            if primary_key == "&None":
+                                primary_key = key
+                            else:
+                                raise ConfigError(f"Error in config for entity '{self._entity_type}'{' in graph element with identifier - ' + id if id is not None else ''}: Only 1 primary key allowed")
+                precompiled_graph_element = self._precompile_graph_element(element_config)
+                
+                # Add attributes to the string
+                precompiled_attributes_str = "[" + ",".join(precompiled_attributes) + "]"
+                precompiled_graph_element = precompiled_graph_element.format(attributes=precompiled_attributes_str, parent=self._entity_type, id=id, primary_key = primary_key)
 
-            # Remove compile markers
-            precompiled_graph_element = precompiled_graph_element.replace("&", "")
+                # Remove compile markers
+                precompiled_graph_element = precompiled_graph_element.replace("&", "")
 
-            # append to list
-            precompiled_entity.append(precompiled_graph_element)
+                # append to list
+                precompiled_entity.append(precompiled_graph_element)
         
         # Convert to instructions
         node_instructions, relation_instructions = _parse_to_instructions(precompiled_entity)

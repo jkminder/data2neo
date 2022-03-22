@@ -232,6 +232,7 @@ class RelationFactory(SubgraphFactory):
         type = self._type.construct(resource)
         logger.debug(f"For relation type {type.value} matched {len(from_nodes)} from_nodes and {len(to_nodes)} to nodes")
         attributes = [attr_factory.construct(resource) for attr_factory in self._attributes]
+        attributes = [attr for attr in attributes if attr is not None]
         relations = Subgraph()
         for from_node in from_nodes:
             for to_node in to_nodes:

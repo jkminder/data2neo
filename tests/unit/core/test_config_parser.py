@@ -121,3 +121,8 @@ def test_dynkeys():
         assert(rf._type._entity_attribute == "dynamic_key")
         for attr in nf._attributes:
             assert(attr._entity_attribute == "dynamic_key")
+        
+def test_empty_entity():
+    node_supplychain, relation_supplychain = parse(get_filepath("empty_entity"))["entity"]
+    assert(len(node_supplychain.factories) == 0)    
+    assert(len(relation_supplychain.factories) == 0)
