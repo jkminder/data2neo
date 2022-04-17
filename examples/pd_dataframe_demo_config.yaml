@@ -15,3 +15,8 @@ ENTITY("Person"):
         - LastName = Person.LastName
     RELATION(person, "likes", MATCH("Species", Name=Person.FavoriteFlower)):
         - Since = "4ever"
+
+ENTITY("TMP"):
+    NODE("tmp") t:
+        + ID = TMP.ID
+        - date = DATE(TMP.date, "%d.%m.%Y")
