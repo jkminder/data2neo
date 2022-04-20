@@ -4,12 +4,13 @@ requirements = [
     'py2neo>=2021.2.3',
     'pyodata>=1.7.1',
     'pandas',
+    'ply>=3.11'
 ]
 
 setup(
     name = "rel2graph", 
     packages = find_packages(),
-    version = "0.4.6",
+    version = "0.5.0",
     description = "Library for converting relational data into graph data (neo4j)",
     author = "Julian Minder",
     author_email = "jminder@ethz.ch",   
