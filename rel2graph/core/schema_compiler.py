@@ -12,6 +12,7 @@ authors: Julian Minder
 """
 
 from typing import List, Any
+from collections import Counter
 import re
 import logging
 from ply import lex, yacc
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class SchemaConfigException(ValueError):
+    """Exception for syntax errors in the schema config file."""
     pass
 
 
@@ -29,6 +31,9 @@ class SchemaConfigParser:
     """
     Parses the schema config file into rel2graph instructions that can directly be converted into factories and their arguments. Uses ply to
     parse and lex the grammar.
+
+    All t_{name} methods/attributes of the class are used by lex to parser the document into tokens. All p_{name} functions define the grammar for 
+    the schema file and are parsed by the yacc module. Check out the ply documentation for more information.
     """
 
     tokens = (
@@ -89,11 +94,13 @@ class SchemaConfigParser:
 
     # Error handling rule
     def t_error(self, t):
-        raise SchemaConfigException(f"Illegal character '{t.value[0]}' on line {t.lexer.lineno}\nCONTEXT: \n...{t.lexer.lexdata[t.lexpos-20:t.lexpos]}{t.value[0]}\u0332{t.value[1:50]}\n...")
+        raise SchemaConfigException(f"Illegal character '{t.value[0]}' on line {t.lexer.lineno}\nCONTEXT: \n...{t.lexer.lexdata[max(0, t.lexpos-20):t.lexpos]}{t.value[0]}\u0332{t.value[1:min(50, len(t.value))]}\n...")
 
     def __init__(self):
         self.lexer = lex.lex(module=self)
         self.parser = yacc.yacc(module=self, debug=False)
+
+        self._identifiers = [] # used to verify that an identifier is only used once per entity
 
     def tokenize(self, data):
         self.lexer.input(data)
@@ -121,6 +128,13 @@ class SchemaConfigParser:
         '''entity : ENTITY LPAR STRING RPAR COLON graphelements
         '''
         p[0] = [self._cleanup_string(p[3]), p[6]]
+        # verify that every identifier is only used once per entity
+        identifier_counts = Counter(self._identifiers)
+        duplicated_identifiers = [key for key in identifier_counts.keys() if identifier_counts[key]>1]
+        if len(duplicated_identifiers):
+            raise SchemaConfigException(f"Found conflicting definitions of identifiers {duplicated_identifiers} in entity '{p[0][0]}'. An identifier must be unique.")
+        # clear identifier list
+        self._identifiers = []
 
     @staticmethod
     def _inject_graphelement_args(instructions, attributes, identifier):
@@ -171,6 +185,8 @@ class SchemaConfigParser:
         '''identifier : NAME
                       | empty'''
         p[0] = p[1]
+        if p[0] is not None:
+            self._identifiers.append(p[0])
 
     def p_graphelement(self, p):
         '''graphelement : node
@@ -280,8 +296,9 @@ class SchemaConfigParser:
     def p_empty(self, p):
         '''empty : '''
 
-    def p_error(self, p):
-        raise Exception(p)
+    def p_error(self, t):
+        token_underlined = '\u0332'.join(t.value)
+        raise SchemaConfigException(f"Couldn't resolve token '{t.value}' at position {t.lexpos}\nCONTEXT: \n...{t.lexer.lexdata[max(0, t.lexpos-20):t.lexpos]}{token_underlined}\n...")
 
     @staticmethod
     def _cleanup_string(value):
@@ -371,35 +388,9 @@ def compile_schema(schema_config_file: str) -> List["Factory"]:
 
     for entity_type, entity_instructions in instructions:
         if entity_type in compiled.keys():
-            raise SchemaConfigException("Found two conflicting definitions of entity '{entity_type}'. Please only specify each entity once.")
+            raise SchemaConfigException(f"Found two conflicting definitions of entity '{entity_type}'. Please only specify each entity once.")
         node_instructions, relation_instructions = entity_instructions
         node_factories, relation_factories = _compile_instructions(node_instructions), _compile_instructions(relation_instructions)
         compiled[entity_type] = (get_factory("SupplyChain")(node_factories, "NodeSupplyChain"),
                                  get_factory("SupplyChain")(relation_factories, "RelationSupplyChain"))
     return compiled
-
-
-
-if __name__ == "__main__":
-    parser = SchemaConfigParser()
-
-    precompiled_string = """
-    ENTITY("entity"):
-    WRAPPER(NODE("label", WRAP("label2"), WRAP("label3", 1234), entity.column), "someargument", 123) nodeid:
-        + test = entity.column
-        - test1 = "static \\" string"
-        - test2 = WRAP2(WRAP(entity.col))
-    RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
-        + test = entity.column
-        - test1 = "static \\" string"
-        - test2 = WRAP2(WRAP(entity.col))
-    ENTITY("second"):
-        RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
-        + test = entity.column
-        - test1 = "static \\" string"
-        - test2 = WRAP2(WRAP(entity.col))
-    ENTITY("third"):
-    """
-    precompiled_string = _precompile(precompiled_string)
-    parser.tokenize(precompiled_string)
-    print(parser.parse(precompiled_string))

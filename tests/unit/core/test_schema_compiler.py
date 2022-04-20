@@ -12,7 +12,152 @@ authors: Julian Minder
 import pytest
 
 from rel2graph.core.schema_compiler import compile_schema, SchemaConfigParser, _precompile
-from rel2graph import register_attribute_preprocessor
+from rel2graph import register_attribute_preprocessor, SchemaConfigException
+
+######## TESTS PRECOMPILER ##########
+
+def test_precompile_commentremoval():
+    """Tests if precompilation correctly removes all comments from the schema config string."""
+    input_string = """
+    ENTITY("entity"):
+    WRAPPER(NODE("label", WRAP("label2"), WRAP("label3", 1234), entity.column), "someargument", 123) nodeid: # some comment
+        + test = entity.column #######
+        - test1 = "static \\" string" ##ka asdflkjasdölfj
+        - test2 = WRAP2(WRAP(entity.col))
+    RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+        + test = entity.column # testi 123 vier fünf
+        - test1 = "static \\" string" 
+        - test2 = WRAP2(WRAP(entity.col))
+    # this is another comment ,!'_
+    ENTITY("second"):
+        RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+        + test = entity.column # this is a coomment
+        - test1 = "static \\" string"
+        - test2 = WRAP2(WRAP(entity.col))
+    ENTITY("third"):
+    """
+    precompiled_string = """
+    ENTITY("entity"):
+    WRAPPER(NODE("label", WRAP("label2"), WRAP("label3", 1234), entity.column), "someargument", 123) nodeid: 
+        + test = entity.column 
+        - test1 = "static \\" string" 
+        - test2 = WRAP2(WRAP(entity.col))
+    RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+        + test = entity.column 
+        - test1 = "static \\" string" 
+        - test2 = WRAP2(WRAP(entity.col))
+    
+    ENTITY("second"):
+        RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+        + test = entity.column 
+        - test1 = "static \\" string"
+        - test2 = WRAP2(WRAP(entity.col))
+    ENTITY("third"):
+    """
+    assert _precompile(input_string) == precompiled_string
+
+######## TESTS PARSER ##########
+
+def test_parser_complex():
+    """Tests correct parsing of a complex schema definition."""
+    input_string = """
+    ENTITY("entity"):
+    WRAPPER(NODE("label", WRAP("label2"), WRAP("label3", 1234), entity.column), "someargument", 123) nodeid:
+        + test = entity.column
+        - test1 = "static \\" string"
+        - test2 = WRAP2(WRAP(entity.col))
+    RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+        + test = entity.column
+        - test1 = "static \\" string"
+        - test2 = WRAP2(WRAP(entity.col))
+    ENTITY("second"):
+        RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+        + test = entity.column
+        - test1 = "static \\" string"
+        - test2 = WRAP2(WRAP(entity.col))
+    ENTITY("third"):
+    """
+    ground_truth = [['entity', [[['WRAPPER', [['NodeFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], [['AttributeFactory', [None, None, 'label']], ['WRAP', [['AttributeFactory', [None, None, 'label2']]]], ['WRAP', [['AttributeFactory', [None, None, 'label3']], ['AttributeFactory', [None, None, 1234]]]], ['AttributeFactory', [None, 'column', None]]], 'test', 'nodeid']], ['AttributeFactory', [None, None, 'someargument']], ['AttributeFactory', [None, None, 123]]]]], [['RelationFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], ['AttributeFactory', [None, None, 'type']], ['Matcher', [None, ['AttributeFactory', [None, None, 'label']], ['AttributeFactory', [None, None, 'label2']], ['AttributeFactory', ['name', None, 'test']], ['WRAP', [['AttributeFactory', ['id', 'idcolumn', None]]]]]], ['Matcher', ['to']], 'test', None]]]]], ['second', [[], [['RelationFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], ['AttributeFactory', [None, None, 'type']], ['Matcher', [None, ['AttributeFactory', [None, None, 'label']], ['AttributeFactory', [None, None, 'label2']], ['AttributeFactory', ['name', None, 'test']], ['WRAP', [['AttributeFactory', ['id', 'idcolumn', None]]]]]], ['Matcher', ['to']], 'test', None]]]]], ['third', [[], []]]]
+    parser = SchemaConfigParser()
+    assert ground_truth == parser.parse(input_string)
+
+def test_parser_nodes_with_same_labels():
+    """Tests if nodes are specified with the exact same config string are merged. This test verifies the libraries fix for github issue #2."""
+    input_string = """
+    ENTITY("LegislativePeriod"):
+    NODE("Source"):
+        + name = "Online DB"
+    NODE("Source"):
+        + name = "Amtliche Sammlung"
+    NODE("Source"):
+        + name = "Bundesblatt"
+    """
+    ground_truth = [['LegislativePeriod', [[['NodeFactory', [[['AttributeFactory', ['name', None, 'Online DB']]], [['AttributeFactory', [None, None, 'Source']]], 'name', None]], ['NodeFactory', [[['AttributeFactory', ['name', None, 'Amtliche Sammlung']]], [['AttributeFactory', [None, None, 'Source']]], 'name', None]], ['NodeFactory', [[['AttributeFactory', ['name', None, 'Bundesblatt']]], [['AttributeFactory', [None, None, 'Source']]], 'name', None]]], []]]]
+    parser = SchemaConfigParser()
+    assert ground_truth == parser.parse(input_string)
+
+def test_parser_overlapping_identifiers():
+    """Tests if overlapping identifiers are correctly parsed (e.g. year vs year_end). This test verifies the libraries fix for github issue #1."""
+    input_string = """
+    ENTITY("Session"):
+    NODE("Year") year:
+    NODE("Year") year_end:
+    """
+    ground_truth = [['Session', [[['NodeFactory', [[], [['AttributeFactory', [None, None, 'Year']]], None, 'year']], ['NodeFactory', [[], [['AttributeFactory', [None, None, 'Year']]], None, 'year_end']]], []]]]
+    parser = SchemaConfigParser()
+    assert ground_truth == parser.parse(input_string)
+
+def test_parser_raises_identifier_twice():
+    """Tests if parser correctly raises an exception if an identifier is defined twice."""
+    input_string = """
+    ENTITY('entity'):
+        NODE("label") node:
+        NODE("label2") node:
+    """
+    with pytest.raises(SchemaConfigException) as excinfo:
+        parser = SchemaConfigParser()
+        parser.parse(input_string)
+    exception_msg = excinfo.value.args[0]
+    assert exception_msg == "Found conflicting definitions of identifiers ['node'] in entity 'entity'. An identifier must be unique."
+
+def test_parser_raises_two_primary_keys():
+    """Test if parser correctly raises an exception if a graphelement has two defined primary keys."""
+    input_string = """
+    ENTITY('entity'):
+        NODE("label") node:
+            + name = entity.attr
+            + name2 = entity.attr
+    """
+    with pytest.raises(SchemaConfigException) as excinfo:
+        parser = SchemaConfigParser()
+        parser.parse(input_string)
+    exception_msg = excinfo.value.args[0]
+    assert exception_msg == "Setting two or more primary keys for one graphelement is not allowed. Conflict: 'name' <-> 'name2'"
+
+def test_parser_raises_illegal_character():
+    """Test if parser correctly raises an exception if a the schema contains an illegal character."""
+    input_string = """
+    ENTITY('entity') "whatisthis:
+        NODE("label") node:
+    """
+    with pytest.raises(SchemaConfigException) as excinfo:
+        parser = SchemaConfigParser()
+        parser.parse(input_string)
+    exception_msg = excinfo.value.args[0]
+    assert exception_msg.startswith("Illegal character '\"' on line 2")
+
+def test_parser_raises_illegal_token():
+    """Test if parser correctly raises an exception if a the schema contains an invalid token."""
+    input_string = """
+    ENTITY('entity'):
+        ENTITY("label") node:
+    """
+    with pytest.raises(SchemaConfigException) as excinfo:
+        parser = SchemaConfigParser()
+        parser.parse(input_string)
+    exception_msg = excinfo.value.args[0]
+    assert exception_msg.startswith("Couldn't resolve token 'node' at position")
+######## TESTS FULL COMPILER ##########
 
 @register_attribute_preprocessor
 def WRAPPER(resource):
@@ -127,63 +272,9 @@ def test_full_compiler_empty_entity():
     assert len(node_supplychain.factories) == 0 
     assert len(relation_supplychain.factories) == 0
 
-def test_parser():
-    input_string = """
-    ENTITY("entity"):
-    WRAPPER(NODE("label", WRAP("label2"), WRAP("label3", 1234), entity.column), "someargument", 123) nodeid:
-        + test = entity.column
-        - test1 = "static \\" string"
-        - test2 = WRAP2(WRAP(entity.col))
-    RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
-        + test = entity.column
-        - test1 = "static \\" string"
-        - test2 = WRAP2(WRAP(entity.col))
-    ENTITY("second"):
-        RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
-        + test = entity.column
-        - test1 = "static \\" string"
-        - test2 = WRAP2(WRAP(entity.col))
-    ENTITY("third"):
-    """
-    true_instructions = [['entity', [[['WRAPPER', [['NodeFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], [['AttributeFactory', [None, None, 'label']], ['WRAP', [['AttributeFactory', [None, None, 'label2']]]], ['WRAP', [['AttributeFactory', [None, None, 'label3']], ['AttributeFactory', [None, None, 1234]]]], ['AttributeFactory', [None, 'column', None]]], 'test', 'nodeid']], ['AttributeFactory', [None, None, 'someargument']], ['AttributeFactory', [None, None, 123]]]]], [['RelationFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], ['AttributeFactory', [None, None, 'type']], ['Matcher', [None, ['AttributeFactory', [None, None, 'label']], ['AttributeFactory', [None, None, 'label2']], ['AttributeFactory', ['name', None, 'test']], ['WRAP', [['AttributeFactory', ['id', 'idcolumn', None]]]]]], ['Matcher', ['to']], 'test', None]]]]], ['second', [[], [['RelationFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], ['AttributeFactory', [None, None, 'type']], ['Matcher', [None, ['AttributeFactory', [None, None, 'label']], ['AttributeFactory', [None, None, 'label2']], ['AttributeFactory', ['name', None, 'test']], ['WRAP', [['AttributeFactory', ['id', 'idcolumn', None]]]]]], ['Matcher', ['to']], 'test', None]]]]], ['third', [[], []]]]
-    parser = SchemaConfigParser()
-    assert true_instructions == parser.parse(input_string)
-
-def test_precompile():
-    input_string = """
-    ENTITY("entity"):
-    WRAPPER(NODE("label", WRAP("label2"), WRAP("label3", 1234), entity.column), "someargument", 123) nodeid: # some comment
-        + test = entity.column #######
-        - test1 = "static \\" string" ##ka asdflkjasdölfj
-        - test2 = WRAP2(WRAP(entity.col))
-    RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
-        + test = entity.column # testi 123 vier fünf
-        - test1 = "static \\" string" 
-        - test2 = WRAP2(WRAP(entity.col))
-    # this is another comment ,!'_
-    ENTITY("second"):
-        RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
-        + test = entity.column # this is a coomment
-        - test1 = "static \\" string"
-        - test2 = WRAP2(WRAP(entity.col))
-    ENTITY("third"):
-    """
-    precompiled_string = """
-    ENTITY("entity"):
-    WRAPPER(NODE("label", WRAP("label2"), WRAP("label3", 1234), entity.column), "someargument", 123) nodeid: 
-        + test = entity.column 
-        - test1 = "static \\" string" 
-        - test2 = WRAP2(WRAP(entity.col))
-    RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
-        + test = entity.column 
-        - test1 = "static \\" string" 
-        - test2 = WRAP2(WRAP(entity.col))
-    
-    ENTITY("second"):
-        RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
-        + test = entity.column 
-        - test1 = "static \\" string"
-        - test2 = WRAP2(WRAP(entity.col))
-    ENTITY("third"):
-    """
-    assert _precompile(input_string) == precompiled_string 
+def test_compiler_raises_same_entity_twice():
+    """Make sure compiler raises exception when defining an entity twice."""
+    with pytest.raises(SchemaConfigException) as excinfo:
+        compile_schema(get_filepath("conflicting_entities"))
+    exception_msg = excinfo.value.args[0]
+    assert exception_msg == "Found two conflicting definitions of entity 'entity'. Please only specify each entity once."
