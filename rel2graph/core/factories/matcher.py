@@ -26,7 +26,7 @@ class Matcher:
         Based on if an attribute_key is set, a condition is interpreted as 
         label or as attribute condition. If conditions are set, the matcher will query the graph
         for nodes matching all labels and all attribute conditions.
-
+    
         Args:
             node_id: String that represents a unique node. The matcher will assume that the
                      searched node can be found in resources.supplies[node_id] upon calling

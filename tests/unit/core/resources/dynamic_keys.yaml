@@ -2,12 +2,12 @@ ENTITY("entity"):
   NODE(entity.dynamic_key) node:
     + attr = entity.dynamic_key
     - attr = WRAPPER(entity.dynamic_key)
-  NODE(WRAPPER(entity.dynamic_key)) node:
+  NODE(WRAPPER(entity.dynamic_key)):
     + attr = entity.dynamic_key
-  NODE(entity.dynamic_key, WRAPPER(entity.dynamic_key)) node:
+  NODE(entity.dynamic_key, WRAPPER(entity.dynamic_key)):
     + attr = entity.dynamic_key
-  NODE(entity.dynamic_key , WRAPPER(entity.dynamic_key) ) node:
-  NODE(WRAPPER(entity.dynamic_key), entity.dynamic_key) node:
+  NODE(entity.dynamic_key , WRAPPER(entity.dynamic_key) ):
+  NODE(WRAPPER(entity.dynamic_key), entity.dynamic_key):
     + attr = entity.dynamic_key
   RELATION(node, entity.dynamic_key, node):
     + attr = entity.dynamic_key

@@ -21,7 +21,7 @@ from .resource_iterator import ResourceIterator
 from .factories.registrar import register_factory
 from .graph_elements import NodeMatcher, Graph, Subgraph
 from .factories.matcher import Matcher
-from .config_parser import parse
+from .schema_compiler import compile_schema
 import threading
 import time
 
@@ -303,7 +303,7 @@ class Converter:
         self._num_workers = num_workers
 
         # Parse the schema and compile it into factories
-        self._factories = parse(config_filename)
+        self._factories = compile_schema(config_filename)
 
         # register the node matcher -> TODO: maybe find a better solution than global variable. Problem is inclusion in compiler. Would also fix the singleton issue.
         Matcher.graph_matcher = NodeMatcher(graph)
@@ -346,7 +346,7 @@ class Converter:
         Args:
             config_filename: Path of the schema config file.
         """
-        self._factories = parse(config_filename)
+        self._factories = compile_schema(config_filename)
         if self._worker_pool is not None:
             self._worker_pool.config.factories = self._factories
         
