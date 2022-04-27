@@ -9,7 +9,7 @@ authors: Julian Minder
 
 import pytest
 
-from rel2graph.relational_modules.pandas import PandasSeriesResource, PandasDataFrameIterator
+from rel2graph.relational_modules.pandas import PandasSeriesResource, PandasDataframeIterator
 import pandas as pd
 
 @pytest.fixture
@@ -55,7 +55,7 @@ class TestPandasSeriesResource:
 class TestPandasDataFrameIterator:
     @pytest.fixture
     def iterator(self, example_dataframe):
-        return PandasDataFrameIterator(example_dataframe, type="ExampleType")
+        return PandasDataframeIterator(example_dataframe, type="ExampleType")
 
     def compare_resources(self, resource1, resource2):
         return str(resource1) == str(resource2) and (resource2.series == resource1.series).all()

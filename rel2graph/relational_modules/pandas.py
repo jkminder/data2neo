@@ -11,7 +11,7 @@ from typing import List
 from .. import ResourceIterator
 from .. import Resource
 import pandas as pd
-
+import warnings
 
 
 class PandasSeriesResource(Resource):
@@ -62,7 +62,7 @@ class PandasSeriesResource(Resource):
         """
         return f"{super().__repr__()} (row {self._series.name})"
 
-class PandasDataFrameIterator(ResourceIterator):
+class PandasDataframeIterator(ResourceIterator):
     """Implements a Iterator that works based on a list of oData Entities."""
 
     def __init__(self, dataframe: pd.core.frame.DataFrame, type: str) -> None:
@@ -84,3 +84,12 @@ class PandasDataFrameIterator(ResourceIterator):
     def __len__(self) -> None:
         """Returns the total amount of resources in the iterator"""
         return len(self._rows)
+
+class PandasDataFrameIterator:
+    """DEPRECATED: replaced by PandasDataframeIterator"""
+
+    def __init__(self, *args) -> None:
+        warn_msg = "PandasDataFrameIterator has been deprecated and replaced by PandasDataframeIterator.\
+            Please update your code accordingly."
+        warnings.warn(warn_msg)
+        raise DeprecationWarning(warn_msg)

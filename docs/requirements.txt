@@ -1,0 +1,5 @@
+rel2graph
+sphinx
+sphinx_autodoc_typehints
+sphinx_rtd_theme
+readthedocs-sphinx-search

@@ -15,8 +15,8 @@ import threading
 from enum import IntEnum
 import time
 
-from .factories import resource
 
+from .factories import Resource
 from .resource_iterator import ResourceIterator
 from .factories.registrar import register_factory
 from .graph_elements import NodeMatcher, Graph, Subgraph
@@ -279,8 +279,8 @@ class WorkerPool:
         
 class Converter:
     """The converter handles the whole conversion pipeline.
-    
-    Args:
+
+    Attributes:
         no_reinstantiation_warnings: Turns of singleton reinstantiation warnings (Default: False)
     """
     _is_instantiated = False
