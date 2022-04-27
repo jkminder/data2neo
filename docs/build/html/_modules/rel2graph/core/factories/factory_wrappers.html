@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>rel2graph.core.factories.factory_wrappers &mdash; rel2graph 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> rel2graph
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../converter.html">Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../conversion_schema.html">Schema syntax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../resource.html">Customising Resource and ResourceIterator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wrapper.html">Building your own Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../common_modules.html">Common modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../py2neo_extensions.html">Py2neo Extensions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../information_for_developers.html">Information for Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/api.html">API reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">rel2graph</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      <li>rel2graph.core.factories.factory_wrappers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for rel2graph.core.factories.factory_wrappers</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Factory Wrappers that allow to insert functionality before or after a factory. Allows generic extension of functionality.</span>
+<span class="sd">A Factory Wrapper itself can be wrapped in a Wrapper.</span>
+
+<span class="sd">authors: Julian Minder</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
+
+
+<span class="kn">from</span> <span class="nn">.resource</span> <span class="kn">import</span> <span class="n">Resource</span>
+<span class="kn">from</span> <span class="nn">..graph_elements</span> <span class="kn">import</span> <span class="n">Attribute</span><span class="p">,</span> <span class="n">GraphElement</span><span class="p">,</span> <span class="n">Subgraph</span>
+<span class="kn">from</span> <span class="nn">.factory</span> <span class="kn">import</span> <span class="n">AttributeFactory</span><span class="p">,</span> <span class="n">Factory</span><span class="p">,</span> <span class="n">SubgraphFactory</span>
+<span class="kn">from</span> <span class="nn">.registrar</span> <span class="kn">import</span> <span class="n">register_factory</span>
+
+
+<span class="k">class</span> <span class="nc">FactoryWrapper</span><span class="p">(</span><span class="n">Factory</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract FactoryWrapper that allows to insert pre and postprocessor functions that are called before and after </span>
+<span class="sd">    .construct of the wrapped factory. </span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        factory: The wrapped factory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factory</span><span class="p">:</span> <span class="n">Factory</span><span class="p">,</span> 
+                 <span class="n">preprocessor</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Resource</span><span class="p">],</span> <span class="n">Resource</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">postprocessor</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">GraphElement</span><span class="p">],</span> <span class="n">GraphElement</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Inits the FactoryWrapper with an factory and a post and preprocessor</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            factory: The factory that should be wrapped</span>
+<span class="sd">            preprocessor: A callable that takes a Resource, processes it and returns a resource (which is then passed to the factory). (default: None) </span>
+<span class="sd">            postprocessor: A callabel that takes the GraphElement, processes it and returns another GraphElement. (default: None) </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_factory</span> <span class="o">=</span> <span class="n">factory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_preprocessor</span> <span class="o">=</span> <span class="n">preprocessor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_postprocessor</span> <span class="o">=</span> <span class="n">postprocessor</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">factory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Factory</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The wrapped factory&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_factory</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">construct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resource</span><span class="p">:</span> <span class="n">Resource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GraphElement</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Runs the preprocessor on the resource, uses the factory to construct an GraphElement from the resource</span>
+<span class="sd">        and runs the postprocessor on this GraphElement</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            resource: A Resource containing any information needed for the construction       </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">processed_resource</span> <span class="o">=</span> <span class="n">resource</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_preprocessor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">processed_resource</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_preprocessor</span><span class="p">(</span><span class="n">resource</span><span class="p">)</span>
+        <span class="n">graph_element</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">processed_resource</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_postprocessor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">graph_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_postprocessor</span><span class="p">(</span><span class="n">graph_element</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">graph_element</span>
+    
+
+<div class="viewcode-block" id="SubgraphFactoryWrapper"><a class="viewcode-back" href="../../../../api/core.html#rel2graph.SubgraphFactoryWrapper">[docs]</a><span class="nd">@register_factory</span>
+<span class="k">class</span> <span class="nc">SubgraphFactoryWrapper</span><span class="p">(</span><span class="n">FactoryWrapper</span><span class="p">,</span> <span class="n">SubgraphFactory</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Factory Wrapper for any SubgraphFactory. Allows to insert pre and post processor functions that are called on the </span>
+<span class="sd">    resource/subgraph respectivelly before and after the .construct function of the wrapped factory. This factory behaves like </span>
+<span class="sd">    a normal SubgraphFactory and can be wrapped again.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        factory: The wrapped SubgraphFactory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factory</span><span class="p">:</span> <span class="n">SubgraphFactory</span><span class="p">,</span> <span class="n">preprocessor</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Resource</span><span class="p">],</span> <span class="n">Resource</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">postprocessor</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Subgraph</span><span class="p">],</span> <span class="n">Subgraph</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Inits the SubGraphFactoryWrapper with an factory and a post and preprocessor</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            identifier: A string identifying this Factory instance, must be unique</span>
+<span class="sd">            factory: The SubgraphFactory that should be wrapped</span>
+<span class="sd">            preprocessor: A callable that takes a Resource, processes it and returns a resource (which is then passed to the factory). (default: None) </span>
+<span class="sd">            postprocessor: A callabel that takes the Subgraph, processes it and returns another Subgraph. (default: None)</span>
+<span class="sd">            identifier: A string identifying this Factory instance, must be unique. Can be None if factory doesn&#39;t need to save unique supplies</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># super will call the First Parent class (first element in mro) -&gt; FactoryWrapper init</span>
+        <span class="n">FactoryWrapper</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">preprocessor</span><span class="o">=</span><span class="n">preprocessor</span><span class="p">,</span> <span class="n">postprocessor</span><span class="o">=</span><span class="n">postprocessor</span><span class="p">)</span>
+        <span class="n">SubgraphFactory</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span> <span class="k">if</span> <span class="n">identifier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">factory</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SubgraphFactoryWrapper.construct"><a class="viewcode-back" href="../../../../api/core.html#rel2graph.SubgraphFactoryWrapper.construct">[docs]</a>    <span class="k">def</span> <span class="nf">construct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resource</span><span class="p">:</span> <span class="n">Resource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Subgraph</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Runs the preprocessor on the resource, uses the factory to construct an SubGraph from the resource</span>
+<span class="sd">        and runs the postprocessor on this SubGraph.</span>
+
+<span class="sd">        If resource is None then this method returns an emtpy SubGraph</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            resource: A Resource containing any information needed for the construction</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">resource</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Subgraph</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">FactoryWrapper</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resource</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="AttributeFactoryWrapper"><a class="viewcode-back" href="../../../../api/core.html#rel2graph.AttributeFactoryWrapper">[docs]</a><span class="nd">@register_factory</span>
+<span class="k">class</span> <span class="nc">AttributeFactoryWrapper</span><span class="p">(</span><span class="n">FactoryWrapper</span><span class="p">,</span> <span class="n">AttributeFactory</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Factory Wrapper for any AttributeFactory. Allows to insert pre and post processor functions that are called on the </span>
+<span class="sd">    resource/attribute respectivelly before and after the .construct function of the wrapped factory. This factory behaves like</span>
+<span class="sd">    a normal AttributeFactory and can be wrapped again.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:        </span>
+<span class="sd">        identifier: A string identifying this Factory instance, must be unique</span>
+<span class="sd">        factory: The wrapped AttributeFactory</span>
+<span class="sd">        attribute_key: The key that any produced Attribute has.</span>
+<span class="sd">        static_attribute_value: If this is set, then any attribute produced by this factory will have this string as its value</span>
+<span class="sd">        entity_attribute: A key of an attribute of the expected resource entity.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factory</span><span class="p">:</span> <span class="n">AttributeFactory</span><span class="p">,</span> <span class="n">preprocessor</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Resource</span><span class="p">],</span> <span class="n">Resource</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">postprocessor</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Attribute</span><span class="p">],</span> <span class="n">Attribute</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Inits the AtttributeFactoryWrapper with an factory and a post and preprocessor</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            factory: The AttributeFactory that should be wrapped</span>
+<span class="sd">            preprocessor: A callable that takes a Resource, processes it and returns a resource (which is then passed to the factory). (default: None) </span>
+<span class="sd">            postprocessor: A callabel that takes the Attribute, processes it and returns another Attribute. (default: None) </span>
+<span class="sd">            identifier: A string identifying this Factory instance, must be unique. Can be None if factory doesn&#39;t need to save unique supplies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">FactoryWrapper</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">preprocessor</span><span class="o">=</span><span class="n">preprocessor</span><span class="p">,</span> <span class="n">postprocessor</span><span class="o">=</span><span class="n">postprocessor</span><span class="p">)</span>
+        <span class="n">AttributeFactory</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">attribute_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">entity_attribute</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">static_attribute_value</span><span class="p">,</span> <span class="n">identifier</span> <span class="k">if</span> <span class="n">identifier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">factory</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="AttributeFactoryWrapper.construct"><a class="viewcode-back" href="../../../../api/core.html#rel2graph.AttributeFactoryWrapper.construct">[docs]</a>    <span class="k">def</span> <span class="nf">construct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resource</span><span class="p">:</span> <span class="n">Resource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Attribute</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Runs the preprocessor on the resource, uses the factory to construct an Attribute from the resource</span>
+<span class="sd">        and runs the postprocessor on this Attribute.</span>
+
+<span class="sd">        If resource is None then this method returns None</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            resource: A Resource containing any information needed for the construction</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">resource</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">FactoryWrapper</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resource</span><span class="p">)</span></div></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Julian Minder.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

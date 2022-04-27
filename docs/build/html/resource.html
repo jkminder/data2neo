@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customising Resource and ResourceIterator &mdash; rel2graph 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Building your own Wrappers" href="wrapper.html" />
+    <link rel="prev" title="Schema Syntax" href="conversion_schema.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> rel2graph
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="converter.html">Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conversion_schema.html">Schema syntax</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Customising Resource and ResourceIterator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#resource">Resource</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resourceiterator">ResourceIterator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#iteratoriterator">IteratorIterator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#existing-relational-modules">Existing relational modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pandas">Pandas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#odata">OData</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="wrapper.html">Building your own Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common_modules.html">Common modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py2neo_extensions.html">Py2neo Extensions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="information_for_developers.html">Information for Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/api.html">API reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">rel2graph</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Customising Resource and ResourceIterator</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/resource.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="customising-resource-and-resourceiterator">
+<h1>Customising Resource and ResourceIterator<a class="headerlink" href="#customising-resource-and-resourceiterator" title="Permalink to this headline"></a></h1>
+<p>The <a class="reference internal" href="api/core.html#rel2graph.Resource" title="rel2graph.Resource"><code class="xref py py-class docutils literal notranslate"><span class="pre">Resource</span></code></a> and <a class="reference internal" href="api/core.html#rel2graph.ResourceIterator" title="rel2graph.ResourceIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceIterator</span></code></a> classes are abstract classes and need to be implemented for your specific relational input data type.
+The library comes with implementations for a few <a class="reference internal" href="#existing-relational-modules"><span class="std std-ref">existing relational modules</span></a>.
+If you data type is not supported, you can easily create implementations for your data;
+see below for an explanation or check out <a class="reference external" href="https://github.com/sg-dev/rel2graph/tree/main/rel2graph/relational_modules">one of the already implemented modules</a>.</p>
+<p>If you think your implementations could be helpful for others as well, read through the chapter <a class="reference internal" href="information_for_developers.html"><span class="doc">Information for Developers</span></a> and create a pull request.</p>
+<section id="resource">
+<h2>Resource<a class="headerlink" href="#resource" title="Permalink to this headline"></a></h2>
+<p>The <a class="reference internal" href="api/core.html#rel2graph.Resource" title="rel2graph.Resource"><code class="xref py py-class docutils literal notranslate"><span class="pre">Resource</span></code></a> is simply a wrapper around a relational entity. To create your own resource, you create a new class and inherit from <a class="reference internal" href="api/core.html#rel2graph.Resource" title="rel2graph.Resource"><code class="xref py py-class docutils literal notranslate"><span class="pre">Resource</span></code></a>.
+The parent constructor must be called with no arguments. Additionally, you need to implement following methods: <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code>, <code class="docutils literal notranslate"><span class="pre">__setitem__</span></code>, <code class="docutils literal notranslate"><span class="pre">__repr__</span></code>. See the docs strings below for more details.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rel2graph</span> <span class="kn">import</span> <span class="n">Resource</span>
+
+<span class="k">class</span> <span class="nc">MyResource</span><span class="p">(</span><span class="n">Resource</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="o">...</span><span class="n">your</span> <span class="n">constructor</span> <span class="n">parameters</span><span class="o">...</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># your constructor code</span>
+        <span class="o">...</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the type of the resource as a string. The @property decorator makes this a property of the resource. The type is then accessible via resource.type without braces.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the value at key &#39;key&#39; of the underlying relational entity.</span>
+<span class="sd">        Makes an item retrievable via resource[&quot;mykey&quot;].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">__setitem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets/Changes the value of the underlying relational entity at key &#39;key&#39;.</span>
+<span class="sd">        It must be able to change existing key and also add new keys.</span>
+<span class="sd">        Makes an item settable via resource[&quot;mykey&quot;] = &quot;somevalue&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets a string representation of the resource. Only used for logging.</span>
+
+<span class="sd">        Should follow the format:</span>
+<span class="sd">        NameOfResource &#39;TypeOfResource&#39; (DetailsAboutResource)</span>
+
+<span class="sd">        super().__repr__() returns &quot;NameOfResource &#39;TypeOfResource&#39;&quot;</span>
+
+<span class="sd">        Example-Implementation:</span>
+<span class="sd">        f&quot;{super().__repr__()} ({self.somedetail})&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="o">...</span> <span class="n">some</span> <span class="n">detail</span> <span class="n">about</span> <span class="n">your</span> <span class="n">resource</span> <span class="o">...</span><span class="si">}</span><span class="s2">)&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="resourceiterator">
+<h2>ResourceIterator<a class="headerlink" href="#resourceiterator" title="Permalink to this headline"></a></h2>
+<p>If you create your own <a class="reference internal" href="api/core.html#rel2graph.Resource" title="rel2graph.Resource"><code class="xref py py-class docutils literal notranslate"><span class="pre">Resource</span></code></a>, you also need to create a <a class="reference internal" href="api/core.html#rel2graph.ResourceIterator" title="rel2graph.ResourceIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceIterator</span></code></a> for this <a class="reference internal" href="api/core.html#rel2graph.Resource" title="rel2graph.Resource"><code class="xref py py-class docutils literal notranslate"><span class="pre">Resource</span></code></a> that allows the <a class="reference internal" href="api/core.html#rel2graph.Converter" title="rel2graph.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Converter</span></code></a> to iterate over a set of resources.
+The iterator needs to be written such that it can be traversed multiple times (The <a class="reference internal" href="api/core.html#rel2graph.Converter" title="rel2graph.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Converter</span></code></a> will traverse it once for all nodes and then again for all relations).</p>
+<p>Your iterator class must inherit from <a class="reference internal" href="api/core.html#rel2graph.ResourceIterator" title="rel2graph.ResourceIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceIterator</span></code></a>, and its constructor must call the parent constructor with no arguments.
+Additionally, you need to implement following methods: <code class="docutils literal notranslate"><span class="pre">next</span></code>, <code class="docutils literal notranslate"><span class="pre">reset_to_first</span></code>, <code class="docutils literal notranslate"><span class="pre">__len__</span></code>. See the docs strings below for more details.
+Note that your iterator can also traverse resources of different types.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rel2graph</span> <span class="kn">import</span> <span class="n">ResourceIterator</span>
+
+<span class="k">class</span> <span class="nc">MyIterator</span><span class="p">(</span><span class="n">ResourceIterator</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="n">your</span> <span class="n">constructor</span> <span class="n">parameters</span><span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Resource</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Gets the next resource that will be converted. Returns None if the range is traversed.&quot;&quot;&quot;</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">reset_to_first</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Resets the iterator to point to the first element&quot;&quot;&quot;</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the total amount of resources in the iterator. This is only required if you use a progress bar and is used to compute the percentage of completed work</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>A note on <strong>multithreading</strong>: If you intend to multithread your conversion with multiple workers
+(see chapter <a class="reference internal" href="converter.html"><span class="doc">Converter</span></a>), be aware that <code class="docutils literal notranslate"><span class="pre">iterator.next()</span></code> is not parallelised.
+If you want to leverage multiple threads for loading remote data, you must implement this in the <a class="reference internal" href="api/core.html#rel2graph.Resource" title="rel2graph.Resource"><code class="xref py py-class docutils literal notranslate"><span class="pre">Resource</span></code></a> class (in <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code>).</p>
+</section>
+<section id="iteratoriterator">
+<h2>IteratorIterator<a class="headerlink" href="#iteratoriterator" title="Permalink to this headline"></a></h2>
+<p>The <a class="reference internal" href="api/core.html#rel2graph.IteratorIterator" title="rel2graph.IteratorIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">IteratorIterator</span></code></a> allows you to iterate over multiple “sub”-iterators.
+There are no restrictions on the “sub”-iterators, as long as they are of type <a class="reference internal" href="api/core.html#rel2graph.ResourceIterator" title="rel2graph.ResourceIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceIterator</span></code></a>. Since an <a class="reference internal" href="api/core.html#rel2graph.IteratorIterator" title="rel2graph.IteratorIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">IteratorIterator</span></code></a> is also of type <a class="reference internal" href="api/core.html#rel2graph.ResourceIterator" title="rel2graph.ResourceIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceIterator</span></code></a>, it can be used recursively.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rel2graph</span> <span class="kn">import</span> <span class="n">IteratorIterator</span>
+<span class="n">iterator1</span> <span class="o">=</span> <span class="o">...</span> <span class="c1"># An iterator</span>
+<span class="n">iterator2</span> <span class="o">=</span> <span class="o">...</span> <span class="c1"># Another iterator</span>
+<span class="n">itit</span> <span class="o">=</span> <span class="n">IteratorIterator</span><span class="p">([</span><span class="n">iterator1</span><span class="p">,</span> <span class="n">iterator2</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="existing-relational-modules">
+<h2>Existing relational modules<a class="headerlink" href="#existing-relational-modules" title="Permalink to this headline"></a></h2>
+<section id="pandas">
+<h3>Pandas<a class="headerlink" href="#pandas" title="Permalink to this headline"></a></h3>
+<p>With the <a class="reference internal" href="api/relational_modules.html#rel2graph.relational_modules.pandas.PandasDataframeIterator" title="rel2graph.relational_modules.pandas.PandasDataframeIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">PandasDataframeIterator</span></code></a> you can wrap a <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html?highlight=dataframe#pandas">pandas dataframe</a>.
+If you pass a pandas dataframe to the <a class="reference internal" href="api/relational_modules.html#rel2graph.relational_modules.pandas.PandasDataframeIterator" title="rel2graph.relational_modules.pandas.PandasDataframeIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">PandasDataframeIterator</span></code></a> it will automatically create <a class="reference internal" href="api/relational_modules.html#rel2graph.relational_modules.pandas.PandasSeriesResource" title="rel2graph.relational_modules.pandas.PandasSeriesResource"><code class="xref py py-class docutils literal notranslate"><span class="pre">PandasSeriesResource</span></code></a> out of all rows (series) and iterate over them.
+Since a dataframe has no type associated, you need to also provide a type name.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rel2graph.relational_modules.pandas</span> <span class="kn">import</span> <span class="n">PandasDataframeIterator</span>
+<span class="n">iterator</span> <span class="o">=</span> <span class="n">PandasDataframeIterator</span><span class="p">(</span><span class="n">pandas</span><span class="o">.</span><span class="n">Dataframe</span><span class="p">(</span><span class="o">...</span><span class="p">),</span> <span class="s2">&quot;MyType&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="odata">
+<h3>OData<a class="headerlink" href="#odata" title="Permalink to this headline"></a></h3>
+<p>With the <a class="reference internal" href="api/relational_modules.html#rel2graph.relational_modules.odata.ODataListIterator" title="rel2graph.relational_modules.odata.ODataListIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ODataListIterator</span></code></a> you can iterate over a list of OData entities from <a class="reference external" href="https://pyodata.readthedocs.io/en/latest/">pyodata</a>.
+The entities need to be of type or behave like <a class="reference external" href="https://pyodata.readthedocs.io/en/latest/">pyodata.v2.service.EntityProxy</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rel2graph.relational_modules.odata</span> <span class="kn">import</span> <span class="n">ODataListIterator</span>
+<span class="n">iterator</span> <span class="o">=</span> <span class="n">ODataListIterator</span><span class="p">([</span><span class="n">entity1</span><span class="p">,</span> <span class="n">entity2</span><span class="p">,</span><span class="o">...</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="conversion_schema.html" class="btn btn-neutral float-left" title="Schema Syntax" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wrapper.html" class="btn btn-neutral float-right" title="Building your own Wrappers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Julian Minder.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

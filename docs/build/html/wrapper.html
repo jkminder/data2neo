@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building your own Wrappers &mdash; rel2graph 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Common modules" href="common_modules.html" />
+    <link rel="prev" title="Customising Resource and ResourceIterator" href="resource.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> rel2graph
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="converter.html">Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conversion_schema.html">Schema syntax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resource.html">Customising Resource and ResourceIterator</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Building your own Wrappers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#background">Background</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#attributefactories">AttributeFactories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subgraphfactories">SubgraphFactories</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#registering">Registering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#preprocessors">Preprocessors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#postprocessors">Postprocessors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#full-wrappers">Full Wrappers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="common_modules.html">Common modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py2neo_extensions.html">Py2neo Extensions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="information_for_developers.html">Information for Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/api.html">API reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">rel2graph</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Building your own Wrappers</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/wrapper.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="building-your-own-wrappers">
+<h1>Building your own Wrappers<a class="headerlink" href="#building-your-own-wrappers" title="Permalink to this headline"></a></h1>
+<p>A wrapper allows you to inject custom code into the conversion.
+A wrapper inserts preprocessing and postprocessing before and after a wrapped factory.
+There are three possibilities on how to create such factory wrappers.
+The simplest way is to define either a <strong>preprocessor</strong> (processing the <a class="reference internal" href="api/core.html#rel2graph.Resource" title="rel2graph.Resource"><code class="xref py py-class docutils literal notranslate"><span class="pre">Resource</span></code></a> before it is passed to the factory)
+or a <strong>postprocessor</strong> (processing the factory’s output). They are created by writing a simple python function.
+If you need more sophisticated functionality that uses both, you can define an entire wrapper class.
+This chapter will guide you through the creation of your own wrappers.</p>
+<a class="reference internal image-reference" href="_images/wrapper.jpg"><img alt="_images/wrapper.jpg" src="_images/wrapper.jpg" style="width: 400px;" /></a>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Permalink to this headline"></a></h2>
+<p>First, we need to be aware of the different factory types <em>rel2graph</em> uses.
+The input of every factory is always a resource, but depending on the type the output varies.
+To write wrappers, we need to distinguish the two main factory types: <strong>SubgraphFactories</strong> and <strong>AttributeFactories</strong>.</p>
+<a class="reference internal image-reference" href="_images/factory_hierarchy.png"><img alt="_images/factory_hierarchy.png" src="_images/factory_hierarchy.png" style="width: 400px;" /></a>
+<section id="attributefactories">
+<h3>AttributeFactories<a class="headerlink" href="#attributefactories" title="Permalink to this headline"></a></h3>
+<p><em>AttributeFactories</em> produce <code class="xref py py-class docutils literal notranslate"><span class="pre">Attribute</span></code> objects. An <code class="xref py py-class docutils literal notranslate"><span class="pre">Attribute</span></code> is a simple object that behaves as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rel2graph</span> <span class="kn">import</span> <span class="n">Attribute</span>
+<span class="n">myattr</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="s2">&quot;mykey&quot;</span><span class="p">,</span> <span class="s2">&quot;myvalue&quot;</span><span class="p">)</span>
+<span class="n">key</span> <span class="o">=</span> <span class="n">myattr</span><span class="o">.</span><span class="n">key</span> <span class="c1"># get the key of the attribute</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">myattr</span><span class="o">.</span><span class="n">value</span> <span class="c1"># get the value of the attribute</span>
+</pre></div>
+</div>
+<p>An <code class="xref py py-class docutils literal notranslate"><span class="pre">Attribute</span></code> is immutable, so it can’t be changed.
+If you want to change an existing attribute, you must create a new one with the key/value of the existing attribute including the change and return the new attribute.</p>
+<p>Whenever you refer to an entity attribute, the parser in the <code class="xref py py-class docutils literal notranslate"><span class="pre">Attribute</span></code> will create an <em>AttributeFactory</em>
+(for example <code class="docutils literal notranslate"><span class="pre">mykey</span> <span class="pre">=</span> <span class="pre">EntityName.attribute</span></code> or just <code class="docutils literal notranslate"><span class="pre">EntityName.attribute</span></code>).
+Note that a static attribute will also create an AttributeFactory that will just ignore the input resource (for example, <code class="docutils literal notranslate"><span class="pre">key</span> <span class="pre">=</span> <span class="pre">&quot;staticstring&quot;</span></code>).
+Given a resource the AttributeFactory that is created from <code class="docutils literal notranslate"><span class="pre">mykey</span> <span class="pre">=</span> <span class="pre">EntityName.attribute</span></code> will produce the
+attribute <code class="docutils literal notranslate"><span class="pre">Attribute(&quot;mykey&quot;,</span> <span class="pre">**value</span> <span class="pre">at</span> <span class="pre">resource.attribute**)</span></code>.</p>
+</section>
+<section id="subgraphfactories">
+<h3>SubgraphFactories<a class="headerlink" href="#subgraphfactories" title="Permalink to this headline"></a></h3>
+<p><em>SubgraphFactories</em> produce, as the name suggests,
+a py2neo <a class="reference external" href="https://py2neo.org/2021.1/data/index.html#subgraph-objects">Subgraph</a> object containing py2neo
+<a class="reference external" href="https://py2neo.org/2021.1/data/index.html#node-objects">Nodes</a> and <a class="reference external" href="https://py2neo.org/2021.1/data/index.html#relationship-objects">Relationships</a>.
+When your write <code class="docutils literal notranslate"><span class="pre">NODE(...)</span></code> or <code class="docutils literal notranslate"><span class="pre">RELATION(...)</span></code> in the schema file,
+the parser will create a <em>NodeFactory</em> or a <em>RelationFactory</em>, respectively, out of your specification.
+Both of them are <em>SubgraphFactories</em>. The <em>NodeFactory</em> returns a subgraph with a maximum of one node, and the
+<em>RelationFactory</em> returns a subgraph with an arbitrary number of relationships.
+The nodes and relations of a subgraph can be accessed with <code class="docutils literal notranslate"><span class="pre">subgraph.nodes</span></code> and <code class="docutils literal notranslate"><span class="pre">subgraph.relationships</span></code>.
+Please check out the documentation of the py2neo objects for details about how to operate with them (click on the links).</p>
+</section>
+</section>
+<section id="registering">
+<h2>Registering<a class="headerlink" href="#registering" title="Permalink to this headline"></a></h2>
+<p>When we write a pre/postprocessor function or a wrapper class, we need to register it
+such that the <a class="reference internal" href="api/core.html#rel2graph.Converter" title="rel2graph.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Converter</span></code></a> knows of its existence.
+Registering is done with python <strong>decorators</strong>. When registering pre/postprocessors we need to specify if it’s
+for an <em>AttributeFactory</em> or a <em>SubGraphFactory</em>.
+A wrapper class needs no further specification. The following decorators are available for registering:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">register_attribute_preprocessor</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">register_attribute_postprocessor</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">register_subgraph_preprocessor</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">register_subgraph_postprocessor</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">register_wrapper</span></code></p></li>
+</ul>
+<p>The library will not check if your registered functions/classes match the expected format.
+If the function behaves other than expected, this will result in undefined behaviour during runtime.
+Make sure you define your functions/classes correctly.</p>
+</section>
+<section id="preprocessors">
+<h2>Preprocessors<a class="headerlink" href="#preprocessors" title="Permalink to this headline"></a></h2>
+<p>A preprocessor transforms the resource before it reaches the factory.
+We write a function that takes a resource as input to define a preprocessor.
+If a factory gets <code class="docutils literal notranslate"><span class="pre">None</span></code> as input, it will simply create nothing.
+Therefore, if you want the factory only to produce an object if a condition is given,
+you can write a preprocessor and return <code class="docutils literal notranslate"><span class="pre">None</span></code> if the resource does not meet the requirement.</p>
+<p>We can pass static (string) arguments from the schema file to a preprocessor.
+Simply add them in your function as parameters behind the resource and specify the arguments in the schema file.</p>
+<p>Some examples:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rel2graph</span> <span class="kn">import</span> <span class="n">register_attribute_preprocessor</span><span class="p">,</span> <span class="n">register_subgraph_preprocessor</span>
+
+<span class="nd">@register_attribute_preprocessor</span>
+<span class="k">def</span> <span class="nf">my_attr_preprocessor</span><span class="p">(</span><span class="n">resource</span><span class="p">:</span> <span class="n">Resource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Resource</span><span class="p">:</span>
+    <span class="c1"># do something to the resource</span>
+    <span class="o">...</span>
+    <span class="k">return</span> <span class="n">resource</span>
+
+<span class="nd">@register_subgraph_preprocessor</span>
+<span class="k">def</span> <span class="nf">only_create_subgraph_if_preprocessor</span><span class="p">(</span><span class="n">resource</span><span class="p">:</span> <span class="n">Resource</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;can also have a default value&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Resource</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Only creates the subgraph if resource[key] == value&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">resource</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">value</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="c1"># do not create this subgraph</span>
+    <span class="k">return</span> <span class="n">resource</span>
+</pre></div>
+</div>
+<p>schema.yaml</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">ENTITY(&quot;type&quot;)</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">only_create_subgraph_if_preprocessor(NODE(&quot;label&quot;), &quot;somekey&quot;, &quot;specificvalue&quot;)</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mykey = my_attr_preprocessor(type.myvalue)</span>
+</pre></div>
+</div>
+<p>The node “label” is only created if the attribute “somekey” of the “type” resource is exactly “specificvalue”.</p>
+</section>
+<section id="postprocessors">
+<h2>Postprocessors<a class="headerlink" href="#postprocessors" title="Permalink to this headline"></a></h2>
+<p>A postprocessor transforms the result of the factory. To define a postprocessor, we write a function that takes an
+attribute/subgraph as input, depending on the type. As described in <a class="reference internal" href="#preprocessors"><span class="std std-ref">Preprocessors</span></a>,
+one can pass static (string) arguments to a postprocessor from the schema file.</p>
+<p>Some examples:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rel2graph</span> <span class="kn">import</span> <span class="n">register_attribute_postprocessor</span><span class="p">,</span> <span class="n">register_subgraph_postprocessor</span><span class="p">,</span> <span class="n">Attribute</span>
+
+<span class="nd">@register_attribute_postprocessor</span>
+<span class="k">def</span> <span class="nf">attr_append_postprocessor</span><span class="p">(</span><span class="n">attribute</span><span class="p">:</span> <span class="n">Attribute</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot; appendix&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Attribute</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Append the value to the attribute&quot;&quot;&quot;</span>
+    <span class="n">new_attr</span> <span class="o">=</span> <span class="n">Attribute</span><span class="p">(</span><span class="n">attribute</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">attribute</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">value</span><span class="p">)</span> <span class="c1"># Attribute is immutable -&gt; create new</span>
+    <span class="k">return</span> <span class="n">new_attr</span>
+
+<span class="nd">@register_subgraph_postprocessor</span>
+<span class="k">def</span> <span class="nf">my_subgraph_postprocessor</span><span class="p">(</span><span class="n">subgraph</span><span class="p">:</span> <span class="n">Subgraph</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Subgraph</span><span class="p">:</span>
+    <span class="c1"># do something with the subgraph</span>
+    <span class="o">...</span>
+    <span class="k">return</span> <span class="n">subgraph</span>
+</pre></div>
+</div>
+<p>schema.yaml</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">ENTITY(&quot;type&quot;)</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">my_subgraph_postprocessor(NODE(attr_append_postprocessor(&quot;label&quot;)))</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mykey = an_attr_preprocessor(attr_append_postprocessor(type.myvalue))</span> <span class="c1"># you can mix pre and postprocessors</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">another = attr_append_postprocessor(&quot;static value&quot;, &quot;i append this&quot;)</span>
+</pre></div>
+</div>
+<p>This will create a node with label “label appendix”. The value of the attribute “another” is “static valuei append this”.</p>
+</section>
+<section id="full-wrappers">
+<h2>Full Wrappers<a class="headerlink" href="#full-wrappers" title="Permalink to this headline"></a></h2>
+<p>If you require more sophisticated functionality, like, for example, passing information from preprocessing to postprocessing or a state,
+you can create full wrapper classes. They need to inherit from either <code class="xref py py-class docutils literal notranslate"><span class="pre">SubgraphFactoryWrapper</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeFactoryWrapper</span></code>.
+Their constructor takes as the first parameter the wrapped factory, with which the parent’s constructor is called.
+As for pre/postprocessor functions, the constructor can take static string arguments from the schema file.
+Further, the wrapper class needs to implement the <code class="docutils literal notranslate"><span class="pre">construct(resource)</span></code> method.
+To get the resulting product of the wrapped factory, call <code class="docutils literal notranslate"><span class="pre">super().construct(resource)</span></code> in your <code class="docutils literal notranslate"><span class="pre">construct</span></code> function.</p>
+<p>The following example checks that at least one relation exists in the resulting subgraph,
+iff the provided resource is not None. This could not be done with simple pre/postprocessor functions.
+Obviously, everything that can be done with pre/postprocessor functions can also be done with full wrapper classes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rel2graph</span> <span class="kn">import</span> <span class="n">SubGraphFactoryWrapper</span><span class="p">,</span> <span class="n">register_wrapper</span>
+
+<span class="nd">@register_wrapper</span>
+<span class="k">class</span> <span class="nc">REQUIRED</span><span class="p">(</span><span class="n">SubgraphFactoryWrapper</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">factory</span><span class="p">:</span> <span class="n">SubgraphFactory</span><span class="p">,</span> <span class="n">static_string_parameter</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">factory</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_msg</span> <span class="o">=</span> <span class="n">static_string_parameter</span>
+
+    <span class="k">def</span> <span class="nf">construct</span><span class="p">(</span><span class="n">resource</span><span class="p">:</span> <span class="n">Resource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Subgraph</span><span class="p">:</span>
+        <span class="n">subgraph</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">resource</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">resource</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">subgraph</span> <span class="c1"># resource was None -&gt; no check</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subgraph</span><span class="o">.</span><span class="n">relationships</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_msg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">subgraph</span> <span class="c1"># condition is met -&gt; return produced subgraph</span>
+</pre></div>
+</div>
+<p>schema.yaml</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">ENTITY(&quot;type&quot;)</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">...</span>
+    <span class="l l-Scalar l-Scalar-Plain">REQUIRED(RELATION(from, &quot;relation type&quot;, MATCH(&quot;other&quot;, key=&quot;value&quot;)), &quot;No match for label other and key=value&quot;)</span><span class="p p-Indicator">:</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="resource.html" class="btn btn-neutral float-left" title="Customising Resource and ResourceIterator" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="common_modules.html" class="btn btn-neutral float-right" title="Common modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Julian Minder.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Converter &mdash; rel2graph 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Schema Syntax" href="conversion_schema.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> rel2graph
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Converter</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#statefullness">Statefullness</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-1">Example 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-2">Example 2</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-types">Data types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#logging-and-progress-monitoring">Logging and progress monitoring</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="conversion_schema.html">Schema syntax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resource.html">Customising Resource and ResourceIterator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrapper.html">Building your own Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common_modules.html">Common modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py2neo_extensions.html">Py2neo Extensions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="information_for_developers.html">Information for Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/api.html">API reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">rel2graph</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Converter</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/converter.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="converter">
+<h1>Converter<a class="headerlink" href="#converter" title="Permalink to this headline"></a></h1>
+<p>The <a class="reference internal" href="api/core.html#rel2graph.Converter" title="rel2graph.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Converter</span></code></a> handles the main conversion of the relational data.
+It is initialised with the <em>conversion schema filename</em>, the iterator and the graph.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rel2graph</span> <span class="kn">import</span> <span class="n">Converter</span>
+
+<span class="n">converter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="n">config_filename</span><span class="p">,</span> <span class="n">iterator</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To start the conversion, one simply calls the object. It then iterates twice over the iterator: first to process all the nodes and, secondly, to create all relations. This makes sure that any node a relation refers to is already created first.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">converter</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="api/core.html#rel2graph.Converter" title="rel2graph.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Converter</span></code></a> can utilise <strong>multithreading</strong>. When initialising you can set the number of parallel workers. Each worker operates in its own thread.
+Be aware that the committing to the graph is often still serialized, since the semantics require this (e.g. nodes must be committed before any relation or when [merging nodes](#merging-nodes) all the nodes must be serially committed). So the primary use-case of using multiple workers is if your resources are utilising a network connection (e.g. remote database) or if you require a lot of [matching](#match) in the graph (matching is parallelised).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">converter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="n">config_filename</span><span class="p">,</span> <span class="n">iterator</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">num_workers</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Attention:</strong> If you enable more than 1 workers, ensure that all your <a class="reference internal" href="wrapper.html"><span class="doc">wrappers</span></a> support multithreading (add locks if necessary).</p>
+<section id="statefullness">
+<h2>Statefullness<a class="headerlink" href="#statefullness" title="Permalink to this headline"></a></h2>
+<p>The converter is <strong>stateful</strong>. If you call the converter in a <em>jupyter notebook</em> and an exception is raised during the converter’s execution (e.g. due to a KeyboardInterrupt, a network problem, an error in the conversion schema file), you can fix the problem and call the converter again. The converter will continue its work where it left off (the resource responsible for the exception, will be reconverted). <strong>It is guaranteed that no resource is lost.</strong></p>
+<p>The state of the converter is reset when <em>initialising it</em> or when <em>you change the underlying iterator</em> with <code class="docutils literal notranslate"><span class="pre">converter.iterator</span> <span class="pre">=</span> <span class="pre">new_iterator</span></code>. So if you don’t want the stateful behaviour, you need to do one of these two things.</p>
+<section id="example-1">
+<h3>Example 1<a class="headerlink" href="#example-1" title="Permalink to this headline"></a></h3>
+<p>You use OData Resources, and the network connection suddenly drops out.
+In the first cell, you initially have created the converter object and called it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">converter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="n">config_filename</span><span class="p">,</span> <span class="n">iterator</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+<span class="n">converter</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Now a <code class="docutils literal notranslate"><span class="pre">ConnectionException</span></code> is raised due to network problems. You can now fix the problem and then recall the converter in a new cell:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">converter</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The converter will just continue where it left off.</p>
+</section>
+<section id="example-2">
+<h3>Example 2<a class="headerlink" href="#example-2" title="Permalink to this headline"></a></h3>
+<p>You have a small error in your <a class="reference internal" href="conversion_schema.html"><span class="doc">conversion schema</span></a> for a specific entity (e.g. a typo in an attribute key), which is not immediately a problem since you first process a lot of other entities. Again in the first cell, you initially have created the converter object and called it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">converter</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="n">config_filename</span><span class="p">,</span> <span class="n">iterator</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+<span class="n">converter</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Now, e.g. <code class="docutils literal notranslate"><span class="pre">KeyError</span></code> is raised since the attribute name was written slightly wrong. Instead of rerunning the whole conversion (which might take hours), you can fix the schema file and reload the schema file and recall the converter:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">converter</span><span class="o">.</span><span class="n">reload_config</span><span class="p">(</span><span class="n">config_filename</span><span class="p">)</span>
+<span class="n">converter</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The converter will just continue where it left off with the new <a class="reference internal" href="conversion_schema.html"><span class="doc">conversion schema</span></a>.</p>
+</section>
+</section>
+<section id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline"></a></h2>
+<p>Neo4j supports the following datatypes: <strong>Number</strong> (int or float), <strong>String</strong>, <strong>Boolean</strong>, <strong>Point</strong> as well as <strong>temporal types</strong> (Date, Time, LocalTime, DateTime, LocalDateTime, Duration) (<a class="reference external" href="https://neo4j.com/docs/cypher-manual/current/syntax/values/">more here</a>).
+The py2graph library does currently not support <strong>Points</strong>. For all other types it will keep the type of the input. So if your resource provides ints/floats it will commit them as ints/floats to the graph.
+If you require a specific conversion you need to create your own custom wrappers. For <strong>temporal values</strong> the library uses the datetime/date objects of the
+python <a class="reference external" href="https://docs.python.org/3/library/datetime.html">datetime</a> library. If you want to commit a date(time) value to the graph make sure it is a date(time) object.
+All inputs that are not of type: <a class="reference external" href="https://docs.python.org/3/library/numbers.html">numbers.Number</a> (includes int &amp; float), str, bool, <a class="reference external" href="https://docs.python.org/3/library/datetime.html">date</a>,
+<a class="reference external" href="https://docs.python.org/3/library/datetime.html">datetime</a> are converted to strings before beeing commited to neo4j.</p>
+<p>For converting strings to datetime/date the library provides some predefined wrappers. See <a class="reference internal" href="common_modules.html"><span class="doc">here</span></a> for more details.</p>
+</section>
+<section id="logging-and-progress-monitoring">
+<h2>Logging and progress monitoring<a class="headerlink" href="#logging-and-progress-monitoring" title="Permalink to this headline"></a></h2>
+<p>The whole rel2graph library uses the standard python <a class="reference external" href="https://docs.python.org/3/howto/logging.html">logging</a> library.
+See an example of how to use it below. For more information, check out the <a class="reference external" href="https://docs.python.org/3/howto/logging.html">official documentation</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;rel2graph&quot;</span><span class="p">)</span> <span class="c1"># Get Logger</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span> <span class="c1"># Set the log level to DEBUG</span>
+<span class="n">log_formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> [</span><span class="si">%(threadName)s</span><span class="s2">]::[</span><span class="si">%(levelname)s</span><span class="s2">]::</span><span class="si">%(filename)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># Specify the format</span>
+<span class="n">console_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span> <span class="c1"># Create console handler (will output directly to console)</span>
+<span class="n">console_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">log_formatter</span><span class="p">)</span> <span class="c1"># Add formater to handler</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">console_handler</span><span class="p">)</span> <span class="c1"># add handler to logger</span>
+</pre></div>
+</div>
+<p>When calling a <a class="reference internal" href="api/core.html#rel2graph.Converter" title="rel2graph.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Converter</span></code></a> instance you can provide a <strong>progress bar</strong> class, that will be used to display progress.
+The progress bar class must be an instance of the <a class="reference external" href="https://tqdm.github.io">tqdm</a> progress bar (or behave like it).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="n">converter</span><span class="p">(</span><span class="n">progress_bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can use any of the tdqm progress bars. For example to monitor the progress via telegram you can use:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tqdm.contrib.telegram</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="n">pb</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="s2">&quot;yourtoken&quot;</span><span class="p">,</span> <span class="n">chat_id</span><span class="o">=</span><span class="s2">&quot;yourchatid&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="c1"># Config your tokens</span>
+<span class="n">converter</span><span class="p">(</span><span class="n">progress_bar</span><span class="o">=</span><span class="n">pb</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="introduction.html" class="btn btn-neutral float-left" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="conversion_schema.html" class="btn btn-neutral float-right" title="Schema Syntax" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Julian Minder.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

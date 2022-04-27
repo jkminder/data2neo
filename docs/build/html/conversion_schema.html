@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Schema Syntax &mdash; rel2graph 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Customising Resource and ResourceIterator" href="resource.html" />
+    <link rel="prev" title="Converter" href="converter.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> rel2graph
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="converter.html">Converter</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Schema syntax</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#entity">Entity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#node">Node</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#attributes">Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#relation">Relation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#match">Match</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#merging-nodes">Merging nodes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#merging-relations">Merging relations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#wrappers">Wrappers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="resource.html">Customising Resource and ResourceIterator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrapper.html">Building your own Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common_modules.html">Common modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py2neo_extensions.html">Py2neo Extensions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="information_for_developers.html">Information for Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/api.html">API reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">rel2graph</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Schema Syntax</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/conversion_schema.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="schema-syntax">
+<h1>Schema Syntax<a class="headerlink" href="#schema-syntax" title="Permalink to this headline"></a></h1>
+<p>The <strong>conversion schema</strong> defines which relational entities are converted to which graph elements (nodes and relations).
+As seen in the <a class="reference internal" href="introduction.html"><span class="doc">Introduction</span></a>, the <a class="reference internal" href="api/core.html#rel2graph.Converter" title="rel2graph.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Converter</span></code></a> expects resources as inputs. A resource is a wrapper around a relational entity.
+Each resource has a <em>type</em> associated with it that corresponds to the <em>type</em> of entity it wraps.
+The <em>type</em> must be defined for every <a class="reference internal" href="api/core.html#rel2graph.Resource" title="rel2graph.Resource"><code class="xref py py-class docutils literal notranslate"><span class="pre">Resource</span></code></a> instance and accessible at <code class="docutils literal notranslate"><span class="pre">Resource.type</span></code>.
+In the schema file, we specify for each <em>type</em> what the <a class="reference internal" href="api/core.html#rel2graph.Converter" title="rel2graph.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Converter</span></code></a> should do when it encounters this <em>type</em>.
+The schema allows for one-to-one, one-to-many and many-to-one (with the help of <a class="reference internal" href="#merging-nodes"><span class="std std-ref">merging</span></a>) conversions of relational entities to graph elements (nodes and relations).</p>
+<p>Note that the <strong>conversion schema</strong> compiler that the <a class="reference internal" href="api/core.html#rel2graph.Converter" title="rel2graph.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Converter</span></code></a> uses to parse the provided schema only does limited semantic checking. Make sure that you write correct <strong>conversion schema syntax</strong>.
+Otherwise, problems or weird behaviour might arise during runtime.</p>
+<p>We define the <strong>conversion schema</strong> in a schema file.
+The file follows a modified YAML schema syntax. We will now look at our example from the <a class="reference internal" href="quick_start.html"><span class="doc">Quick Start Example</span></a>.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">ENTITY(&quot;Flower&quot;)</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">NODE(&quot;Flower&quot;) flower</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">sepal_length  = Flower.sepal_length</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">sepal_width = Flower.sepal_width</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">petal_length = Flower.petal_length</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">petal_width = Flower.petal_width</span>
+    <span class="l l-Scalar l-Scalar-Plain">NODE(&quot;Species&quot;, &quot;BioEntity&quot;) species</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">+ Name = Flower.species</span>
+    <span class="l l-Scalar l-Scalar-Plain">RELATION(flower, &quot;is&quot;, species)</span><span class="p p-Indicator">:</span>
+
+<span class="l l-Scalar l-Scalar-Plain">ENTITY(&quot;Person&quot;)</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">NODE(&quot;Person&quot;) person</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">+ ID = Person.ID</span>
+        <span class="l l-Scalar l-Scalar-Plain">- FirstName = Person.FirstName</span>
+        <span class="l l-Scalar l-Scalar-Plain">- LastName = Person.LastName</span>
+    <span class="l l-Scalar l-Scalar-Plain">RELATION(person, &quot;likes&quot;, MATCH(&quot;Species&quot;, Name=Person.FavoriteFlower))</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">Since = &quot;4ever&quot;</span>
+</pre></div>
+</div>
+<section id="entity">
+<h2>Entity<a class="headerlink" href="#entity" title="Permalink to this headline"></a></h2>
+<p>We define the entity <em>type</em> with <code class="docutils literal notranslate"><span class="pre">ENTITY(</span></code> <em>type</em> <code class="docutils literal notranslate"><span class="pre">):</span></code> following the definitions for the graph elements that this <em>type</em> should be converted to.
+A schema file can contain multiple <em>type</em> definitions. Under (in a YAML sense) an entity <em>type</em> definition, we can refer to attributes of the <em>type</em> with <code class="docutils literal notranslate"><span class="pre">type.attribute_name</span></code>.
+So if the table for our <strong>“Flower”</strong> entity looks as follows:</p>
+<p><strong>Table “Flower”</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 21%" />
+<col style="width: 22%" />
+<col style="width: 21%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>sepal_length</p></th>
+<th class="head"><p>sepal_width</p></th>
+<th class="head"><p>petal_length</p></th>
+<th class="head"><p>petal_width</p></th>
+<th class="head"><p>species</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>3.1</p></td>
+<td><p>2.3</p></td>
+<td><p>1.2</p></td>
+<td><p>1.6</p></td>
+<td><p>setosa</p></td>
+</tr>
+<tr class="row-odd"><td><p>2.4</p></td>
+<td><p>1.3</p></td>
+<td><p>1.3</p></td>
+<td><p>0.6</p></td>
+<td><p>setosa</p></td>
+</tr>
+<tr class="row-even"><td><p>…</p></td>
+<td><p>…</p></td>
+<td><p>…</p></td>
+<td><p>…</p></td>
+<td><p>…</p></td>
+</tr>
+</tbody>
+</table>
+<p>we can access the sepal_length attribute with <code class="docutils literal notranslate"><span class="pre">Flower.sepal_length</span></code>.</p>
+<p>An entity can be converted into multiple graph elements: <code class="docutils literal notranslate"><span class="pre">NODE</span></code> s and <code class="docutils literal notranslate"><span class="pre">RELATION</span></code> s.</p>
+</section>
+<section id="node">
+<h2>Node<a class="headerlink" href="#node" title="Permalink to this headline"></a></h2>
+<p>A node is defined with <code class="docutils literal notranslate"><span class="pre">NODE(</span></code> <em>label1, label2, …</em> <code class="docutils literal notranslate"><span class="pre">)</span></code>; in between the brackets,
+we define the labels that the nodes should have.
+We can also define the label based on an attribute of the entity: <code class="docutils literal notranslate"><span class="pre">NODE(</span></code> <em>type.attributename</em> <code class="docutils literal notranslate"><span class="pre">)</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">NODE(&quot;Flower&quot;,</span> <span class="pre">Flower.species)</span></code> to add the species name as label to the node).
+After a node definition, we can specify its internal <strong>identifier</strong>. The identifier is optional and is used for referring to this node when creating relations, as we will see later.
+The <strong>identifier</strong> is only valid within one entity and, therefore must be unique per entity. The full syntax for defining a node is:</p>
+<p><code class="docutils literal notranslate"><span class="pre">NODE(label1,</span> <span class="pre">label2,</span> <span class="pre">...)</span> <span class="pre">identifier</span> <span class="pre">:</span></code></p>
+</section>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline"></a></h2>
+<p>We can define the attributes of a node or a relation under it as follows (indented following YAML format):</p>
+<p><code class="docutils literal notranslate"><span class="pre">-</span> <span class="pre">attribute_name</span> <span class="pre">=</span> <span class="pre">type.entity_attribute_name</span></code></p>
+<p>Going back to our example, if the node with identifier <strong>flower</strong> should have an attribute named <code class="docutils literal notranslate"><span class="pre">sepal_length</span></code> that contains the value of the attribute <code class="docutils literal notranslate"><span class="pre">sepal_length</span></code> of the entity “Flower”, we write
+<code class="docutils literal notranslate"><span class="pre">-</span> <span class="pre">sepal_length</span>&#160; <span class="pre">=</span> <span class="pre">Flower.sepal_length</span></code>.</p>
+<p>The attribute name of the node/relation must not be the same as the one of the entity. We could also do
+<code class="docutils literal notranslate"><span class="pre">-</span> <span class="pre">sl</span>&#160; <span class="pre">=</span> <span class="pre">Flower.sepal_length</span></code>
+to get a node with attribute <code class="docutils literal notranslate"><span class="pre">sl</span></code>.</p>
+<p>We can also set static attribute values (<em>strings, ints, floats or bools (True/False)</em> ) with</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">a_static_string_attribute = &quot;some string&quot;</span>
+<span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">a_static_bool = True</span>
+<span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">a_static_int = 1</span>
+<span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">a_static_flaot = 1.123</span>
+</pre></div>
+</div>
+</section>
+<section id="relation">
+<h2>Relation<a class="headerlink" href="#relation" title="Permalink to this headline"></a></h2>
+<p>A relation is declared with <code class="docutils literal notranslate"><span class="pre">RELATION(</span> <span class="pre">source</span> <span class="pre">node(s),</span> <span class="pre">relation</span> <span class="pre">type,</span> <span class="pre">destination</span> <span class="pre">node(s))</span></code>. The relation type is a simple string that represents the relation’s name.
+This will create a relation on the kartesian product of the <em>source node(s)</em> and the <em>destination node(s)</em> (from all sources to all destinations).
+We have two options on how to set source and destination nodes:
+- Use a node identifier (note that it must appear above the relation declaration under the same entity). This allows us to set a single node. E.g. in our example, we have defined the two nodes with identifiers <code class="docutils literal notranslate"><span class="pre">flower</span></code> and <code class="docutils literal notranslate"><span class="pre">species</span></code>. We can now define a relation between those two with <code class="docutils literal notranslate"><span class="pre">RELATION(flower,</span> <span class="pre">&quot;is&quot;,</span> <span class="pre">species)</span></code>.
+- Use the <code class="docutils literal notranslate"><span class="pre">MATCH</span></code> keyword. With a matcher, we can query for arbitrary nodes in the graph. This is useful when the node we want to refer to is either from a different instance of the same entity or from an other entity (or already existing in the graph). A matcher can return single or multiple nodes.</p>
+</section>
+<section id="match">
+<h2>Match<a class="headerlink" href="#match" title="Permalink to this headline"></a></h2>
+<p>The match syntax works as follows: <code class="docutils literal notranslate"><span class="pre">MATCH(label1,</span> <span class="pre">label2</span> <span class="pre">,</span>&#160; <span class="pre">...</span> <span class="pre">,</span> <span class="pre">attribute1=value1,</span> <span class="pre">attribute2=value2,</span> <span class="pre">...</span> <span class="pre">)</span></code>. We first specify the required labels of the searched node(s).
+We can define arbitrarily many labels, and the labels themselves can be extracted from the entity as we did with the nodes (e.g. <code class="docutils literal notranslate"><span class="pre">Flower.species</span></code>).
+We then define the conditions that the nodes we are looking for must meet by specifying which attributes have which values. We write <em>myattribute=myvalue</em>, meaning that any matched node must have the value <em>myvalue</em> for its attribute <em>myattribute</em>.
+Again the value can be extracted from the entity (e.g. <code class="docutils literal notranslate"><span class="pre">Name=Person.FavoriteFlower</span></code>). We can specify an arbitrary amount of conditions.</p>
+</section>
+<section id="merging-nodes">
+<h2>Merging nodes<a class="headerlink" href="#merging-nodes" title="Permalink to this headline"></a></h2>
+<p>If we expect that a node is created multiple times and we want to ensure that it is only created once, we can specify a primary attribute.
+This would be the case for the node with identifier <strong>species</strong> in our example.
+If multiple rows of the “Flower” table contain the same entry for the “species” column, the converter will create a node for this species for each row.
+So for our example table, we would end up with at least two “setosa” nodes. However, what we want is only one node for each species present.</p>
+<p>For this purpose, we can specify a <strong>primary attribute</strong> and a <strong>primary label</strong> to merge a node with the graph.
+The <strong>primary label</strong> is always the first one mentioned, so we reformulate the node definition to <code class="docutils literal notranslate"><span class="pre">NODE(</span> <span class="pre">primary_label,</span> <span class="pre">label2,</span> <span class="pre">...)</span></code>. The <strong>primary attribute</strong> is set by replacing the <code class="docutils literal notranslate"><span class="pre">-</span></code> in the attribute definition with a <code class="docutils literal notranslate"><span class="pre">+</span></code>:</p>
+<p><code class="docutils literal notranslate"><span class="pre">+</span> <span class="pre">attribute_name</span> <span class="pre">=</span> <span class="pre">type.entity_attribute_name</span></code></p>
+<p>If the <a class="reference internal" href="api/core.html#rel2graph.Converter" title="rel2graph.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Converter</span></code></a> detects that a <em>primary attribute</em> is set, it will only create a new node if <strong>no</strong> node with the same primary label and primary attribute exists in the graph.
+If the node already exists, it is updated, i.e. new attributes are added, and existing attributes are updated according to the specified values.</p>
+<p>We can also use this to create nodes with information from different entity types.
+For example, lets assume we had an entity “Person” and an entity “Employee”, both of them containing a per-person-unique property:</p>
+<p>Table “Person”</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 39%" />
+<col style="width: 36%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>personId</p></td>
+<td><p>name</p></td>
+<td><p>…</p></td>
+</tr>
+<tr class="row-even"><td><p>…</p></td>
+<td><p>…</p></td>
+<td><p>…</p></td>
+</tr>
+</tbody>
+</table>
+<p>Table “Employee”</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 39%" />
+<col style="width: 36%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>personId</p></td>
+<td><p>employer</p></td>
+<td><p>…</p></td>
+</tr>
+<tr class="row-even"><td><p>…</p></td>
+<td><p>…</p></td>
+<td><p>…</p></td>
+</tr>
+</tbody>
+</table>
+<p>To create a node that contains both attributes of the entity “Person” and the entity “Employee” we can use the above-explained syntax to merge the nodes:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">ENTITY(&quot;Person&quot;)</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">NODE(&quot;Person&quot;)</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">+ id = Person.personId</span>
+        <span class="l l-Scalar l-Scalar-Plain">- name  = Person.name</span>
+
+<span class="l l-Scalar l-Scalar-Plain">ENTITY(&quot;Employee&quot;)</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">NODE(&quot;Person&quot;)</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">+ id = Employee.personId</span>
+        <span class="l l-Scalar l-Scalar-Plain">- employer  = Employee.employer</span>
+</pre></div>
+</div>
+<p>If you now supply both entities to the converter for every person the resulting nodes will have all the attributes
+<code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">employer</span></code>. Note if you don’t supply both entities for a person the node will only contain the information from the single entity that it got.</p>
+</section>
+<section id="merging-relations">
+<h2>Merging relations<a class="headerlink" href="#merging-relations" title="Permalink to this headline"></a></h2>
+<p>By default, py2neo merges all relations (between nodes <em>a</em> and <em>b</em> only one relation of type <em>type</em> can exist).
+If you require such parallel relations, use the <code class="xref py py-class docutils literal notranslate"><span class="pre">GraphWithParallelRelations</span></code> instead of the default py2neo graph;
+read more about it <a class="reference internal" href="py2neo_extensions.html"><span class="doc">here</span></a>. If you use the <code class="xref py py-class docutils literal notranslate"><span class="pre">GraphWithParallelRelations</span></code> you can explicitly merge relations by specifying a <strong>primary attribute</strong>.
+The syntax is the same as for nodes:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">RELATION(from, &quot;type&quot;, to)</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">+ primary_attribute = Entity.ID</span>
+    <span class="l l-Scalar l-Scalar-Plain">- other_attribute = Entity.other</span>
+</pre></div>
+</div>
+<p>If you don’t specify a primary attribute and two entities result in the same <em>from</em> and <em>to</em> node,
+two relations will be created in parallel.</p>
+</section>
+<section id="wrappers">
+<h2>Wrappers<a class="headerlink" href="#wrappers" title="Permalink to this headline"></a></h2>
+<p>If you have registered wrappers (see <a class="reference internal" href="wrapper.html"><span class="doc">here</span></a>)` you can refer to them in the <strong>conversion schema</strong>.
+You simply use the syntax <code class="docutils literal notranslate"><span class="pre">NameOfWrapper(wrappedcontent)</span></code>, similar to how you call a function. Find examples below.</p>
+<p>Assuming you have defined the attributewrappers <code class="docutils literal notranslate"><span class="pre">ATTRWRAPPER1</span></code> and <code class="docutils literal notranslate"><span class="pre">ATTRWRAPPER2</span></code>, as well as the subgraphwrappers <code class="docutils literal notranslate"><span class="pre">SGWRAPPER1</span></code> and <code class="docutils literal notranslate"><span class="pre">SGWRAPPER2</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name = ATTRWRAPPER2(ATTRWRAPPER1(Person.personId))</span>
+</pre></div>
+</div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">RELATION(person, ATTRWRAPPER2(&quot;likes&quot;), MATCH(ATTRWRAPPER1(&quot;Species&quot;), Name=ATTRWRAPPER(Person.FavoriteFlower)))</span><span class="p p-Indicator">:</span>
+</pre></div>
+</div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">SGWRAPPER1(RELATION(person, &quot;likes&quot;, MATCH(ATTRWRAPPER1(&quot;Species&quot;), Name=ATTRWRAPPER(Person.FavoriteFlower))))</span><span class="p p-Indicator">:</span>
+</pre></div>
+</div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">SGWRAPPER2(SGWRAPPER1(NODE(&quot;Flower&quot;)))</span><span class="p p-Indicator">:</span>
+</pre></div>
+</div>
+<p>Note that the library does no semantic checking of your schema. If you apply an attribute wrapper to a node or a relation, the outcome is undefined and might result in unexpected behaviour/exceptions during runtime.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="converter.html" class="btn btn-neutral float-left" title="Converter" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="resource.html" class="btn btn-neutral float-right" title="Customising Resource and ResourceIterator" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Julian Minder.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
