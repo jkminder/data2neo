@@ -88,4 +88,4 @@ If you encounter a bug or an unexplainable behavior, please check the [known iss
 [latest_version]: v0.5.0
 [latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v0.5.0
 [latest_wheel]: https://github.com/sg-dev/rel2graph/releases/download/v0.5.0/rel2graph-0.5.0-py3-none-any.whl
-[wiki]: docs/documentation.md
+[wiki]: docs/old/documentation.md
