@@ -1,4 +1,4 @@
-[![Tests](https://github.com/sg-dev/rel2graph/actions/workflows/tests.yml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests.yaml)
+[![Tests](https://github.com/sg-dev/rel2graph/actions/workflows/tests.yml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests.yml)
 
 # Rel2graph
 
