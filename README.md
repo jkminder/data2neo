@@ -1,3 +1,5 @@
+[![Tests](https://github.com/sg-dev/rel2graph/actions/workflows/tests.yml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests.yaml)
+
 # Rel2graph
 
 **Rel2graph** is a library that simplifies the convertion of data in relational format to a graph knowledge database. It reliefs you of the cumbersome manual work of writing the conversion code and let's you focus on the conversion schema and data processing.
