@@ -7,15 +7,22 @@ Tests for py2neo extensions module.
 authors: Julian Minder
 """
 from py2neo.errors import ConnectionUnavailable
+import os
 import pytest
 from rel2graph.py2neo_extensions import GraphWithParallelRelations
 from py2neo import Relationship, Node
 
 @pytest.fixture
 def graphwpr():
+    # Check if custom port
     try:
-        graphwpr = GraphWithParallelRelations()
-    except ConnectionUnavailable as e:
+        port = os.environ["NEO4J PORT"]
+    except KeyError:
+        port = 7687
+    # Initialise graph
+    try:
+        graphwpr = GraphWithParallelRelations(scheme="bolt", host="localhost", port=port)
+    except ConnectionUnavailable:
         raise ConnectionUnavailable("These tests need a running local instance of neo4j...")
     graphwpr.delete_all()
     yield graphwpr

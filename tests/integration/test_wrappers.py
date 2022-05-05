@@ -13,7 +13,7 @@ import pandas as pd
 from rel2graph import Converter
 from rel2graph import AttributeFactoryWrapper, SubgraphFactoryWrapper
 from rel2graph.core.graph_elements import Node, Relation, Subgraph
-from rel2graph.relational_modules.pandas import PandasDataFrameIterator
+from rel2graph.relational_modules.pandas import PandasDataframeIterator
 from rel2graph import register_wrapper, register_attribute_postprocessor, register_attribute_preprocessor, register_subgraph_postprocessor, register_subgraph_preprocessor
 from rel2graph import Attribute
 from mock_graph import MockGraph
@@ -122,7 +122,7 @@ class SGWrapper(SubgraphFactoryWrapper):
     [1,5]
 )
 def test_attr_pre(graph, input, workers):
-    iterator = PandasDataFrameIterator(input, "ATTRPRE")
+    iterator = PandasDataframeIterator(input, "ATTRPRE")
     converter = Converter(schema_file, iterator, graph, num_workers=workers)
     update_matcher(graph) #REQUIRED to use mock matcher
     # run 
@@ -139,7 +139,7 @@ def test_attr_pre(graph, input, workers):
     [1,5]
 )
 def test_attr_post(graph, input, workers):
-    iterator = PandasDataFrameIterator(input, "ATTRPOST")
+    iterator = PandasDataframeIterator(input, "ATTRPOST")
     converter = Converter(schema_file, iterator, graph, num_workers=workers)
     update_matcher(graph) #REQUIRED to use mock matcher
     # run 
@@ -158,7 +158,7 @@ def test_attr_post(graph, input, workers):
     [1,5]
 )
 def test_attr_wrapper(graph, input, workers):
-    iterator = PandasDataFrameIterator(input, "ATTRWRAPPER")
+    iterator = PandasDataframeIterator(input, "ATTRWRAPPER")
     converter = Converter(schema_file, iterator, graph, num_workers=workers)
     update_matcher(graph) #REQUIRED to use mock matcher
     # run 
@@ -174,7 +174,7 @@ def test_attr_wrapper(graph, input, workers):
     [1,5]
 )
 def test_subgraph_pre(graph, input, workers):
-    iterator = PandasDataFrameIterator(input, "SGPRE")
+    iterator = PandasDataframeIterator(input, "SGPRE")
     converter = Converter(schema_file, iterator, graph, num_workers=workers)
     update_matcher(graph) #REQUIRED to use mock matcher
     # run 
@@ -194,7 +194,7 @@ def test_subgraph_pre(graph, input, workers):
     [1,5]
 )
 def test_subgraph_post(graph, input, workers):
-    iterator = PandasDataFrameIterator(input, "SGPOST")
+    iterator = PandasDataframeIterator(input, "SGPOST")
     converter = Converter(schema_file, iterator, graph, num_workers=workers)
     update_matcher(graph) #REQUIRED to use mock matcher
     # run 
@@ -216,7 +216,7 @@ def test_subgraph_post(graph, input, workers):
     [1,5]
 )
 def test_subgraph_wrapper(graph, input, workers):
-    iterator = PandasDataFrameIterator(input, "SGWRAPPER")
+    iterator = PandasDataframeIterator(input, "SGWRAPPER")
     converter = Converter(schema_file, iterator, graph, num_workers=workers)
     update_matcher(graph) #REQUIRED to use mock matcher
     # run 
