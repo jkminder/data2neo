@@ -8,8 +8,8 @@ The library is built specifically for converting data into a [neo4j](https://neo
 
 
  - [Latest Releases](https://github.com/sg-dev/rel2graph/tags)
- - [Documentation][wiki]
- - [Developer Interface](docs/api.md)
+ - [Documentation](https://rel2graph.jkminder.ch)
+ - [Developer Interface](https://rel2graph.jkminder.ch/api/api.html)
 
 Note: The [py2neo](https://py2neo.org/2021.1/index.html) library does not support parallel relations of the same type (same source, same target and same type). If your graph requires such parallel relations please checkout the provided [py2neo extensions](/docs/documentation.md#py2neo-extensions).
 ## Installation
