@@ -15,6 +15,7 @@ from typing import List, Any
 from collections import Counter
 import re
 import logging
+from numpy import extract
 from ply import lex, yacc
 
 from .factories.registrar import get_factory
@@ -137,6 +138,13 @@ class SchemaConfigParser:
         self._identifiers = []
 
     @staticmethod
+    def _extract_key_from_attribute(attribute):
+        if attribute[0] == "AttributeFactory":
+            return attribute[1][0]
+        else:
+            return SchemaConfigParser._extract_key_from_attribute(attribute[1][0])
+    
+    @staticmethod
     def _inject_graphelement_args(instructions, attributes, identifier):
         """
         This function injects graphelement arguments (attributes, primary_key and identifier) into a list of instructions containing a graphelement. Due to
@@ -157,7 +165,7 @@ class SchemaConfigParser:
                     if primary_key is not None:
                         raise SchemaConfigException(
                             f"Setting two or more primary keys for one graphelement is not allowed. Conflict: '{primary_key}' <-> '{attribute[1][0]}'")
-                    primary_key = attribute[1][0]
+                    primary_key = SchemaConfigParser._extract_key_from_attribute(attribute)
             instructions[1].insert(0, raw_attributes)
             instructions[1].extend([primary_key, identifier])
         else:

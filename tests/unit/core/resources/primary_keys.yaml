@@ -5,9 +5,18 @@ ENTITY("entity"):
   NODE("pk") c:
     + pk = entity.pk
     - attr = "someattr"
+  NODE("pk") e:
+      + pk = WRAPPER(WRAPPER(entity.pk))
+  NODE("pk") d:
+    + pk = WRAPPER(entity.pk)
   RELATION(a, "noattr", c):
   RELATION(a, "nopk", c):
     - attr = "someattr"
   RELATION(a, "pk", c):
     + pk = entity.pk
     - attr = "someattr"
+  RELATION(a, "pk", c):
+    + pk = WRAPPER(entity.pk)
+  RELATION(a, "pk", c):
+    + pk = WRAPPER(WRAPPER(entity.pk))
+  

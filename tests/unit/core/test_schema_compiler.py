@@ -14,6 +14,8 @@ import pytest
 from rel2graph.core.schema_compiler import compile_schema, SchemaConfigParser, _precompile
 from rel2graph import register_attribute_preprocessor, SchemaConfigException
 
+
+
 ######## TESTS PRECOMPILER ##########
 
 def test_precompile_commentremoval():
