@@ -117,12 +117,13 @@ class Worker(threading.Thread):
                 next_resource = self._work_item
             else:
                 with self._config.iterator_lock:
-                    next_resource = self._config.iterator.next()
+                    try:
+                        next_resource = next(self._config.iterator)
+                    except StopIteration:
+                        # If the iterator is exhausted, we return
+                        self._config.done = True
+                        return # Processed all data -> worker is done
                     self._work_item = next_resource
-
-            if next_resource is None:
-                self._config.done = True
-                return # Processed all data -> worker is done
 
             logger.debug(f"Processing {next_resource}")
 
@@ -294,11 +295,11 @@ class Converter:
             config_filename: Path of the schema config file.
             iterator: The resource iterator.
             graph: The neo4j graph (from py2neo)
-            num_workers: The number of parallel workers. Please make sure that your usage supports parallelism. To use serial processing set this to 1. (default: 20)
+            num_workers: The number of parallel workers. Please make sure that your usage supports parallelism. To use serial processing set this to 1. (default: 1)
         """
         if Converter._is_instantiated and not Converter.no_instantiation_warnings:
             logger.warn(f"Reinstantiating Converter, only one valid instance possible. Reinstantiation invalidates the old instance.")
-        self._iterator = iterator
+        self.iterator = iterator
         self._graph = graph
         self._num_workers = num_workers
 
@@ -361,7 +362,8 @@ class Converter:
     
     def _setup_worker_pool(self, type, pb = None) -> None:
         if self._worker_pool is None:
-                config = WorkerConfig(self.iterator, self._factories, type,  self._graph, pb)  
+                instantiated_iterator = iter(self.iterator)
+                config = WorkerConfig(instantiated_iterator, self._factories, type,  self._graph, pb)  
                 self._worker_pool = WorkerPool(self._num_workers, config)
         else:
             logger.info("Continuing previous work...")
@@ -411,7 +413,6 @@ class Converter:
             self._n_nodes += self._worker_pool.config.counter
 
             # Clean up after nodes creation
-            self.iterator.reset_to_first()
             self._processed_nodes = True # update state
             self._worker_pool = None 
         else:

@@ -76,24 +76,31 @@ class TestOdataListIterator:
         assert len(iterator) == 2
 
     def test_first(self, iterator, resource):
-        first_resource = iterator.next()
+        iterator = iter(iterator)
+        first_resource = next(iterator)
         assert self.compare_resources(first_resource, resource)
 
     def test_next(self, iterator):
-        first_resource = iterator.next()
-        second_resource = iterator.next()
+        iterator = iter(iterator)
+
+        first_resource = next(iterator)
+        second_resource = next(iterator)
         assert not self.compare_resources(first_resource, second_resource)
         assert second_resource["PersonNumber"] == 2
     
     def test_last(self, iterator):
-        ret = iterator.next()
-        for i in range(2):
-            assert ret is not None
-            ret = iterator.next()
-        assert ret is None
+        print(iterator._entities)
+        iterator = iter(iterator)
+        for _ in range(2):
+            next(iterator)
+        with pytest.raises(StopIteration):
+            next(iterator)
 
-    def test_reset_to_first(self, iterator, resource):
-        for i in range(2):
-            iterator.next()
-        iterator.reset_to_first()
-        assert self.compare_resources(iterator.next(), resource)
+    def test_reset(self, iterator, resource):
+        it = iter(iterator)
+        for _ in range(2):
+            next(it)
+        with pytest.raises(StopIteration):
+            next(it)
+        it = iter(iterator)
+        assert self.compare_resources(next(it), resource)

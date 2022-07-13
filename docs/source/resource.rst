@@ -66,10 +66,10 @@ ResourceIterator
 ~~~~~~~~~~~~~~~~
 
 If you create your own |Resource|, you also need to create a |ResourceIterator| for this |Resource| that allows the |Converter| to iterate over a set of resources. 
-The iterator needs to be written such that it can be traversed multiple times (The |Converter| will traverse it once for all nodes and then again for all relations). 
+The iterator is based on python iterators and needs to be written such that it can be traversed multiple times (The |Converter| will traverse it once for all nodes and then again for all relations). 
 
 Your iterator class must inherit from |ResourceIterator|, and its constructor must call the parent constructor with no arguments. 
-Additionally, you need to implement following methods: ``next``, ``reset_to_first``, ``__len__``. See the docs strings below for more details. 
+Additionally, you need to implement following methods: ``__iter__``, ``__len__`` and optionally ``__next__``. See the docs strings below for more details. 
 Note that your iterator can also traverse resources of different types.
 
 .. code-block:: python
@@ -81,12 +81,17 @@ Note that your iterator can also traverse resources of different types.
             super().__init__()
             ...
 
-        def next(self) -> Resource:
-            """Gets the next resource that will be converted. Returns None if the range is traversed."""
+        def __next__(self) -> Resource:
+            """
+            Returns the next resource in the iterator based on the current state.
+            """
             ...
         
-        def reset_to_first(self) -> None:
-            """Resets the iterator to point to the first element"""
+        def __iter__(self) -> ResourceIterator:
+            """
+            Resets the iterator state and returns the iterator itself. You can also the __iter__ function to directly return an iterator and not 
+            use __next__.
+            """
             ...
 
         def __len__(self) -> None:
@@ -96,7 +101,7 @@ Note that your iterator can also traverse resources of different types.
             ...
 
 A note on **multithreading**: If you intend to multithread your conversion with multiple workers 
-(see chapter :doc:`converter`), be aware that ``iterator.next()`` is not parallelised. 
+(see chapter :doc:`converter`), be aware that ``next(iterator)`` is not parallelised. 
 If you want to leverage multiple threads for loading remote data, you must implement this in the |Resource| class (in ``__getitem__``).
 
 IteratorIterator

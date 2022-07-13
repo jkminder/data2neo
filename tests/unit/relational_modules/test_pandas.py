@@ -64,25 +64,30 @@ class TestPandasDataFrameIterator:
         assert len(iterator) == len(example_dataframe)
 
     def test_first(self, iterator, resource):
-        first_resource = iterator.next()
+        iterator = iter(iterator)
+        first_resource = next(iterator)
         assert first_resource.series.name == 0
         assert self.compare_resources(first_resource, resource)
 
     def test_next(self, iterator, resource):
-        first_resource = iterator.next()
-        second_resource = iterator.next()
+        iterator = iter(iterator)
+        first_resource = next(iterator)
+        second_resource = next(iterator)
         assert not self.compare_resources(first_resource, second_resource)
         assert second_resource.series.name == 1
     
     def test_last(self, iterator):
-        ret = iterator.next()
-        for i in range(6):
-            assert ret is not None
-            ret = iterator.next()
-        assert ret is None
+        iterator = iter(iterator)
+        for _ in range(6):
+            next(iterator)
+        with pytest.raises(StopIteration):
+            next(iterator)
 
-    def test_reset_to_first(self, iterator, resource):
-        for i in range(7):
-            iterator.next()
-        iterator.reset_to_first()
-        assert self.compare_resources(iterator.next(), resource)
+    def test_reset(self, iterator, resource):
+        it = iter(iterator)
+        for _ in range(6):
+            next(it)
+        with pytest.raises(StopIteration):
+            next(it)
+        it = iter(iterator)
+        assert self.compare_resources(next(it), resource)

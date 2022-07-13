@@ -8,31 +8,33 @@ an iteratoriterator that allows to bundle multiple iterators together.
 authors: Julian Minder
 """
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Iterable
 from .factories.resource import Resource
+from itertools import chain
+import warnings
+
 
 class ResourceIterator(ABC):
-    """Allows the Converter to iterate over objects. It allows to iterate over the same range twice."""
+    """Allows the Converter to iterate over resource. It allows to iterate over the same range twice."""
 
     @abstractmethod
     def __init__(self) -> None:
         pass
-
-    @abstractmethod
-    def next(self) -> Resource:
-        """Gets the next resource that will be converted. Returns None if the range is traversed."""
-        pass
     
-    @abstractmethod
-    def reset_to_first(self) -> None:
-        """Resets the iterator to point to the first element"""
-        pass
-
+    def __next__(self) -> Resource:
+        """Gets the next resource that will be converted. Raises StopIteration if the range is traversed."""
+        raise NotImplementedError("__next__ is not implemented")
+    
     @abstractmethod
     def __len__(self) -> None:
         """Returns the total amount of resources in the iterator"""
         pass
-
+    
+    @abstractmethod
+    def __iter__(self) -> Iterable:
+        """Returns the iterator itself in its initial state (must return the first resource)."""
+        pass 
+            
 class IteratorIterator(ResourceIterator):
     """Allows to Iterator over a list of Iterators"""
 
@@ -44,26 +46,10 @@ class IteratorIterator(ResourceIterator):
         """
         super().__init__()
         self._iterators = iterators
-        self._i = 0
 
-    def next(self) -> Resource:
-        """Gets the next resource that will be converted. Returns None if the range is traversed."""
-        if self._i >= len(self._iterators):
-            return None
-        next_resource = self._iterators[self._i].next()
-        if next_resource is None:
-            self._i += 1
-            if self._i >= len(self._iterators):
-                return None
-            else:
-                next_resource = self._iterators[self._i].next()
-        return next_resource
-    
-    def reset_to_first(self) -> None:
-        """Resets the iterator to point to the first element"""
-        self._i = 0
-        for iterator in self._iterators:
-            iterator.reset_to_first()
+    def __iter__(self) -> Iterable:
+        """Returns the iterator itself"""
+        return chain.from_iterable(self._iterators)
 
     def __len__(self) -> None:
         """Returns the total amount of resources in the iterator"""
