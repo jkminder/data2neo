@@ -56,7 +56,7 @@ autodoc_default_options = {
     'member-order': 'bysource',
     'undoc-members': True,
     'inherited-members': True,
-    'exclude-members': '__init__',
+    #'exclude-members': '__init__',
     'show-inheritance': True
 }
 

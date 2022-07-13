@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-Implementation for odata as the relational module. 
+Implementation for pandas as the relational module. 
 
 authors: Julian Minder
 """
 
-from typing import List
+from typing import List, Iterable, Dict
 from .. import ResourceIterator
 from .. import Resource
 import pandas as pd
@@ -31,17 +31,17 @@ class PandasSeriesResource(Resource):
         self._changed_values = {}
 
     @property
-    def type(self):
+    def type(self) -> str:
         """Returns the type of the resource. Is used to select correct factory"""
         return self._type
 
     @property
-    def series(self):
+    def series(self) -> Dict:
         """Gets the wrapped pandas series"""
         return self._series
         
     def __getitem__(self, key):
-        """
+        """ 
         Gets the value with key 'key'. 
         """
         # We make sure that we don't change the initial series and keep track of changes in the resource
@@ -68,18 +68,10 @@ class PandasDataframeIterator(ResourceIterator):
     def __init__(self, dataframe: pd.core.frame.DataFrame, type: str) -> None:
         super().__init__()
         self._rows = [PandasSeriesResource(dataframe.loc[i], type) for i in range(len(dataframe))]
-        self._i = -1
 
-    def next(self) -> PandasSeriesResource:
-        """Gets the next resource. Returns None if the range is traversed"""
-        self._i += 1
-        if self._i >= len(self._rows):
-            return None
-        return self._rows[self._i]
-    
-    def reset_to_first(self) -> None:
-        """Resets the iterator to point to the first element"""
-        self._i = -1
+    def __iter__(self) -> Iterable:
+        """Returns the iterator itself in its initial state (must return the first resource)."""
+        return iter(self._rows)
     
     def __len__(self) -> None:
         """Returns the total amount of resources in the iterator"""
