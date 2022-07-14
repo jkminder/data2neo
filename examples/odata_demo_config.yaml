@@ -8,4 +8,4 @@ ENTITY("Person"):
     NODE("Language") language:
         - ShortName = ASSERT_EQ(Person.NativeLanguage, "D")
     RELATION(person, "speaks", language):
-        - Since = Person.DateOfBirth
+        - Since = DATE(Person.DateOfBirth)
