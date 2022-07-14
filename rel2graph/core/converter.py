@@ -14,7 +14,7 @@ import logging
 import threading
 from enum import IntEnum
 import time
-
+import os
 
 from .factories import Resource
 from .resource_iterator import ResourceIterator
@@ -288,15 +288,17 @@ class Converter:
     _instantiation_time = None
     no_instantiation_warnings = False
 
-    def __init__(self, config_filename: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 1) -> None:
+    def __init__(self, schema: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 1) -> None:
         """Initialises a converter. Note that this is a singleton and only the most recent instantiation is valid.
         
         Args:
-            config_filename: Path of the schema config file.
+            schema: The schema to convert.
             iterator: The resource iterator.
             graph: The neo4j graph (from py2neo)
             num_workers: The number of parallel workers. Please make sure that your usage supports parallelism. To use serial processing set this to 1. (default: 1)
         """
+
+
         if Converter._is_instantiated and not Converter.no_instantiation_warnings:
             logger.warn(f"Reinstantiating Converter, only one valid instance possible. Reinstantiation invalidates the old instance.")
         self.iterator = iterator
@@ -304,7 +306,7 @@ class Converter:
         self._num_workers = num_workers
 
         # Parse the schema and compile it into factories
-        self._factories = compile_schema(config_filename)
+        self.reload_schema(schema)
 
         # register the node matcher -> TODO: maybe find a better solution than global variable. Problem is inclusion in compiler. Would also fix the singleton issue.
         Matcher.graph_matcher = NodeMatcher(graph)
@@ -340,15 +342,18 @@ class Converter:
         self._processed_nodes = False
         self._processed_relations = False
 
-    def reload_config(self, config_filename: str) -> None:
+    def reload_schema(self, schema: str) -> None:
         """Can be used to reload the schema configuration, without changing the state
         of the Converter.
         
         Args:
-            config_filename: Path of the schema config file.
+            schema: The schema to convert.
         """
-        self._factories = compile_schema(config_filename)
-        if self._worker_pool is not None:
+        if os.path.isfile(schema):
+            raise DeprecationWarning("Please supply the schema as a string instead of a file. Use 'Converter(schema=load_file(filename)...' instead. \
+                The 'load_file' function is provided under rel2graph.utils. This warning will be removed in a future version.")
+        self._factories = compile_schema(schema)
+        if "_worker_pool" in dir(self) and self._worker_pool is not None:
             self._worker_pool.config.factories = self._factories
         
     def _is_valid_instance(self) -> None:

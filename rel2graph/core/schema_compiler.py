@@ -374,21 +374,17 @@ def _compile_instructions(instructions: List) -> "Factory":
     return factories
 
 
-def compile_schema(schema_config_file: str) -> List["Factory"]:
+def compile_schema(schema: str) -> List["Factory"]:
     """Parses a config schema file into usable factories.
 
     Args:
-        filename: Filepath of the schema config.
+        schema: The schema as a string.
     Returns:
         A dict in form of (entity_type_name, (NodeSupplyChain, RelationSupplyChain))
         for all provided entity_types.
     """
-    logger.debug(f"Parsing config file '{schema_config_file}'")
-    with open(schema_config_file, "r", encoding="utf-8") as fstream:
-        config_schema_string = fstream.read()
-
     # Removes comments
-    precompiled_string = _precompile(config_schema_string)
+    precompiled_string = _precompile(schema)
 
     parser = SchemaConfigParser()
     instructions = parser.parse(precompiled_string)
