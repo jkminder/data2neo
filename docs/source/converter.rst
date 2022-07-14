@@ -2,13 +2,13 @@ Converter
 =========
 
 The |Converter| handles the main conversion of the relational data. 
-It is initialised with the *conversion schema filename*, the iterator and the graph. 
+It is initialised with the *conversion schema* as a string, the iterator and the graph. 
 
 .. code-block:: python
 
     from rel2graph import Converter
 
-    converter = Converter(config_filename, iterator, graph)
+    converter = Converter(conversion_schema, iterator, graph)
 
 To start the conversion, one simply calls the object. It then iterates twice over the iterator: first to process all the nodes and, secondly, to create all relations. This makes sure that any node a relation refers to is already created first.
 
@@ -16,12 +16,21 @@ To start the conversion, one simply calls the object. It then iterates twice ove
 
     converter()
 
+If your conversion schema is saved in a seperate file you can use the provided ``load_file`` function to load it into a string.
+
+.. code-block:: python
+
+    from rel2graph import Converter
+    from rel2graph.utils import load_file
+
+    converter = Converter(load_file(conversion_schema_file), iterator, graph)
+
 The |Converter| can utilise **multithreading**. When initialising you can set the number of parallel workers. Each worker operates in its own thread. 
 Be aware that the committing to the graph is often still serialized, since the semantics require this (e.g. nodes must be committed before any relation or when [merging nodes](#merging-nodes) all the nodes must be serially committed). So the primary use-case of using multiple workers is if your resources are utilising a network connection (e.g. remote database) or if you require a lot of [matching](#match) in the graph (matching is parallelised).
 
 .. code-block:: python
 
-    converter = Converter(config_filename, iterator, graph, num_workers = 20)
+    converter = Converter(conversion_schema, iterator, graph, num_workers = 20)
 
 **Attention:** If you enable more than 1 workers, ensure that all your :doc:`wrappers <wrapper>` support multithreading (add locks if necessary).
 
@@ -40,7 +49,7 @@ In the first cell, you initially have created the converter object and called it
 
 .. code-block:: python
 
-    converter = Converter(config_filename, iterator, graph)
+    converter = Converter(conversion_schema, iterator, graph)
     converter()
 
 Now a ``ConnectionException`` is raised due to network problems. You can now fix the problem and then recall the converter in a new cell:
@@ -58,14 +67,14 @@ You have a small error in your :doc:`conversion schema <conversion_schema>` for 
 
 .. code-block:: python
 
-    converter = Converter(config_filename, iterator, graph)
+    converter = Converter(conversion_schema, iterator, graph)
     converter()
 
 Now, e.g. ``KeyError`` is raised since the attribute name was written slightly wrong. Instead of rerunning the whole conversion (which might take hours), you can fix the schema file and reload the schema file and recall the converter:
 
 .. code-block:: python
 
-    converter.reload_config(config_filename)
+    converter.reload_schema(conversion_schema)
     converter()
 
 The converter will just continue where it left off with the new :doc:`conversion schema <conversion_schema>`. 

@@ -16,7 +16,7 @@ we can keep supplying it with resources without writing more code.
     :alt: rel2graph factory
 
 Since there might be different types of resources, we build a factory per resource type. 
-One specifies all the "blueprints" for all the factories in thr |convschema| file. 
+One specifies all the "blueprints" for all the factories in the |convschema| file. 
 A |Converter|, the main object of *rel2graph*, will take this file and construct all the factories 
 based on your "blueprints". For a set of supplied resources the |Converter| will automatically select 
 the correct factory, use it to produce a graph out of the resource and merge the produced graph with 

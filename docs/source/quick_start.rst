@@ -41,6 +41,7 @@ For an entity with ``Flower["petal_width"] = 5``, the outputed node will have th
     import pandas as pd 
     from rel2graph.relational_modules.pandas import PandasDataframeIterator 
     from rel2graph import IteratorIterator, Converter, Attribute, register_attribute_postprocessor
+    from rel2graph.utils import load_file
 
     # Create a connection to the neo4j graph with the py2neo Graph object
     graph = Graph(scheme="http", host="localhost", port=7474,  auth=('neo4j', 'password')) 
@@ -60,7 +61,7 @@ For an entity with ``Flower["petal_width"] = 5``, the outputed node will have th
     iterator = IteratorIterator([pandas_iterator, iris_iterator])
 
     # Create converter instance with schema, the final iterator and the graph
-    converter = Converter("schema.yaml", iterator, graph)
+    converter = Converter(load_file("schema.yaml"), iterator, graph)
     # Start the conversion
     converter()
 
