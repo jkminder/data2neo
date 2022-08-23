@@ -11,7 +11,7 @@ The library is built specifically for converting data into a [neo4j](https://neo
  - [Documentation](https://rel2graph.jkminder.ch)
  - [Developer Interface](https://rel2graph.jkminder.ch/api/api.html)
 
-Note: The [py2neo](https://py2neo.org/2021.1/index.html) library does not support parallel relations of the same type (same source, same target and same type). If your graph requires such parallel relations please checkout the provided [py2neo extensions](/docs/documentation.md#py2neo-extensions).
+Note: The [py2neo](https://py2neo.org/2021.1/index.html) library does not support parallel relations of the same type (same source, same target and same type). If your graph requires such parallel relations please checkout the provided [py2neo extensions](https://rel2graph.jkminder.ch/py2neo_extensions.html).
 ## Installation
 If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v0.6.1][latest_tag]):
 ```
@@ -91,4 +91,4 @@ If you encounter a bug or an unexplainable behavior, please check the [known iss
 [latest_version]: v0.6.1
 [latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v0.6.1
 [latest_wheel]: https://github.com/sg-dev/rel2graph/releases/download/v0.6.1/rel2graph-0.6.1-py3-none-any.whl
-[wiki]: docs/old/documentation.md
+[wiki]: https://rel2graph.jkminder.ch/index.html
