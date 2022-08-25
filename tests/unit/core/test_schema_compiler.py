@@ -180,7 +180,7 @@ def get_filepath(name):
 
 def test_full_compiler_matcher_conditions():
     """Tests if conditions of matcher (dynamic and static) are parsed and compiled correctly"""
-    relation_supplychain = compile_schema(load_file(get_filepath("matcher_condition")))["entity"][1] # get relation supplychain
+    relation_supplychain = compile_schema(load_file(get_filepath("matcher_condition")))[0]["entity"][1] # get relation supplychain
     for rf in relation_supplychain.factories:
         type =  get_rel_type(rf) 
         assert type in ["static-dyn", "static", "two-static", "dyn", "two-dyn", "two-dyn-two-static"]
@@ -201,7 +201,7 @@ def test_full_compiler_matcher_conditions():
         
 def test_full_compiler_node_primary():
     """Test if primary keys for nodes are correct parsed"""
-    node_supplychain, _ = compile_schema(load_file(get_filepath("primary_keys")))["entity"]
+    node_supplychain, _ = compile_schema(load_file(get_filepath("primary_keys")))[0]["entity"]
      
     for nf in node_supplychain.factories:
         labels = get_labels(nf)
@@ -215,7 +215,7 @@ def test_full_compiler_node_primary():
 
 def test_full_compiler_relations_primary():
     """Test if primary keys for relations are correct parsed"""
-    _, relation_supplychain = compile_schema(load_file(get_filepath("primary_keys")))["entity"]
+    _, relation_supplychain = compile_schema(load_file(get_filepath("primary_keys")))[0]["entity"]
      
     for rf in relation_supplychain.factories:
         type =  get_rel_type(rf) 
@@ -243,7 +243,7 @@ def check_types(list_of_attribuets):
 
 def test_full_compiler_typing():
     """Test if different types for static arguments are correctly parsed"""
-    node_supplychain, relation_supplychain = compile_schema(load_file(get_filepath("typing")))["entity"]
+    node_supplychain, relation_supplychain = compile_schema(load_file(get_filepath("typing")))[0]["entity"]
 
     for nf in node_supplychain.factories:
         attributes = af2str(nf._attributes)
@@ -256,7 +256,7 @@ def test_full_compiler_typing():
         check_types(conditions)
 
 def test_full_compiler_dynkeys():
-    node_supplychain, relation_supplychain = compile_schema(load_file(get_filepath("dynamic_keys")))["entity"]
+    node_supplychain, relation_supplychain = compile_schema(load_file(get_filepath("dynamic_keys")))[0]["entity"]
     
     for nf in node_supplychain.factories:
         for label in nf._labels:
@@ -270,7 +270,7 @@ def test_full_compiler_dynkeys():
             assert(attr._entity_attribute == "dynamic_key")
         
 def test_full_compiler_empty_entity():
-    node_supplychain, relation_supplychain = compile_schema(load_file(get_filepath("empty_entity")))["entity"]
+    node_supplychain, relation_supplychain = compile_schema(load_file(get_filepath("empty_entity")))[0]["entity"]
     assert len(node_supplychain.factories) == 0 
     assert len(relation_supplychain.factories) == 0
 
