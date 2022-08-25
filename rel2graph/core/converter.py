@@ -111,7 +111,7 @@ class DynamicBufferMonitor(threading.Thread):
 
         self._config = config
         self._update_interval = update_interval
-        self._step_size = 20
+        self._step_size = 10
         self._stop_event = threading.Event()
 
     def terminate(self) -> None:
@@ -150,14 +150,7 @@ class DynamicBufferMonitor(threading.Thread):
                 self._config.buffer_size = bound(self._config.buffer_size + self._step_size)
             elif imin == 2:
                 self._config.buffer_size = bound(self._config.buffer_size - self._step_size)
-
-            print("Buffer size: {}".format(self._config.buffer_size))
-
-        print("Stopped thread")
              
-
-
-
 
 class Worker(threading.Thread):
     """The Worker does the main conversion. It is build to be parallelised."""
@@ -300,8 +293,6 @@ class Worker(threading.Thread):
 
         # Make sure all remaining data is committed
         self.commit_batch()
-
-        print(f"Worker {self._worker_id} finished")
 
     def run(self) -> None:
         """
