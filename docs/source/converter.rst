@@ -25,14 +25,25 @@ If your conversion schema is saved in a seperate file you can use the provided `
 
     converter = Converter(load_file(conversion_schema_file), iterator, graph)
 
-The |Converter| can utilise **multithreading**. When initialising you can set the number of parallel workers. Each worker operates in its own thread. 
-Be aware that the committing to the graph is often still serialized, since the semantics require this (e.g. nodes must be committed before any relation or when [merging nodes](#merging-nodes) all the nodes must be serially committed). So the primary use-case of using multiple workers is if your resources are utilising a network connection (e.g. remote database) or if you require a lot of [matching](#match) in the graph (matching is parallelised).
+The |Converter| **buffers** the results, meaning the graph outputs of multiple resources are stored locally in a buffer before commiting them to the graph. Once the buffer is full all the buffered results 
+are pushed to the graph. The size of this buffer is adapted dynamically. The |Converter| monitors the throughput of resources (number of resource processed per second) and adapts the buffer size to optimize the throughput. This has significant performance benefits.  
+
+Further the |Converter| can leverage **multithreading**. When initialising you can set the number of parallel workers. Each worker operates in its own thread and with its own buffer. 
+Be aware that the committing to the graph is serialized, since the semantics require this (e.g. nodes must be committed before any relation or when  :ref:`merging <conversion_schema:merging nodes>`) all the nodes must be serially committed). No two workers can commit their buffer to the graph at the same time.
+So the primary use-case of using multiple workers is if your resources are utilising a network connection (e.g. remote database), if you require a lot of  :ref:`matching <conversion_schema:match>` in the graph (matching is parallelised) or if you create wrappers that use local compute.
+It is suggested you test the performance of your conversion with different amount of workers to find the optimal number of workers for your use-case.
 
 .. code-block:: python
 
     converter = Converter(conversion_schema, iterator, graph, num_workers = 20)
 
-**Attention:** If you enable more than 1 workers, ensure that all your :doc:`wrappers <wrapper>` support multithreading (add locks if necessary).
+**Attention:** Ensure that all your :doc:`wrappers <wrapper>` are free of dependencies between resources. Because results are buffered, the order of the commits to the graph may be different than the order in which your iterator yields the resources. 
+If you use multiple workers this problem is even more pronounced. If you require serialized processing of your resources you can use the ``serialize`` option. This will disable buffering and multithreading and process the resources one after the other.
+Note that this will make the conversion significantly slower.
+
+.. code-block:: python
+
+    converter = Converter(conversion_schema, iterator, graph, serialize = True)
 
 Statefullness
 ~~~~~~~~~~~~~
