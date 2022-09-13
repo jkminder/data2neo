@@ -52,3 +52,7 @@ ENTITY("PersonParallel"):
         - pk = PersonParallel.ID
     RELATION(MATCH("Person", ID = 1), "likes_merged", MATCH("Species", Name="virginica")):
         + pk = 1
+
+ENTITY("Entity"):
+    DELAY_AND_MAYBE_EXIT(NODE("Entity")) entity:
+        + ID = Entity.ID

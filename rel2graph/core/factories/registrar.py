@@ -56,6 +56,8 @@ def register_attribute_postprocessor(function):
     """Registers an attribute postprocessor"""
     # TODO Slightly ugly fix here since the config parser converts all string arguments to 
     # Static attribute factories. We need to convert them back
+    if function.__name__ in _registry:
+        logger.warning(f"The name '{function.__name__}' is already registered. Overwriting it.")
     logger.debug(f"Registered attribute postprocessor '{function.__name__}''.")
     _registry[function.__name__] = lambda factory, *args: get_factory("AttributeFactoryWrapper")(factory, None, lambda attribute: function(attribute, *[arg.static_attribute_value for arg in args]))
     return function
@@ -64,6 +66,8 @@ def register_attribute_preprocessor(function):
     """Registers an attribute preprocessor"""
     # TODO Slightly ugly fix here since the config parser converts all string arguments to 
     # Static attribute factories. We need to convert them back
+    if function.__name__ in _registry:
+        logger.warning(f"The name '{function.__name__}' is already registered. Overwriting it.")
     logger.debug(f"Registered attribute preprocessor '{function.__name__}'.")
     _registry[function.__name__] = lambda factory, *args: get_factory("AttributeFactoryWrapper")(factory, lambda resource: function(resource, *[arg.static_attribute_value for arg in args]), None)
     return function
@@ -72,6 +76,8 @@ def register_subgraph_postprocessor(function):
     """Registers a subgraph postprocessor"""
     # TODO Slightly ugly fix here since the config parser converts all string arguments to 
     # Static attribute factories. We need to convert them back
+    if function.__name__ in _registry:
+        logger.warning(f"The name '{function.__name__}' is already registered. Overwriting it.")
     logger.debug(f"Registered subgraph postprocessor '{function.__name__}'.")
     _registry[function.__name__] = lambda factory, *args: get_factory("SubgraphFactoryWrapper")(factory, None, lambda attribute: function(attribute, *[arg.static_attribute_value for arg in args]))
     return function
@@ -80,6 +86,8 @@ def register_subgraph_preprocessor(function):
     """Registers a subgraph preprocessor"""
     # TODO Slightly ugly fix here since the config parser converts all string arguments to 
     # Static attribute factories. We need to convert them back.
+    if function.__name__ in _registry:
+        logger.warning(f"The name '{function.__name__}' is already registered. Overwriting it.")
     logger.debug(f"Registered subgraph preprocessor '{function.__name__}'.")
     _registry[function.__name__] = lambda factory, *args: get_factory("SubgraphFactoryWrapper")(factory, lambda resource: function(resource, *[arg.static_attribute_value for arg in args]), None)
     return function
@@ -88,6 +96,8 @@ def register_wrapper(wrapper):
     """Registers a full wrapper"""
     # TODO Slightly ugly fix here since the config parser converts all string arguments to 
     # Static attribute factories. We need to convert them back.
+    if wrapper.__name__ in _registry:
+        logger.warning(f"The name '{wrapper.__name__}' is already registered. Overwriting it.")
     logger.debug(f"Registered wrapper '{wrapper.__name__}'.")
     _registry[wrapper.__name__] = lambda factory, *args: wrapper(factory,  *[arg.static_attribute_value for arg in args])
     return wrapper

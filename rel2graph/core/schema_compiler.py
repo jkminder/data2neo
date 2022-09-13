@@ -380,8 +380,11 @@ def compile_schema(schema: str) -> List["Factory"]:
     Args:
         schema: The schema as a string.
     Returns:
-        A dict in form of (entity_type_name, (NodeSupplyChain, RelationSupplyChain))
+        A tuple (compiled_factory_dict, node_mask, relationship_mask)
+        compiled_factory_dict: A dict in form of (entity_type_name, (NodeSupplyChain, RelationSupplyChain))
         for all provided entity_types.
+        node_mask: A set of all entities that produce a node.
+        relationship_mask: A set of all entities that produce a relationship.
     """
     # Removes comments
     precompiled_string = _precompile(schema)
@@ -389,6 +392,8 @@ def compile_schema(schema: str) -> List["Factory"]:
     parser = SchemaConfigParser()
     instructions = parser.parse(precompiled_string)
     compiled = {}
+    relation_mask = set()
+    node_mask = set()
 
     for entity_type, entity_instructions in instructions:
         if entity_type in compiled.keys():
@@ -397,4 +402,8 @@ def compile_schema(schema: str) -> List["Factory"]:
         node_factories, relation_factories = _compile_instructions(node_instructions), _compile_instructions(relation_instructions)
         compiled[entity_type] = (get_factory("SupplyChain")(node_factories, "NodeSupplyChain"),
                                  get_factory("SupplyChain")(relation_factories, "RelationSupplyChain"))
-    return compiled
+        if len(node_factories) > 0:
+            node_mask.add(entity_type)
+        if len(relation_factories) > 0:
+            relation_mask.add(entity_type)
+    return compiled, node_mask, relation_mask

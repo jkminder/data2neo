@@ -23,7 +23,7 @@ from typing import List, Union
 from datetime import datetime,date
 import numbers
 import py2neo
-
+from py2neo.compat import xstr
 
 class GraphElement(ABC):
     """Abstract GraphElementType
@@ -72,6 +72,7 @@ class Subgraph(py2neo.Subgraph,  GraphElement):
 
 
 
+
 class Node(py2neo.Node, Subgraph):
     """Node Abstraction of py2neo.Node"""
 
@@ -90,9 +91,9 @@ class Node(py2neo.Node, Subgraph):
 
 
 class Relation(py2neo.Relationship, Subgraph):
-    """Relation Abstraction of py2neo.Relationship"""
+    """Relation Abstraction of py2neo.Relationship. It further its equality is adapted to allow for parallel relationships between the same nodes."""
 
-    def __init__(self, from_node: Node, type: str, to_node: Node, attributes: List[Attribute]) -> None:
+    def __init__(self, from_node: Node, type: Attribute, to_node: Node, attributes: List[Attribute]) -> None:
         """Inits a Relation with a origin, a type, a destination and attributes
 
         Args:
@@ -102,6 +103,30 @@ class Relation(py2neo.Relationship, Subgraph):
             attributes: List of attributes for the relation
         """
         super().__init__(from_node, type.value, to_node, **dict((attr.key, attr.value) for attr in attributes))
+        self.__class__ = Relation.type(type.value)
+
+    def __eq__(self, other):
+        """Equality is adapted to allow for parallel relationships between the same nodes."""
+        return super(py2neo.Relationship).__eq__(other) and id(self) == id(other)
+
+    def __hash__(self):
+        """Hash is adapted to allow for parallel relationships between the same nodes."""
+        return hash(self.nodes) ^ hash(id(self))
+
+    @staticmethod
+    def type(name):
+        """ Return the :class:`.Relation` subclass corresponding to a
+        given name.
+
+        :param name: relationship type name
+        :returns: `type` object
+
+        """
+        # The type must be overwriten to pass the equality functions to the instances of the class. This is connected to how py2neo handles relationship instanciations.
+        for s in Relation.__subclasses__():
+            if s.__name__ == name:
+                return s
+        return type(xstr(name), (Relation,), {})
 
 class NodeMatcher(py2neo.NodeMatcher):
     """NodeMatcher Abstraction of py2neo.NodeMatcher"""

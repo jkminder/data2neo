@@ -9,7 +9,7 @@ authors: Julian Minder
 from py2neo.errors import ConnectionUnavailable
 import os
 import pytest
-from rel2graph.py2neo_extensions import GraphWithParallelRelations
+from rel2graph.py2neo_extensions import GraphWithParallelRelations, MERGE_RELATIONS
 from py2neo import Relationship, Node
 
 @pytest.fixture
@@ -157,3 +157,15 @@ def test_merge_relations_pk_in_rel(graphwpr):
     assert(len([r for r in rels if r.start_node == n1 and r.end_node == n2 and type(r).__name__ == "to"]) == 2)
     assert(len([r for r in rels if r["id"]==1]) == 1)
     assert(len([r for r in rels if r["id"]==2]) == 1)
+
+def test_merge_relationation_no_pk(graphwpr):
+    n1 = Node("test", id=1)
+    n2 = Node("test", id=2)
+    r1 = Relationship(n1, "to", n2)
+    graphwpr.create(n1|n2|r1)
+
+    r2 = MERGE_RELATIONS(Relationship(n1, "to", n2))
+    graphwpr.merge(r2)
+    rels = get_relations(graphwpr).relationships
+    assert(len(rels) == 1)
+    assert(len([r for r in rels if r.start_node == n1 and r.end_node == n2 and type(r).__name__ == "to"]) == 1)

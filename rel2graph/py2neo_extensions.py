@@ -16,6 +16,15 @@ from py2neo.cypher.queries import (unwind_create_relationships_query,
                                 cypher_join)
 from py2neo import UniquenessError, Graph, Subgraph
 
+from . import register_subgraph_postprocessor 
+
+class _GhostPrimaryKey:
+    """
+    A class that represents the presence of a primary key without any value, this is used to 
+    merge relations that have no primary key.
+    """
+    pass
+
 class _SubgraphWithParallelRelations(Subgraph):
     def __db_create__(self, tx):
         """ Updated create function that allows for creation of parallel relationships.
@@ -128,7 +137,10 @@ class _SubgraphWithParallelRelations(Subgraph):
                 raise ValueError("Primary key are required for relationship MERGE operation")
             data = map(lambda r: [r.start_node.identity, dict(r), r.end_node.identity],
                         relationships)
-            pq = unwind_merge_relationships_query(data, (r_type, pk))
+            if isinstance(pk, _GhostPrimaryKey):
+                pq = unwind_merge_relationships_query(data, r_type)
+            else:
+                pq = unwind_merge_relationships_query(data, (r_type, pk))
             pq = cypher_join(pq, "RETURN id(_)")
             identities = [record[0] for record in tx.run(*pq)]
             if len(identities) > len(relationships):
@@ -159,3 +171,14 @@ class GraphWithParallelRelations(Graph):
     def merge(self, subgraph: Subgraph, label=None, *property_keys):
         subgraph = _SubgraphWithParallelRelations(subgraph.nodes, subgraph.relationships) # Replace create script
         return super().merge(subgraph, label, *property_keys)
+
+@register_subgraph_postprocessor
+def MERGE_RELATIONS(subgraph):
+    """
+    Subgraph postprocessor that merges relations between the same two nodes. Only applicable if a GraphWithParallelRelations is used (otherwise this is the default) and 
+    if the relation has no primary key.
+    """
+    for relation in subgraph.relationships:
+        if getattr(relation, "__primarykey__", None) is None:
+            relation.__primarykey__ = _GhostPrimaryKey()
+    return subgraph
