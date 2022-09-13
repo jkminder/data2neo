@@ -13,11 +13,16 @@ from rel2graph import Converter
 from rel2graph.relational_modules.pandas import PandasDataframeIterator
 from rel2graph.utils import load_file
 from rel2graph import IteratorIterator
+from rel2graph import register_subgraph_postprocessor
+
 from mock_graph import MockGraph
 from helpers import compare, update_matcher, StateRecoveryException
 from resources.data_end_to_end import no_duplicates, duplicates, before_update, person_only_nodes_only_result, schema_file_name
 from resources.data_end_to_end import iris, flower_only_result, full_result, result_parallel
-from py2neo import Graph
+import pandas as pd
+import time
+
+
 # Turn off reinstantiation warnings
 Converter.no_instantiation_warnings = True
 
@@ -130,3 +135,42 @@ def test_parallel_relations(graph_wpr, data_type_1, data_type_2, result, workers
     converter()
     #compare
     compare(graph_wpr, result)
+
+
+# Serialization Test
+
+class StopException(Exception):
+    pass
+
+@register_subgraph_postprocessor
+def DELAY_AND_MAYBE_EXIT(subgraph):
+    time.sleep(0.1)
+    if subgraph.nodes[0]["ID"] == 5:
+        raise StopException()
+    return subgraph
+
+def test_serialize(graph):
+    """Tests serialisation."""
+    data = pd.DataFrame({"ID": list(range(10)), "next": list(range(1,11))})
+    result = {
+        "nodes": [(["Entity"], {"ID": i}) for i in range(5)],
+        "relations": []
+    }
+    iterator = PandasDataframeIterator(data, "Entity")
+    converter = Converter(load_file(schema_file_name), iterator, graph, serialize=True)
+    update_matcher(graph) #REQUIRED to use mock matcher
+    try:
+        converter()
+    except StopException:
+        pass
+    compare(graph, result)
+
+def test_raise_when_serialize_and_multiple_workers(graph):
+    """Tests the exception when using the serialize options as well as specifying multiple workers."""
+    data = pd.DataFrame({"ID": list(range(10)), "next": list(range(1,11))})
+    iterator = PandasDataframeIterator(data, "Entity")
+    update_matcher(graph) #REQUIRED to use mock matcher
+    with pytest.raises(ValueError) as excinfo:
+        converter = Converter(load_file(schema_file_name), iterator, graph, serialize=True, num_workers=10)
+    exception_msg = excinfo.value.args[0]
+    assert exception_msg == "You can't use serialization and parallel processing (num_workers > 1) at the same time."

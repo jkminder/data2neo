@@ -52,6 +52,7 @@ class WorkerConfig:
         counter: Amount of processed objects
         counter_lock: A lock for access to the counter
         progress_bar: An optional progress bar
+        n_resources: Number of resources that have been processed
     """
 
     def __init__(self, iterator: ResourceIterator, 
@@ -59,7 +60,7 @@ class WorkerConfig:
                 node_mask: set, relation_mask: set,
                 work_type: WorkType, 
                 graph: Graph,
-                buffer_size: int = 10,
+                buffer_size: int,
                 progress_bar: "tqdm.tqdm" = None) -> None:
         """Initialises a Worker config with the required data.
         
@@ -70,10 +71,9 @@ class WorkerConfig:
             relation_mask: A set of all entities that produce a relation.
             work_type: An enum specifying whether nodes or relations should be processed
             graph: The graph object, where the converted data is commited to
+            buffer_size: Number of resources that are processed until the result is committed to the graph
             progress_bar: An optional progress bar object, that is updated for each completed conversion of a resource with progress_bar.update(1).
                 Suggested usage is with the tqdm module.
-            buffer_size: Number of resources that are processed until the result is committed to the graph
-            n_resources: A counter for all processed resources
         """
         self.iterator = iterator
         self.done = False
@@ -96,7 +96,7 @@ class WorkerConfig:
         self.progress_bar = progress_bar
         self.n_resources = 0
 
-        self.buffer_size = buffer_size
+        self.buffer_size = buffer_size 
 
 class DynamicBufferMonitor(threading.Thread):
     """Adapts the buffer size based on average time per resource."""
@@ -280,6 +280,7 @@ class Worker(threading.Thread):
                         # If a primary key is existing we merge the relation to the graph
                         self.to_merge |= relation
                     else:
+                        relation.__primarykey__ = -1
                         self.to_create |= relation
 
                 buffer_size += 1
@@ -324,18 +325,19 @@ class Worker(threading.Thread):
 class WorkerPool:
     """The worker pool manages a pool of workers and abstracts any interaction with them."""
 
-    def __init__(self, num_workers: int, config: WorkerConfig) -> None:
+    def __init__(self, num_workers: int, config: WorkerConfig, use_dynamic_buffer: bool) -> None:
         """Initialises a worker pool. 
         
         Args:
             num_workers: Number of workers in the pool.
             config: The worker config. Is passed to all workers.
+            use_dynamic_buffer: If true, the buffer size is dynamically adjusted based on the resource throughput.
         """
         self._n = num_workers
         self._config = config
         self._workers = []
         self._bucket = Queue()
-        self._dynamic_buffer_monitor = DynamicBufferMonitor(self._config, 10)
+        self._use_dynamic_buffer = use_dynamic_buffer
 
     @property
     def config(self) -> WorkerConfig:
@@ -356,13 +358,16 @@ class WorkerPool:
         for worker in self._workers:
             worker.start()
 
-        self._dynamic_buffer_monitor.start()
+        if self._use_dynamic_buffer:
+            self._dynamic_buffer_monitor = DynamicBufferMonitor(self._config, update_interval=10)
+            self._dynamic_buffer_monitor.start()
 
         # main loop 
         while True:
             if self._config.done:
                 # wait for all workers to finish
-                self._dynamic_buffer_monitor.terminate()
+                if self._use_dynamic_buffer:
+                    self._dynamic_buffer_monitor.terminate()
                 self.join()
 
                 # We still need to check if any of the workers reported an exception
@@ -371,9 +376,10 @@ class WorkerPool:
                 exc = self._bucket.get(block=False)
             except Empty:
                 if self._config.done:
-                    self._dynamic_buffer_monitor.terminate()
+                    if self._use_dynamic_buffer:
+                        self._dynamic_buffer_monitor.terminate()
                     return # all workers done and no exception reported
-                time.sleep(0.1)
+                time.sleep(0.5) # Check again in 0.5 seconds
                 continue
             else:
                 # Exception has been raised -> clean up workers
@@ -386,7 +392,8 @@ class WorkerPool:
 
     def interrupt(self) -> None:
         """Sends iterruption signal to all workers."""
-        self._dynamic_buffer_monitor.terminate()
+        if self._use_dynamic_buffer:
+            self._dynamic_buffer_monitor.terminate()
         for worker in self._workers:
             worker.interrupt()
     
@@ -402,7 +409,8 @@ class WorkerPool:
         # wait for join
         for worker in self._workers:
             worker.join()
-        self._dynamic_buffer_monitor.join()
+        if self._use_dynamic_buffer:
+            self._dynamic_buffer_monitor.join()
 
         
 class Converter:
@@ -415,7 +423,7 @@ class Converter:
     _instantiation_time = None
     no_instantiation_warnings = False
 
-    def __init__(self, schema: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 1, buffer_size: int = 100) -> None:
+    def __init__(self, schema: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 1, serialize: bool = False) -> None:
         """Initialises a converter. Note that this is a singleton and only the most recent instantiation is valid.
         
         Args:
@@ -423,8 +431,12 @@ class Converter:
             iterator: The resource iterator.
             graph: The neo4j graph (from py2neo)
             num_workers: The number of parallel workers. Please make sure that your usage supports parallelism. To use serial processing set this to 1. (default: 1)
-            buffer_size: The size of the buffer. Number of resources that are processed before the result is pushed to the graph. (default: 100)
+            serialize: If true, the converter will make sure that all resources are processed serially and does not use any buffering. This is useful if you want to make sure that all resources are processed 
+                and committed to the graph in the same order as they are returned by the iterator. Note that you can't set both serialize to true and set num_workers > 1. (default: False)
         """
+
+        if serialize and num_workers > 1:
+            raise ValueError("You can't use serialization and parallel processing (num_workers > 1) at the same time.")
 
 
         if Converter._is_instantiated and not Converter.no_instantiation_warnings:
@@ -456,9 +468,8 @@ class Converter:
         # Worker pool
         self._worker_pool = None
 
-        # Buffer size -> currently hardcoded
-        # TODO: add as option
-        self._buffer_size = buffer_size
+        # Serialization
+        self._serialize = serialize
 
     @property
     def iterator(self) -> ResourceIterator:
@@ -500,8 +511,8 @@ class Converter:
     def _setup_worker_pool(self, type, pb = None) -> None:
         if self._worker_pool is None:
                 instantiated_iterator = iter(self.iterator)
-                config = WorkerConfig(instantiated_iterator, self._factories, self._node_mask, self._relation_mask, type,  self._graph, self._buffer_size, pb)  
-                self._worker_pool = WorkerPool(self._num_workers, config)
+                config = WorkerConfig(instantiated_iterator, self._factories, self._node_mask, self._relation_mask, type, self._graph, 1 if self._serialize else 100, pb)  
+                self._worker_pool = WorkerPool(self._num_workers, config, use_dynamic_buffer=not self._serialize)
         else:
             logger.info("Continuing previous work...")
             self._worker_pool.reinstantiate()
