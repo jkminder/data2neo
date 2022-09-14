@@ -15,17 +15,17 @@ Note: The [py2neo](https://py2neo.org/2021.1/index.html) library does not suppor
 ## Installation
 If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v0.7.0][latest_tag]):
 ```
-$ pip install git+ssh://git@github.com/sg-dev/rel2graph@v0.7.0
+pip install git+ssh://git@github.com/sg-dev/rel2graph@v0.7.0
 ```
 
 If you don't have ssh set up, download the latest wheel [here][latest_wheel] and install the wheel with:
 ```
-$ pip install **path-to-wheel**
+pip install **path-to-wheel**
 ```
 
 If you have cloned the repository you can also build it locally with
 ```
-$ pip install **path-to-repository**
+pip install **path-to-repository**
 ```
 The rel2graph library supports Python 3.7+.
 
