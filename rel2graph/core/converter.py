@@ -147,11 +147,11 @@ class DynamicBufferMonitor(threading.Thread):
             time_list = [current_avg, higher_avg, lower_avg]
             imin = time_list.index(min(time_list))
             if imin == 1:
-                logger.debug(f"Buffer size increased to {self._config.buffer_size}")
                 self._config.buffer_size = bound(self._config.buffer_size + self._step_size)
+                logger.debug(f"Buffer size increased to {self._config.buffer_size}")
             elif imin == 2:
-                logger.debug(f"Buffer size decreased to {self._config.buffer_size}")
                 self._config.buffer_size = bound(self._config.buffer_size - self._step_size)
+                logger.debug(f"Buffer size decreased to {self._config.buffer_size}")
              
 
 class Worker(threading.Thread):
