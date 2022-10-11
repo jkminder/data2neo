@@ -67,7 +67,7 @@ class PandasDataframeIterator(ResourceIterator):
 
     def __init__(self, dataframe: pd.core.frame.DataFrame, type: str) -> None:
         super().__init__()
-        self._rows = [PandasSeriesResource(dataframe.loc[i], type) for i in range(len(dataframe))]
+        self._rows = [PandasSeriesResource(dataframe.iloc[i], type) for i in range(len(dataframe))]
 
     def __iter__(self) -> Iterable:
         """Returns the iterator itself in its initial state (must return the first resource)."""

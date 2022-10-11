@@ -10,7 +10,7 @@ requirements = [
 setup(
     name = "rel2graph", 
     packages = find_packages(),
-    version = "0.7.1",
+    version = "0.7.2",
     description = "Library for converting relational data into graph data (neo4j)",
     author = "Julian Minder",
     author_email = "jminder@ethz.ch",   
