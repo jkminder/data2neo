@@ -64,7 +64,7 @@ from rel2graph import IteratorIterator, Converter, Attribute, register_attribute
 from rel2graph.utils import load_file
 
 # Create a connection to the neo4j graph with the py2neo Graph object
-graph = Graph(scheme="http", host="localhost", port=7474,  auth=('neo4j', 'password')) 
+graph = Graph(scheme="bolt", host="localhost", port=7474,  auth=('neo4j', 'password')) 
 
 people = ... # a dataframe with peoples data (ID, FirstName, LastName, FavoriteFlower)
 people_iterator = PandasDataframeIterator(people, "Person")
