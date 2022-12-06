@@ -1,4 +1,4 @@
-[![Tests](https://github.com/sg-dev/rel2graph/actions/workflows/tests.yml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests.yml)
+[![Tests Neo4j 4.4.15](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j4.yml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j4.yml) [![Tests Neo4j 5.2.0](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yml)
 
 # Rel2graph
 
