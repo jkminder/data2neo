@@ -17,12 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         neo4j-version: ["5.2.0", "4.4.15"]   
   
     services:
           neo4j:
-            image: neo4j:${{ matrix.neo4j-versio }}
+            image: neo4j:${{ matrix.neo4j-version }}
             env:
               NEO4J_dbms_security_procedures_unrestricted: apoc.*
               NEO4J_dbms_connector_bolt_enabled: "true"
