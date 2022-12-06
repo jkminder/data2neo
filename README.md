@@ -1,5 +1,7 @@
 [![Tests Neo4j 4.4.15](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j4.yml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j4.yml) [![Tests Neo4j 5.2.0](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml)
 
+[![Python Versions]([https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j4.yml/badge.svg](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%C2%A03.9%C2%A0%7C%C2%A03.10%C2%A0%7C%203.11-orange))](https://github.com/sg-dev/rel2graph/actions/workflows) 
+
 # Rel2graph
 
 **Rel2graph** is a library that simplifies the convertion of data in relational format to a graph knowledge database. It reliefs you of the cumbersome manual work of writing the conversion code and let's you focus on the conversion schema and data processing.
