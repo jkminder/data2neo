@@ -548,6 +548,9 @@ class Converter:
             logger.info("Continuing previous work...")
             self._worker_pool.reinstantiate()
     
+    def _set_relation_wait_function(self, relations_wait_function):
+        self._relations_wait_function = relations_wait_function
+
     def __call__(self, progress_bar: "tdqm.tqdm" = None, skip_nodes = False, skip_relations = False) -> None:
         """Runs the convertion and commits the produced nodes and relations to the graph.
         
@@ -596,11 +599,14 @@ class Converter:
             self._worker_pool = None 
         else:
             logger.info("Skipping creation of nodes.")
-
+    
         # Update total of progress bar
         if pb is not None:
             pb.total = 2*len(self._iterator)
-            
+
+        if self._relations_wait_function is not None:
+            self._relations_wait_function()
+
         if not self._processed_relations and not skip_relations:    
             # Create relations
             logger.info("Starting creation of relations.")
