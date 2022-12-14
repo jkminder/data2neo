@@ -502,6 +502,8 @@ class Converter:
         # Serialization
         self._serialize = serialize
 
+        self._relations_wait_function = None
+        
     @property
     def iterator(self) -> ResourceIterator:
         """Gets the resource iterator"""
