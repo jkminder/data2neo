@@ -13,10 +13,11 @@ from queue import Queue, Empty
 import sys
 import logging
 import threading
-import ctypes
 from enum import IntEnum
 import time
 import os
+from collections import defaultdict
+from py2neo.bulk import create_relationships, create_nodes, merge_relationships, merge_nodes
 
 from .factories import Resource
 from .resource_iterator import ResourceIterator
@@ -28,13 +29,12 @@ import threading
 import time
 import random
 
-from rel2graph.core import graph_elements
-
 logger = logging.getLogger(__name__)
 
 class WorkType(IntEnum):
     NODE = 0
     RELATION = 1
+
 
 class WorkerConfig:
     """Config container including information, data and configuration of the convertion that has to be done.
@@ -133,41 +133,21 @@ class DynamicBufferMonitor(threading.Thread):
 
     def run(self) -> None:
         """Dynamically adapts the buffer size based on the performance of the conversion."""
-        initial = True
         def bound(x):
-            x = round(x/10)*10 # round to nearest 10
-            res = 1 if x < 10 else min(x, 1000)
-            return res
-        def get_adaptive_step_size(current_buffer_size, initial):
-            # If its the initial step, we first try large steps
-            # The step size is inversely proportional to the buffer size and bounded by 1 and 1000
-            # To escape local minima with small bs it is randomly set to 10 for probability 0.2
-            if initial:
-                return 90
-            base = 10
-            if current_buffer_size > 100:
-                base = 20
-            elif current_buffer_size > 200:
-                base = 50
-            elif current_buffer_size > 500:
-                base = 100
-            
-            # for 20% of the time we set the step size to a random number to escape local minima
-            # if the buffer is very small, we set the step size to 100 to test large buffers 
-            # if the buffer is large we set the step size such that the buffer size is 10
-            return current_buffer_size - 10 if random.random() > 0.2 and current_buffer_size > 30 else base 
+            x = round(x/100)*100 # round to nearest 100
+            res = 1 if x < 10 else x
+            return res 
         
         while(not self._stop_event.is_set()):
             higher_avg, lower_avg = 99999, 99999 # init with high values
             current_size = self._config.buffer_size
-            step_size = get_adaptive_step_size(self._config.buffer_size, initial)
-            initial = False
+            step_size = 1000 # get_adaptive_step_size(self._config.buffer_size, initial)
             try:
                 current_avg = self.take_measurement()
-                if current_size < 1000:
+                if current_size < 20000:
                     self._config.buffer_size = bound(current_size + step_size)
                     higher_avg = self.take_measurement()
-                if current_size > 1:
+                if current_size > 1000:
                     self._config.buffer_size = bound(current_size - step_size)
                     lower_avg = self.take_measurement()
                 self._config.buffer_size = current_size # back to original value
@@ -227,6 +207,9 @@ class Worker(threading.Thread):
         nodes_committed = 0 
         relations_committed = 0
         
+        self.to_create = Subgraph(*self.to_create)
+        self.to_merge = Subgraph(*self.to_merge)
+
         # Creating does not rely on synchronous executions
         if len(self.to_create.nodes) + len(self.to_create.relationships) > 0:
             with self._config.graph_lock:
@@ -251,8 +234,8 @@ class Worker(threading.Thread):
                 else:
                     self._config.counter += relations_committed
 
-        self.to_merge = Subgraph()
-        self.to_create = Subgraph()
+        self.to_merge = [[],[]] # nodes, rels
+        self.to_create = [[],[]] # nodes, rels
 
     def process(self) -> None:
         """
@@ -303,17 +286,18 @@ class Worker(threading.Thread):
                 for node in subgraph.nodes:
                     if node.__primarykey__ is not None:
                         # If a primary key is existing we merge the node to the graph
-                        self.to_merge |= node
+                        self.to_merge[0].append(node)
                     else:
-                        self.to_create |= node
+                        self.to_create[0].append(node)
                 for relation in subgraph.relationships:
                     if getattr(relation, "__primarykey__", None) is not None:
                         # If a primary key is existing we merge the relation to the graph
-                        self.to_merge |= relation
+                        self.to_merge[1].append(relation)
+                        pass
                     else:
+                        # If no primary key is existing we create the relation to the graph
                         relation.__primarykey__ = -1
-                        self.to_create |= relation
-
+                        self.to_create[1].append(relation)
                 buffer_size += 1
             
             self._work_item = None # Remove work item
@@ -544,8 +528,8 @@ class Converter:
     def _setup_worker_pool(self, type, pb = None) -> None:
         if self._worker_pool is None:
                 instantiated_iterator = iter(self.iterator)
-                config = WorkerConfig(instantiated_iterator, self._factories, self._node_mask, self._relation_mask, type, self._graph, 1 if self._serialize else 100, pb)
-                self._worker_pool = WorkerPool(self._num_workers, config, use_dynamic_buffer=not self._serialize)
+                config = WorkerConfig(instantiated_iterator, self._factories, self._node_mask, self._relation_mask, type, self._graph, 1 if self._serialize else 5000, pb)
+                self._worker_pool = WorkerPool(self._num_workers, config, use_dynamic_buffer= not self._serialize)
         else:
             logger.info("Continuing previous work...")
             self._worker_pool.reinstantiate()
