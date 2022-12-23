@@ -161,7 +161,6 @@ def process_batch(batch) -> None:
     # __process_config is a global variable that contains the configuration for the current process
     try:
         work_type = WorkType.NODE if __process_config.nodes_flag.is_set() else WorkType.RELATION
-        print(f"Starting worker {mp.current_process().name}", work_type)
         mask = __process_config.node_mask if work_type == WorkType.NODE else __process_config.relation_mask
         to_merge = [[], []] # List of resources to merge (nodes, rels)
         to_create = [[], []] # List of resources to create (nodes, rels)
@@ -274,7 +273,6 @@ def init_process_state(proc_config: WorkerConfig, graph_class: type, graph_profi
     '''Initialize each process with a global config.
     '''
     global __process_config
-    print("Initializing process state", mp.current_process().name)
     __process_config = proc_config
     __process_config.graph = graph_class(profile=graph_profile)
 
@@ -301,10 +299,6 @@ def cleanup_process_state():
     __process_config = None
     del GlobalSharedState.graph
 
-all_vars = dir()
-def test():
-    print(all_vars)
-    print(__process_config)
 
 class Converter:
     """The converter handles the whole conversion pipeline.  """
@@ -324,8 +318,6 @@ class Converter:
         """
         if serialize and num_workers > 1:
             raise ValueError("You can't use serialization and parallel processing (num_workers > 1) at the same time.")
-
-        test()
 
         # Compile the schema 
         self._factories, self._node_mask, self._relation_mask =  compile_schema(schema) 
