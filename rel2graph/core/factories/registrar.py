@@ -12,6 +12,7 @@ authors: Julian Minder
 
 from enum import Enum, auto
 import logging
+from functools import wraps, partial
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,23 @@ def get_factory(name: str):
         raise KeyError(f"The requested module/factory '{name}' is not existing in the registry. Make sure to register your custom modules.")
     return ret
 
+def func_attr(func, args, attribute):
+    return func(attribute, *[arg.static_attribute_value for arg in args])
+
+def wrap_post(func, wraptype):
+    @wraps(func)
+    def wrapped(factory, *args):
+        return get_factory(wraptype)(factory, None, partial(func_attr, func, args))
+    return wrapped
+
+def wrap_pre(func, wraptype):
+    @wraps(func)
+    def wrapped(factory, *args):
+        return get_factory(wraptype)(factory, partial(func_attr, func, args), None)
+    return wrapped
+
+
+
 def register_attribute_postprocessor(function):
     """Registers an attribute postprocessor"""
     # TODO Slightly ugly fix here since the config parser converts all string arguments to 
@@ -59,7 +77,8 @@ def register_attribute_postprocessor(function):
     if function.__name__ in _registry:
         logger.warning(f"The name '{function.__name__}' is already registered. Overwriting it.")
     logger.debug(f"Registered attribute postprocessor '{function.__name__}''.")
-    _registry[function.__name__] = lambda factory, *args: get_factory("AttributeFactoryWrapper")(factory, None, lambda attribute: function(attribute, *[arg.static_attribute_value for arg in args]))
+    _registry[function.__name__] = wrap_post(function, "AttributeFactoryWrapper")
+    #lambda factory, *args: get_factory("AttributeFactoryWrapper")(factory, None, lambda attribute: function(attribute, *[arg.static_attribute_value for arg in args]))
     return function
 
 def register_attribute_preprocessor(function):
@@ -69,7 +88,9 @@ def register_attribute_preprocessor(function):
     if function.__name__ in _registry:
         logger.warning(f"The name '{function.__name__}' is already registered. Overwriting it.")
     logger.debug(f"Registered attribute preprocessor '{function.__name__}'.")
-    _registry[function.__name__] = lambda factory, *args: get_factory("AttributeFactoryWrapper")(factory, lambda resource: function(resource, *[arg.static_attribute_value for arg in args]), None)
+    _registry[function.__name__] =  wrap_pre(function, "AttributeFactoryWrapper")
+
+#    _registry[function.__name__] = lambda factory, *args: get_factory("AttributeFactoryWrapper")(factory, lambda resource: function(resource, *[arg.static_attribute_value for arg in args]), None)
     return function
 
 def register_subgraph_postprocessor(function):
@@ -79,7 +100,9 @@ def register_subgraph_postprocessor(function):
     if function.__name__ in _registry:
         logger.warning(f"The name '{function.__name__}' is already registered. Overwriting it.")
     logger.debug(f"Registered subgraph postprocessor '{function.__name__}'.")
-    _registry[function.__name__] = lambda factory, *args: get_factory("SubgraphFactoryWrapper")(factory, None, lambda attribute: function(attribute, *[arg.static_attribute_value for arg in args]))
+    _registry[function.__name__] =  wrap_post(function, "SubgraphFactoryWrapper")
+
+    #_registry[function.__name__] = lambda factory, *args: get_factory("SubgraphFactoryWrapper")(factory, None, lambda attribute: function(attribute, *[arg.static_attribute_value for arg in args]))
     return function
 
 def register_subgraph_preprocessor(function):
@@ -89,7 +112,8 @@ def register_subgraph_preprocessor(function):
     if function.__name__ in _registry:
         logger.warning(f"The name '{function.__name__}' is already registered. Overwriting it.")
     logger.debug(f"Registered subgraph preprocessor '{function.__name__}'.")
-    _registry[function.__name__] = lambda factory, *args: get_factory("SubgraphFactoryWrapper")(factory, lambda resource: function(resource, *[arg.static_attribute_value for arg in args]), None)
+    #_registry[function.__name__] = lambda factory, *args: get_factory("SubgraphFactoryWrapper")(factory, lambda resource: function(resource, *[arg.static_attribute_value for arg in args]), None)
+    _registry[function.__name__] =  wrap_pre(function, "SubgraphFactoryWrapper")
     return function
 
 def register_wrapper(wrapper):

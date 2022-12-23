@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Tests for OData relational module
-
-TODO: tests heavily access protected members of the library -> improve? how?
+Tests for common modules: util
 
 authors: Julian Minder
 """

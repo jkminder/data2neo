@@ -63,7 +63,7 @@ class PandasSeriesResource(Resource):
         return f"{super().__repr__()} (row {self._series.name})"
 
 class PandasDataframeIterator(ResourceIterator):
-    """Implements a Iterator that works based on a list of oData Entities."""
+    """Implements a Iterator that works based on a list of pandas Entities."""
 
     def __init__(self, dataframe: pd.core.frame.DataFrame, type: str) -> None:
         super().__init__()

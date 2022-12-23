@@ -11,6 +11,7 @@ import pytest
 
 from rel2graph.relational_modules.pandas import PandasSeriesResource, PandasDataframeIterator
 import pandas as pd
+import pickle
 
 @pytest.fixture
 def example_dataframe():
@@ -29,6 +30,9 @@ def example_series(example_dataframe):
 @pytest.fixture
 def resource(example_series):
     return PandasSeriesResource(series=example_series, type="ExampleType")
+
+def compare_resources(resource1, resource2):
+    return str(resource1) == str(resource2) and (resource2.series == resource1.series).all() and resource2.supplies == resource1.supplies
 
 class TestPandasSeriesResource:
     def test_attributes(self, resource, example_series):
@@ -52,13 +56,21 @@ class TestPandasSeriesResource:
     def test_repr(self, resource, example_series):
         assert str(resource) == f"PandasSeriesResource 'ExampleType' (row {example_series.name})"
 
+    def test_supplies(self, resource):
+        resource.supplies["test"] = 1
+        assert resource.supplies["test"] == 1
+    
+    def test_pickling(self, resource):
+        pickled_resource = pickle.dumps(resource)
+        unpickled_resource = pickle.loads(pickled_resource)
+        assert compare_resources(resource, unpickled_resource)
+
 class TestPandasDataFrameIterator:
     @pytest.fixture
     def iterator(self, example_dataframe):
         return PandasDataframeIterator(example_dataframe, type="ExampleType")
 
-    def compare_resources(self, resource1, resource2):
-        return str(resource1) == str(resource2) and (resource2.series == resource1.series).all()
+
 
     def test_len(self, iterator, example_dataframe):
         assert len(iterator) == len(example_dataframe)
@@ -67,13 +79,13 @@ class TestPandasDataFrameIterator:
         iterator = iter(iterator)
         first_resource = next(iterator)
         assert first_resource.series.name == 0
-        assert self.compare_resources(first_resource, resource)
+        assert compare_resources(first_resource, resource)
 
     def test_next(self, iterator, resource):
         iterator = iter(iterator)
         first_resource = next(iterator)
         second_resource = next(iterator)
-        assert not self.compare_resources(first_resource, second_resource)
+        assert not compare_resources(first_resource, second_resource)
         assert second_resource.series.name == 1
     
     def test_last(self, iterator):
@@ -90,4 +102,4 @@ class TestPandasDataFrameIterator:
         with pytest.raises(StopIteration):
             next(it)
         it = iter(iterator)
-        assert self.compare_resources(next(it), resource)
+        assert compare_resources(next(it), resource)

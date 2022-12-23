@@ -1,11 +1,7 @@
-import logging
-from rel2graph.core.factories.matcher import Matcher
-from rel2graph import register_subgraph_preprocessor
-from threading import Lock
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-def update_matcher(graph):
-    """Hack to use mock matcher"""
-    Matcher.graph_matcher = graph.matcher
+from rel2graph import register_subgraph_postprocessor
 
 def eq_node(rnode, gnode):
     # same labels
@@ -37,24 +33,26 @@ def eq_relation(rrel, grel):
     return True
     
 def compare_nodes(graph, result):
-    print("Graph Nodes: ", graph.nodes)
+    graphnodes = graph.nodes.match().all()
+    print("Graph Nodes: ", graphnodes)
     print("Result Nodes: ", result["nodes"])
-    assert len(graph.nodes) == len(result["nodes"]), "Same number of nodes"
+    assert len(graphnodes) == len(result["nodes"]), "Same number of nodes"
     for rnode in result["nodes"]:
         found = False
-        for gnode in graph.nodes:
+        for gnode in graphnodes:
             found = found or eq_node(rnode, gnode)
             if found:
                 break
         assert found, f"The following node was not found: {rnode}"
 
 def compare_relations(graph, result):
-    print("Graph Relations: ", graph.relations)
+    graph_relations = graph.relationships.match().all()
+    print("Graph Relations: ", graph_relations)
     print("Result Relations: ", result["relations"])
-    assert len(graph.relations) == len(result["relations"]), "Same number of relations"
+    assert len(graph_relations) == len(result["relations"]), "Same number of relations"
     for rrel in result["relations"]:
         found = False
-        for grel in graph.relations:
+        for grel in graph_relations:
             found = found or eq_relation(rrel, grel)
             if found:
                 break
@@ -63,23 +61,3 @@ def compare_relations(graph, result):
 def compare(graph, result):
     compare_nodes(graph, result)
     compare_relations(graph, result)
-
-
-## For state recovery tests
-class StateRecoveryException(Exception):
-    pass
-
-class Counter:
-    count = 0
-    lock = Lock()
-
-@register_subgraph_preprocessor
-def stop_after_10(resource):
-    log = logging.getLogger("rel2graph")
-    with Counter.lock:
-        Counter.count += 1
-        log.debug("Counter:"+ str(Counter.count))
-        if Counter.count > 10:
-            Counter.count = 0
-            raise StateRecoveryException
-    return resource
