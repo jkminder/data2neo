@@ -16,6 +16,7 @@ import os
 import multiprocessing as mp
 from py2neo import Graph, Node, Relationship
 from itertools import chain
+import pickle
 
 from .resource_iterator import ResourceIterator
 from .graph_elements import Graph, Subgraph, NodeMatcher, Attribute, Relation
@@ -159,6 +160,7 @@ def process_batch(batch) -> None:
     data is traversed fully, the method returns.
     """
     # __process_config is a global variable that contains the configuration for the current process
+    batch = pickle.loads(batch)
     try:
         work_type = WorkType.NODE if __process_config.nodes_flag.is_set() else WorkType.RELATION
         mask = __process_config.node_mask if work_type == WorkType.NODE else __process_config.relation_mask
@@ -209,20 +211,16 @@ def process_batch(batch) -> None:
                         # If no primary key is existing we create the relation to the graph
                         relation.__primarykey__ = -1
                         to_create[1].append(relation)
-            if i % 1000 == 0 and i > 0:
-                # Update counter
-                with __process_config.processed_lock:
-                    __process_config.processed_resources.value += 1000
-
             processed_resources.append(resource)
 
-        # Update counter
-        with __process_config.processed_lock:
-            __process_config.processed_resources.value += len(processed_resources) % 1000
         
         to_create = Subgraph(*to_create)
         to_merge = Subgraph(*to_merge)
         commit_batch(to_create, to_merge)
+
+        # Update counter
+        with __process_config.processed_lock:
+            __process_config.processed_resources.value += len(processed_resources)
 
             
     except Exception as err:
@@ -234,15 +232,18 @@ def process_batch(batch) -> None:
         # Prepare resources for pickling
         for resource in processed_resources:
             picklize_supplies(resource)
-        return processed_resources
+        # For memory reasons we return the processed resources as a binary string
+        bin_resources = pickle.dumps(processed_resources)
+        return bin_resources
     else:
         # No need to return anything for relations as no synchronization is needed
         return []
 
 class Batcher:
-    def __init__(self, batch_size: int, iterator: Iterable):
+    def __init__(self, batch_size: int, iterator: Iterable, binarize: bool = True):
         self._batch_size = batch_size
         self._iterator = iter(iterator)
+        self._binarize = binarize
 
     def __iter__(self):
         return self
@@ -255,8 +256,9 @@ class Batcher:
             except StopIteration:
                 if len(batch) == 0:
                     raise StopIteration
-                else:
-                    return batch
+                break
+        if self._binarize:
+            batch = pickle.dumps(batch)
         return batch
 
 def update_progress_bar(progress_bar, num, exit_flag) -> None:
@@ -354,9 +356,9 @@ class Converter:
         """
         processed_resources = []
         try:
-            result = pool.imap_unordered(process_batch, Batcher(self._batch_size, iterator))
-            for batch in result:
-                processed_resources.extend(batch)
+            result = pool.imap_unordered(process_batch, iterator)
+            for i, batch in enumerate(result):
+                processed_resources.append(batch)
         except KeyboardInterrupt as e:
             # KeyboardInterrupt is raised on the main exec thread
             # -> Cleanup all workers
@@ -389,18 +391,17 @@ class Converter:
             
 
         start = time.time()
-        # Initiate the main process
-        # init_process_state(config, self._graph.__class__, self._graph.service.profile, conversion_objects, self._global_vars)
 
         if not self._serialize:
             logger.info(f"Running convertion with {self._num_workers} parallel workers.")
             with mp.Pool(processes=self._num_workers, initializer=init_process_state, 
-                        initargs=(config, self._graph.__class__, self._graph.service.profile, conversion_objects, GlobalSharedState.get_state())) as pool:
+                        initargs=(config, self._graph.__class__, self._graph.service.profile, conversion_objects, GlobalSharedState.get_state()), 
+                        maxtasksperchild=50) as pool:
                 if not skip_nodes:
                     config.set_work_type(WorkType.NODE)
                     logger.info("Starting creation of nodes.")
                     
-                    processed_resources = self._process_iteration(pool, self._iterator, config)
+                    processed_batches = self._process_iteration(pool, Batcher(self._batch_size, self._iterator), config)
                 else:
                     logger.info("Skipping creation of nodes.")
 
@@ -408,7 +409,7 @@ class Converter:
                     config.set_work_type(WorkType.RELATION)
                     logger.info("Starting creation of relations.")
 
-                    self._process_iteration(pool, processed_resources, config)
+                    self._process_iteration(pool, processed_batches, config)
                 else:
                     logger.info("Skipping creation of relations.")
         else:
@@ -422,16 +423,16 @@ class Converter:
                     config.set_work_type(WorkType.NODE)
                     logger.info("Starting creation of nodes.")
                     pmap = map(process_batch, Batcher(self._batch_size, self._iterator))
-                    processed_resources = []
+                    processed_batches = []
                     for batch in pmap:
-                        processed_resources.extend(batch)
+                        processed_batches.append(batch)
                 else:
                     logger.info("Skipping creation of nodes.")
 
                 if not skip_relations:
                     config.set_work_type(WorkType.RELATION)
                     logger.info("Starting creation of relations.")
-                    list(map(process_batch, Batcher(self._batch_size, processed_resources)))
+                    list(map(process_batch, processed_batches))
                 else:
                     logger.info("Skipping creation of relations.")
             finally:
@@ -444,5 +445,6 @@ class Converter:
             pb_updater.join()
             pb.n = config.processed_resources.value
             pb.refresh()
-            pb.close()        
+            time.sleep(0.1)
+            pb.close()
         logger.info(f"Processed in total {config.processed_nodes.value} nodes and {config.processed_relations.value} relations (this run took {int(time.time()-start)}s)")
