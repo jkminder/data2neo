@@ -1,11 +1,41 @@
 Common modules
 ==============
 
-The rel2graph library comes with some predefined wrappers. To use any of them you must import them:
+The rel2graph library comes with some predefined wrappers. To use them you must import them from the ``rel2graph.common_modules`` module. The following wrappers are available:
 
+types
+--------
 .. code-block:: python
 
-    import rel2graph.common_modules
+    import rel2graph.common_modules.types
+
+
+**INT**
+~~~~~~~
+
+Converts the attribute to an integer. If the attribute is not an integer, it will try to convert it to an integer. If this fails, it will raise a ``ValueError``.
+
+**FLOAT**
+~~~~~~~~~
+
+Converts the attribute to a float. If the attribute is not a float, it will try to convert it to a float. If this fails, it will raise a ``ValueError``.
+
+**STR**
+~~~~~~~
+
+Converts the attribute to a string. If the attribute is not a string, it will try to convert it to a string. If this fails, it will raise a ``ValueError``.
+
+**BOOL**
+~~~~~~~~
+
+Converts the attribute to a boolean. If the attribute is not a boolean, it will try to convert it to a boolean. If this fails, it will raise a ``ValueError``.
+
+
+datetime
+--------
+.. code-block:: python
+
+    import rel2graph.common_modules.datetime
 
 
 **DATETIME**

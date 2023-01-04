@@ -59,6 +59,11 @@ def test_get_graph():
     converter()
     assert len(graph.nodes.match().all()) == 2
 
+def test_raise_set_illegal_attribute():
+    with pytest.raises(AttributeError):
+        GlobalSharedState.graph = 1
+    with pytest.raises(AttributeError):
+        GlobalSharedState._custom_global_vars = 1
 
 def test_static_variable():
     graph = Graph()

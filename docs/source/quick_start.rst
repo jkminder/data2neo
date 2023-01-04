@@ -1,6 +1,10 @@
 Quick Start
 ===========
 
+Example "Northwind"
+~~~~~~~~~~~~~~~~~~~
+
+
 A quick example for converting data in a `pandas <https://pandas.pydata.org>`_ dataframe into a graph. The full example code can be found `here <https://github.com/sg-dev/rel2graph/tree/main/examples>`_. For more details, please checkout the full documentation. 
 We first define a :doc:`convertion schema <conversion_schema>` in a YAML style config file. In this config file we specify, which entites are converted into which nodes and which relations. 
 

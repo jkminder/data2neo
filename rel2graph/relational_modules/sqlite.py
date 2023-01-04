@@ -159,19 +159,19 @@ class SQLiteIterator(ResourceIterator):
                 if break_flag:
                     break
                 
-    def request_resources(self, table, filters):
-        query = f"SELECT * FROM {table} WHERE "
-        were = []
-        for key, value in filters.items():
-            if isinstance(value, str):
-                quotes = "'"
-            else:
-                quotes = ""
-            were.append(f"{table}.{key} == {quotes}{value}{quotes}")
-        query = query + " AND ".join(were)
-        cursor = self._con.execute(query)
-        rows = cursor.fetchall()
-        return [SQLiteResource(row, self._cols[table], self._pks[table], table) for row in rows]
+    # def request_resources(self, table, filters):
+    #     query = f"SELECT * FROM {table} WHERE "
+    #     were = []
+    #     for key, value in filters.items():
+    #         if isinstance(value, str):
+    #             quotes = "'"
+    #         else:
+    #             quotes = ""
+    #         were.append(f"{table}.{key} == {quotes}{value}{quotes}")
+    #     query = query + " AND ".join(were)
+    #     cursor = self._con.execute(query)
+    #     rows = cursor.fetchall()
+    #     return [SQLiteResource(row, self._cols[table], self._pks[table], table) for row in rows]
         
     def __len__(self) -> None:
         """ Returns the number of resources in the database."""

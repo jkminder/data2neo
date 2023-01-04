@@ -134,17 +134,22 @@ Since a dataframe has no type associated, you need to also provide a type name.
     iterator = PandasDataframeIterator(pandas.Dataframe(...), "MyType")
 
 
-OData
------
+SQLite
+------
 
-With the :py:class:`ODataListIterator <rel2graph.relational_modules.odata.ODataListIterator>` you can iterate over a list of OData entities from `pyodata <https://pyodata.readthedocs.io/en/latest/>`_. 
-The entities need to be of type or behave like `pyodata.v2.service.EntityProxy <https://pyodata.readthedocs.io/en/latest/>`_.
+With the :py:class:`SQLiteIterator <rel2graph.relational_modules.sqlite.SQLiteIterator>` you can iterate over a sqlite database. You need to provide a connection to the database.
+You can also provide a list of tables to iterate over. If you do not provide a list of tables, the iterator will iterate over all tables in the database. Rel2graph requires primary keys, so if your tables do not have primary keys, you need to provide a dictionary with table, primary key pairs.
 
+By default the Iterator will mix all tables together. If you want to iterate over tables one after another, you can set the ``mix_tables`` parameter to ``False``. 
+
+The python implementation of sqlite will often throw warnings if a new process is spawned. You can disable these warnings by setting the ``check_same_thread`` parameter to ``False``. Rel2graph does not share the connection between processes, only the master processes requests data from the database.
 .. code-block:: python
 
-    from rel2graph.relational_modules.odata import ODataListIterator
-    iterator = ODataListIterator([entity1, entity2,...])
+    from rel2graph.relational_modules.sqlite import SQLiteIterator
+    import sqlite3
 
+    connection = sqlite3.connect("mydatabase.db", check_same_thread=False)
+    iterator = SQLiteIterator(connection, filter=["table1", "table2"], primary_keys={"table3": "id"})
 
 
 .. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`

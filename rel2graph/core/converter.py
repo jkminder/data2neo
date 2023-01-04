@@ -288,7 +288,7 @@ def init_process_state(proc_config: WorkerConfig, graph_class: type, graph_profi
 
     # Set the global shared state
     GlobalSharedState.set_state(global_shared_state)
-    GlobalSharedState.graph = __process_config.graph
+    GlobalSharedState._set_graph(__process_config.graph)
 
 def cleanup_process_state():
     '''Cleanup the process state. Only used in serial processing.
