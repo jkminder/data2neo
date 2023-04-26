@@ -10,7 +10,7 @@ authors: Julian Minder
 import pytest 
 
 from rel2graph import Converter
-from rel2graph.relational_modules.pandas import PandasDataframeIterator
+from rel2graph.relational_modules.pandas import PandasDataFrameIterator
 from rel2graph.utils import load_file
 from rel2graph import IteratorIterator
 from rel2graph import register_subgraph_postprocessor
@@ -51,7 +51,7 @@ def graph_wpr():
         (iris, flower_only_result)]
 )
 def test_single_type(graph, data, result, workers, batch_size):
-    iterator = PandasDataframeIterator(data[1], data[0])
+    iterator = PandasDataFrameIterator(data[1], data[0])
     converter = Converter(load_file(schema_file_name), iterator, graph, num_workers=workers,  batch_size=batch_size)
     # run 
     converter()
@@ -67,13 +67,13 @@ def test_single_type(graph, data, result, workers, batch_size):
 )
 def test_node_update(graph, initial_data, data, result, workers, batch_size):
     # initial data
-    iterator = PandasDataframeIterator(initial_data[1], initial_data[0])
+    iterator = PandasDataFrameIterator(initial_data[1], initial_data[0])
     converter = Converter(load_file(schema_file_name), iterator, graph, num_workers=workers,  batch_size=batch_size)
     # run initial data
     converter()
 
     # updated data
-    iterator = PandasDataframeIterator(data[1], data[0])
+    iterator = PandasDataFrameIterator(data[1], data[0])
     converter = Converter(load_file(schema_file_name), iterator, graph, num_workers=workers,  batch_size=batch_size)
     # run updated data
     converter()
@@ -89,8 +89,8 @@ def test_node_update(graph, initial_data, data, result, workers, batch_size):
 )
 def test_two_types(graph, data_type_1, data_type_2, result, workers, batch_size):
     iterator = IteratorIterator([
-        PandasDataframeIterator(data_type_1[1], data_type_1[0]),
-        PandasDataframeIterator(data_type_2[1], data_type_2[0])
+        PandasDataFrameIterator(data_type_1[1], data_type_1[0]),
+        PandasDataFrameIterator(data_type_2[1], data_type_2[0])
     ])
     converter = Converter(load_file(schema_file_name), iterator, graph, num_workers=workers,  batch_size=batch_size)
     # run 
@@ -107,8 +107,8 @@ def test_two_types(graph, data_type_1, data_type_2, result, workers, batch_size)
 )
 def test_parallel_relations(graph_wpr, data_type_1, data_type_2, result, workers, batch_size):
     iterator = IteratorIterator([
-        PandasDataframeIterator(data_type_1[1], data_type_1[0]+"Parallel"),
-        PandasDataframeIterator(data_type_2[1], data_type_2[0]+"Parallel")
+        PandasDataFrameIterator(data_type_1[1], data_type_1[0]+"Parallel"),
+        PandasDataFrameIterator(data_type_2[1], data_type_2[0]+"Parallel")
     ])
     converter = Converter(load_file(schema_file_name), iterator, graph_wpr, num_workers=workers,  batch_size=batch_size)
     converter()
@@ -127,7 +127,7 @@ def RAISE_ERROR(subgraph):
 
 def test_exception(graph):
     """Tests exception handling."""
-    iterator = PandasDataframeIterator(no_duplicates[1], no_duplicates[0] + "RaiseError")
+    iterator = PandasDataFrameIterator(no_duplicates[1], no_duplicates[0] + "RaiseError")
 
     converter = Converter(load_file(schema_file_name), iterator, graph, serialize=True)
     with pytest.raises(ValueError):
@@ -155,7 +155,7 @@ def test_serialize(graph):
         "nodes": [(["Entity"], {"ID": i}) for i in range(5)],
         "relations": []
     }
-    iterator = PandasDataframeIterator(data, "Entity")
+    iterator = PandasDataFrameIterator(data, "Entity")
     # We run with batchsize 1 to make sure that the serialization is actually used
     converter = Converter(load_file(schema_file_name), iterator, graph, serialize=True, batch_size=1)
     try:
@@ -167,7 +167,7 @@ def test_serialize(graph):
 def test_raise_when_serialize_and_multiple_workers(graph):
     """Tests the exception when using the serialize options as well as specifying multiple workers."""
     data = pd.DataFrame({"ID": list(range(10)), "next": list(range(1,11))})
-    iterator = PandasDataframeIterator(data, "Entity")
+    iterator = PandasDataFrameIterator(data, "Entity")
     with pytest.raises(ValueError) as excinfo:
         converter = Converter(load_file(schema_file_name), iterator, graph, serialize=True, num_workers=10)
     exception_msg = excinfo.value.args[0]

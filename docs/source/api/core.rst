@@ -11,6 +11,7 @@ Converter
 .. autoclass:: rel2graph.Converter
    :members:
    :show-inheritance:
+   :special-members: __call__
 
 Resource
 ~~~~~~~~

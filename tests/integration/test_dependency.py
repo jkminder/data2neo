@@ -14,7 +14,7 @@ import pandas as pd
 from py2neo import Graph
 
 from rel2graph import Converter, IteratorIterator, register_attribute_postprocessor, Attribute
-from rel2graph.relational_modules.pandas import PandasDataframeIterator
+from rel2graph.relational_modules.pandas import PandasDataFrameIterator
 
 @register_attribute_postprocessor
 def INT(attribute):
@@ -35,7 +35,7 @@ def test_dependency_between_two_nodes_one_resource_type(workers, batch_size):
             + id = INT(Entity.id)
     """
     entities = pd.DataFrame({"id": [1]*1000}) # the start buffer size is 100 so this will require two several batches
-    iterator = PandasDataframeIterator(entities, "Entity")
+    iterator = PandasDataFrameIterator(entities, "Entity")
     converter = Converter(schema, iterator, graph, num_workers=workers, batch_size=batch_size)
     converter()
     assert len(graph.nodes) == 1
@@ -58,7 +58,7 @@ def test_dependency_between_two_nodes_two_resource_types(workers, batch_size):
             + id = INT(Entity.id)
     """
     entities = pd.DataFrame({"id": [1]*1000}) # the start buffer size is 100 so this will require two several batches
-    iterator = IteratorIterator([PandasDataframeIterator(entities, "Entity"), PandasDataframeIterator(entities, "Other")])
+    iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(entities, "Other")])
     converter = Converter(schema, iterator, graph, num_workers=workers, batch_size=batch_size)
     converter()
     assert len(graph.nodes) == 1

@@ -299,13 +299,13 @@ def cleanup_process_state():
     del __process_config.graph
     del __process_config
     __process_config = None
-    del GlobalSharedState.graph
+    GlobalSharedState._del_graph()
 
 
 class Converter:
     """The converter handles the whole conversion pipeline.  """
 
-    def __init__(self, schema: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 1, serialize: bool = False, batch_size: int = 5000, global_vars: List[Any] = []) -> None:
+    def __init__(self, schema: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 1, serialize: bool = False, batch_size: int = 5000) -> None:
         """Initialises a converter. Note that this is a singleton and only the most recent instantiation is valid.
         
         Args:
@@ -316,7 +316,6 @@ class Converter:
             serialize: If true, the converter will make sure that all resources are processed serially and does not use any buffering. This is useful if you want to make sure that all resources are processed 
                 and committed to the graph in the same order as they are returned by the iterator. Note that you can't set both serialize to true and set num_workers > 1. (default: False)
             batch_size: The batch size for the parallel processing. (default: 5000)
-            global_vars: A list of global variables that should be available in the workers. Make sure they are picklizable and synchronized. (default: [])
         """
         if serialize and num_workers > 1:
             raise ValueError("You can't use serialization and parallel processing (num_workers > 1) at the same time.")
@@ -338,8 +337,6 @@ class Converter:
         # Batch size
         self._batch_size = batch_size
 
-        # Global variables
-        self._global_vars = global_vars
         
     @property
     def iterator(self) -> ResourceIterator:

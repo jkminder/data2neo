@@ -11,7 +11,8 @@ import pytest
 
 from rel2graph.common_modules import datetime
 from rel2graph import Attribute
-from datetime import datetime
+
+from datetime import datetime as dt
 
 @pytest.fixture
 def default_format():
@@ -23,7 +24,7 @@ def other_format():
 
 @pytest.fixture
 def as_datetime():
-    return Attribute("key", datetime.strptime("2015-05-17T21:18:19", "%Y-%m-%dT%H:%M:%S"))
+    return Attribute("key", dt.strptime("2015-05-17T21:18:19", "%Y-%m-%dT%H:%M:%S"))
 
 def test_date(default_format, other_format, as_datetime):
     result = datetime.DATE(default_format).value

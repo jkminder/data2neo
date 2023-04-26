@@ -8,6 +8,7 @@ authors: Julian Minder
 """
 
 import pytest
+import datetime
 
 from rel2graph.common_modules import types
 from rel2graph import Attribute

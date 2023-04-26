@@ -40,9 +40,9 @@ PandasSeriesResource
    :show-inheritance:
 
 
-PandasDataframeIterator
+PandasDataFrameIterator
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: rel2graph.relational_modules.pandas.PandasDataframeIterator
+.. autoclass:: rel2graph.relational_modules.pandas.PandasDataFrameIterator
    :members:
    :show-inheritance:

@@ -36,6 +36,9 @@ class __DynamicGetter(type):
     def _set_graph(self, graph):
         self.__graph = graph
 
+    def _del_graph(self):
+        del self.__graph
+
     def get_state(self):
         return self._custom_global_vars
     

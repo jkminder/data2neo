@@ -9,7 +9,7 @@ authors: Julian Minder
 
 import pytest
 
-from rel2graph.relational_modules.pandas import PandasSeriesResource, PandasDataframeIterator
+from rel2graph.relational_modules.pandas import PandasSeriesResource, PandasDataFrameIterator
 import pandas as pd
 import pickle
 
@@ -68,7 +68,7 @@ class TestPandasSeriesResource:
 class TestPandasDataFrameIterator:
     @pytest.fixture
     def iterator(self, example_dataframe):
-        return PandasDataframeIterator(example_dataframe, type="ExampleType")
+        return PandasDataFrameIterator(example_dataframe, type="ExampleType")
 
 
 

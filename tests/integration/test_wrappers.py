@@ -15,7 +15,7 @@ from rel2graph import Converter
 from rel2graph import AttributeFactoryWrapper, SubgraphFactoryWrapper
 from rel2graph.core.graph_elements import Node, Relation, Subgraph
 from rel2graph.utils import load_file
-from rel2graph.relational_modules.pandas import PandasDataframeIterator
+from rel2graph.relational_modules.pandas import PandasDataFrameIterator
 from rel2graph import register_wrapper, register_attribute_postprocessor, register_attribute_preprocessor, register_subgraph_postprocessor, register_subgraph_preprocessor
 from rel2graph import Attribute
 
@@ -132,7 +132,7 @@ class SGWrapper(SubgraphFactoryWrapper):
 )
 @pytest.mark.parametrize("batch_size",[1,100])
 def test_attr_pre(graph, input, workers, batch_size):
-    iterator = PandasDataframeIterator(input, "ATTRPRE")
+    iterator = PandasDataFrameIterator(input, "ATTRPRE")
     converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
@@ -149,7 +149,7 @@ def test_attr_pre(graph, input, workers, batch_size):
 )
 @pytest.mark.parametrize("batch_size",[1,100])
 def test_attr_post(graph, input, workers, batch_size):
-    iterator = PandasDataframeIterator(input, "ATTRPOST")
+    iterator = PandasDataFrameIterator(input, "ATTRPOST")
     converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
@@ -168,7 +168,7 @@ def test_attr_post(graph, input, workers, batch_size):
 )
 @pytest.mark.parametrize("batch_size",[1,100])
 def test_attr_wrapper(graph, input, workers, batch_size):
-    iterator = PandasDataframeIterator(input, "ATTRWRAPPER")
+    iterator = PandasDataFrameIterator(input, "ATTRWRAPPER")
     converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
@@ -184,7 +184,7 @@ def test_attr_wrapper(graph, input, workers, batch_size):
 )
 @pytest.mark.parametrize("batch_size",[1,100])
 def test_subgraph_pre(graph, input, workers, batch_size):
-    iterator = PandasDataframeIterator(input, "SGPRE")
+    iterator = PandasDataFrameIterator(input, "SGPRE")
     converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
@@ -204,7 +204,7 @@ def test_subgraph_pre(graph, input, workers, batch_size):
 )
 @pytest.mark.parametrize("batch_size",[1,100])
 def test_subgraph_post(graph, input, workers, batch_size):
-    iterator = PandasDataframeIterator(input, "SGPOST")
+    iterator = PandasDataFrameIterator(input, "SGPOST")
     converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
@@ -226,7 +226,7 @@ def test_subgraph_post(graph, input, workers, batch_size):
 )
 @pytest.mark.parametrize("batch_size",[1,100])
 def test_subgraph_wrapper(graph, input, workers, batch_size):
-    iterator = PandasDataframeIterator(input, "SGWRAPPER")
+    iterator = PandasDataFrameIterator(input, "SGWRAPPER")
     converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()

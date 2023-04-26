@@ -71,7 +71,7 @@ class PandasDataframeIterator(ResourceIterator):
         warnings.warn(warn_msg)
         raise DeprecationWarning(warn_msg)
 
-class PandasDataFrameIterator:
+class PandasDataFrameIterator(ResourceIterator):
     """Implements a Iterator that works based on a list of pandas Entities."""
 
     def __init__(self, dataframe: pd.core.frame.DataFrame, type: str) -> None:

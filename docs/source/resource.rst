@@ -124,14 +124,14 @@ Existing relational modules
 Pandas
 ------
 
-With the :py:class:`PandasDataframeIterator <rel2graph.relational_modules.pandas.PandasDataframeIterator>` you can wrap a `pandas dataframe <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html?highlight=dataframe#pandas>`_. 
-If you pass a pandas dataframe to the :py:class:`PandasDataframeIterator <rel2graph.relational_modules.pandas.PandasDataframeIterator>` it will automatically create :py:class:`PandasSeriesResource <rel2graph.relational_modules.pandas.PandasSeriesResource>` out of all rows (series) and iterate over them. 
+With the :py:class:`PandasDataFrameIterator <rel2graph.relational_modules.pandas.PandasDataFrameIterator>` you can wrap a `pandas dataframe <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html?highlight=dataframe#pandas>`_. 
+If you pass a pandas dataframe to the :py:class:`PandasDataFrameIterator <rel2graph.relational_modules.pandas.PandasDataFrameIterator>` it will automatically create :py:class:`PandasSeriesResource <rel2graph.relational_modules.pandas.PandasSeriesResource>` out of all rows (series) and iterate over them. 
 Since a dataframe has no type associated, you need to also provide a type name.
 
 .. code-block:: python
 
-    from rel2graph.relational_modules.pandas import PandasDataframeIterator
-    iterator = PandasDataframeIterator(pandas.Dataframe(...), "MyType")
+    from rel2graph.relational_modules.pandas import PandasDataFrameIterator
+    iterator = PandasDataFrameIterator(pandas.Dataframe(...), "MyType")
 
 
 SQLite
@@ -143,6 +143,7 @@ You can also provide a list of tables to iterate over. If you do not provide a l
 By default the Iterator will mix all tables together. If you want to iterate over tables one after another, you can set the ``mix_tables`` parameter to ``False``. 
 
 The python implementation of sqlite will often throw warnings if a new process is spawned. You can disable these warnings by setting the ``check_same_thread`` parameter to ``False``. Rel2graph does not share the connection between processes, only the master processes requests data from the database.
+
 .. code-block:: python
 
     from rel2graph.relational_modules.sqlite import SQLiteIterator

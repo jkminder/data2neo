@@ -13,9 +13,9 @@ import pandas as pd
 from py2neo import Graph
 
 from rel2graph import Converter, IteratorIterator, register_attribute_postprocessor, Attribute
-from rel2graph.relational_modules.pandas import PandasDataframeIterator
+from rel2graph.relational_modules.pandas import PandasDataFrameIterator
 from rel2graph.py2neo_extensions import GraphWithParallelRelations, MERGE_RELATIONS
-import rel2graph.common_modules
+import rel2graph.common_modules.types
 
 def get_relations(graph):
     return graph.relationships.match().all()
@@ -36,7 +36,7 @@ def test_standart(config):
     """
     entities = pd.DataFrame({"id": [1,2]})
     relations = pd.DataFrame({"source_id": [1,1], "target_id": [2,2]})
-    iterator = IteratorIterator([PandasDataframeIterator(entities, "Entity"), PandasDataframeIterator(relations, "Relation")])
+    iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(relations, "Relation")])
     converter = Converter(schema, iterator, graph, serialize=config[1], num_workers=config[0])
     converter()
     assert len(get_relations(graph)) == 1
@@ -57,7 +57,7 @@ def test_standart_same_resource(config):
     """
     entities = pd.DataFrame({"id": [1,2]})
     relations = pd.DataFrame({"source_id": [1], "target_id": [2]})
-    iterator = IteratorIterator([PandasDataframeIterator(entities, "Entity"), PandasDataframeIterator(relations, "Relation")])
+    iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(relations, "Relation")])
     converter = Converter(schema, iterator, graph, serialize=config[1], num_workers=config[0])
     converter()
     assert len(get_relations(graph)) == 1
@@ -77,7 +77,7 @@ def test_parallel_relations_different_resource(config):
     """
     entities = pd.DataFrame({"id": [1,2]})
     relations = pd.DataFrame({"source_id": [1,1], "target_id": [2,2]})
-    iterator = IteratorIterator([PandasDataframeIterator(entities, "Entity"), PandasDataframeIterator(relations, "Relation")])
+    iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(relations, "Relation")])
     converter = Converter(schema, iterator, graph, serialize=config[1], num_workers=config[0])
     converter()
     assert len(get_relations(graph)) == 2
@@ -98,7 +98,7 @@ def test_parallel_relations_same_resource(config):
     """
     entities = pd.DataFrame({"id": [1,2]})
     relations = pd.DataFrame({"source_id": [1], "target_id": [2]})
-    iterator = IteratorIterator([PandasDataframeIterator(entities, "Entity"), PandasDataframeIterator(relations, "Relation")])
+    iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(relations, "Relation")])
     converter = Converter(schema, iterator, graph, serialize=config[1], num_workers=config[0])
     converter()
     assert len(get_relations(graph)) == 2
@@ -118,7 +118,7 @@ def test_merge_relations(config):
     """
     entities = pd.DataFrame({"id": [1,2]})
     relations = pd.DataFrame({"source_id": [1,1], "target_id": [2,2]})
-    iterator = IteratorIterator([PandasDataframeIterator(entities, "Entity"), PandasDataframeIterator(relations, "Relation")])
+    iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(relations, "Relation")])
     converter = Converter(schema, iterator, graph, serialize=config[1], num_workers=config[0])
     converter()
     assert len(get_relations(graph)) == 1

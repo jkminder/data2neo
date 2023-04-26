@@ -14,7 +14,7 @@ import pandas as pd
 import multiprocessing as mp
 
 from rel2graph import Converter, GlobalSharedState, register_subgraph_postprocessor
-from rel2graph.relational_modules.pandas import PandasDataframeIterator
+from rel2graph.relational_modules.pandas import PandasDataFrameIterator
 
 @register_subgraph_postprocessor
 def CHECK_GRAPH(subgraph):
@@ -54,7 +54,7 @@ def test_get_graph():
     """
 
     entities = pd.DataFrame({"id": [1,2]})
-    iterator = PandasDataframeIterator(entities, "Entity")
+    iterator = PandasDataFrameIterator(entities, "Entity")
     converter = Converter(schema, iterator, graph, num_workers=2, batch_size=1)
     converter()
     assert len(graph.nodes.match().all()) == 2
@@ -76,7 +76,7 @@ def test_static_variable():
     """
 
     entities = pd.DataFrame({"id": [1,2]})
-    iterator = PandasDataframeIterator(entities, "Entity")
+    iterator = PandasDataFrameIterator(entities, "Entity")
     GlobalSharedState.static_variable = 1
     converter = Converter(schema, iterator, graph, num_workers=2, batch_size=1)
     converter()
@@ -93,7 +93,7 @@ def test_set_variable():
     """
 
     entities = pd.DataFrame({"id": [1,2]})
-    iterator = PandasDataframeIterator(entities, "Entity")
+    iterator = PandasDataFrameIterator(entities, "Entity")
     GlobalSharedState.static_variable = mp.Value('i', 1)
     converter = Converter(schema, iterator, graph, num_workers=2, batch_size=1)
     converter()
@@ -110,7 +110,7 @@ def test_update_variable():
     """
 
     entities = pd.DataFrame({"id": [1,2]})
-    iterator = PandasDataframeIterator(entities, "Entity")
+    iterator = PandasDataFrameIterator(entities, "Entity")
     GlobalSharedState.static_variable = mp.Value('i', 1)
     GlobalSharedState.lock = mp.Lock()
     converter = Converter(schema, iterator, graph, num_workers=2, batch_size=1)
@@ -128,7 +128,7 @@ def test_manager():
     """
 
     entities = pd.DataFrame({"id": [1,2]})
-    iterator = PandasDataframeIterator(entities, "Entity")
+    iterator = PandasDataFrameIterator(entities, "Entity")
     manager = mp.Manager()
     GlobalSharedState.list_of_python_obj = manager.list()
     converter = Converter(schema, iterator, graph, num_workers=2, batch_size=1)

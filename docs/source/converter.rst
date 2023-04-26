@@ -128,7 +128,37 @@ See an example of how to use it below. For more information, check out the `offi
     console_handler.setFormatter(log_formatter) # Add formater to handler
     logger.addHandler(console_handler) # add handler to logger
 
+Peformance Optimization
+~~~~~~~~~~~~~~~~~~~~~~~
 
+MATCH clauses
+^^^^^^^^^^^^^
+While the MATCH clause is very flexible it comes with an overhead, that can be avoided if some assumptions can be made about the data.
+If you know that your MATCH clause will always return a single node and you match by exactly one property it is faster to 
+merge the node instead of matching it. This will allow the backend to process the merges in batches and will be much faster.
+
+Replace this:
+
+.. code-block::
+
+    ENTITY("Name"):
+        NODE("Label") source:
+            ...    
+
+        RELATION(source, "TO", MATCH("Target", uid=Name.uid)):
+
+With this:
+
+.. code-block:: 
+
+    ENTITY("Name"):
+        NODE("Source") source:
+            ...    
+
+        NODE("Target") target:
+            + uid = Name.uid 
+        
+        RELATION(source, "TO", target):
 
 .. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
 .. |Converter| replace:: :py:class:`Converter <rel2graph.Converter>`
