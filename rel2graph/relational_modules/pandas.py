@@ -63,6 +63,15 @@ class PandasSeriesResource(Resource):
         return f"{super().__repr__()} (row {self._series.name})"
 
 class PandasDataframeIterator(ResourceIterator):
+    """DEPRECATED: replaced by PandasDataFrameIterator"""
+
+    def __init__(self, *args) -> None:
+        warn_msg = "PandasDataframeIterator has been deprecated and replaced by PandasDataFrameIterator.\
+            Please update your code accordingly."
+        warnings.warn(warn_msg)
+        raise DeprecationWarning(warn_msg)
+
+class PandasDataFrameIterator:
     """Implements a Iterator that works based on a list of pandas Entities."""
 
     def __init__(self, dataframe: pd.core.frame.DataFrame, type: str) -> None:
@@ -76,12 +85,3 @@ class PandasDataframeIterator(ResourceIterator):
     def __len__(self) -> None:
         """Returns the total amount of resources in the iterator"""
         return len(self._rows)
-
-class PandasDataFrameIterator:
-    """DEPRECATED: replaced by PandasDataframeIterator"""
-
-    def __init__(self, *args) -> None:
-        warn_msg = "PandasDataFrameIterator has been deprecated and replaced by PandasDataframeIterator.\
-            Please update your code accordingly."
-        warnings.warn(warn_msg)
-        raise DeprecationWarning(warn_msg)

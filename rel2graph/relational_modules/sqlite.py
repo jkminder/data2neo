@@ -81,7 +81,7 @@ class SQLiteResource(Resource):
 class SQLiteIterator(ResourceIterator):
     """ Implementation of the sqlite ResourceIterator. Enables iteration over a sqlite database. """
 
-    def __init__(self, database: sqlite3.Connection, filter: List[str] = None, primary_keys: Dict[str, List[str]] = None, mix_tables: bool = True, buffer_size: int = 5000) -> None:
+    def __init__(self, database: sqlite3.Connection, filter: List[str] = None, primary_keys: Dict[str, List[str]] = None, mix_tables: bool = True, buffer_size: int = 5000, lock: "Lock" = None) -> None:
         """Initializes the iterator. Opens a connection to the database and saves the tables that should be iterated over.
 
         Args:
@@ -90,6 +90,7 @@ class SQLiteIterator(ResourceIterator):
             primary_keys: Dict of primary keys for each table. If None the primary keys are determined automatically. Defaults to None.
             mix_tables: If True, the iterator will mix the tables. If False, the iterator will iterate over all tables in order. Defaults to True.
             buffer_size: Size of the buffer for each table. Defaults to 5000.
+            lock: Lock object to synchronize the access to the sqlite database. Defaults to None.
         Raises:
             Exception: If no primary key is found for a table.
         """
@@ -97,7 +98,8 @@ class SQLiteIterator(ResourceIterator):
         assert isinstance(database, sqlite3.Connection), "Please pass a sqlite3.Connection object to the iterator."
         
         self._con = database
-        
+        self._con_lock = lock
+
         all_tables = [table[0] for table in self._con.execute(
             'SELECT name from sqlite_master where type= "table"'
             ).fetchall()]
@@ -110,26 +112,39 @@ class SQLiteIterator(ResourceIterator):
 
         self._cols = {}
         self._pks = {}
-        for table in self._tables:
-            cols = self._con.execute(f"PRAGMA table_info('{table}');").fetchall()
-            self._cols[table] = [col[1] for col in cols]
-            if primary_keys is not None and table in primary_keys.keys():
-                self._pks[table] = primary_keys[table]
-            else:
-                self._pks[table] = [col[1] for col in cols if col[5]]
-            if len(self._pks[table]) == 0:
-                raise ValueError(f"Table '{table}' has no primary key, which is required for the conversion. Please add a primary key to the table or specify it manually when instatiating the Iterator.")
+        try:
+            if self._con_lock is not None:
+                self._con_lock.acquire()
+            for table in self._tables:
+                cols = self._con.execute(f"PRAGMA table_info('{table}');").fetchall()
+                self._cols[table] = [col[1] for col in cols]
+                if primary_keys is not None and table in primary_keys.keys():
+                    self._pks[table] = primary_keys[table]
+                else:
+                    self._pks[table] = [col[1] for col in cols if col[5]]
+                if len(self._pks[table]) == 0:
+                    raise ValueError(f"Table '{table}' has no primary key, which is required for the conversion. Please add a primary key to the table or specify it manually when instatiating the Iterator.")
+        finally:
+            if self._con_lock is not None:
+                self._con_lock.release()
         self._cursors = {}
 
         self._len = None
         self._mix_tables = mix_tables
         self._buffer_size = buffer_size
+    
 
     def _init_cursors(self):
         """Initiates the cursors for all tables."""
-        for table in self._tables:
-            self._cursors[table] = self._con.execute(f"SELECT * FROM {table}")      
-            
+        if self._con_lock is not None:
+            self._con_lock.acquire()
+        try:
+            for table in self._tables:
+                self._cursors[table] = self._con.execute(f"SELECT * FROM {table}")
+        finally:
+            if self._con_lock is not None:
+                self._con_lock.release()
+
     def __iter__(self):
         """Returns an iterator over the database."""
         self._init_cursors()
@@ -144,7 +159,13 @@ class SQLiteIterator(ResourceIterator):
                         return
                     except:
                         # Fetch next 5000 rows
-                        res = self._cursors[key].fetchmany(5000)
+                        if self._con_lock is not None:
+                            self._con_lock.acquire()
+                        try:
+                            res = self._cursors[key].fetchmany(5000)
+                        finally:
+                            if self._con_lock is not None:
+                                self._con_lock.release()
                         for row in res:
                             buffer[key].put(SQLiteResource(row, self._cols[key], self._pks[key], key))
                         if buffer[key].empty():
@@ -159,25 +180,18 @@ class SQLiteIterator(ResourceIterator):
                 if break_flag:
                     break
                 
-    # def request_resources(self, table, filters):
-    #     query = f"SELECT * FROM {table} WHERE "
-    #     were = []
-    #     for key, value in filters.items():
-    #         if isinstance(value, str):
-    #             quotes = "'"
-    #         else:
-    #             quotes = ""
-    #         were.append(f"{table}.{key} == {quotes}{value}{quotes}")
-    #     query = query + " AND ".join(were)
-    #     cursor = self._con.execute(query)
-    #     rows = cursor.fetchall()
-    #     return [SQLiteResource(row, self._cols[table], self._pks[table], table) for row in rows]
         
     def __len__(self) -> None:
         """ Returns the number of resources in the database."""
         if self._len is None:
             self._len = 0
-            for table in self._tables:
-                self._len += self._con.execute(f"SELECT Count(*) FROM {table}").fetchone()[0]
+            if self._con_lock is not None:
+                self._con_lock.acquire()
+            try:
+                for table in self._tables:
+                    self._len += self._con.execute(f"SELECT Count(*) FROM {table}").fetchone()[0]
+            finally:
+                if self._con_lock is not None:
+                    self._con_lock.release()
         return self._len
     
