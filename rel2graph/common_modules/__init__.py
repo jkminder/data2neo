@@ -9,4 +9,5 @@ Import this module to register them in your program.
 authors: Julian Minder
 """
 
-from .util import *
+# For legacy reasons, we need to import the modules here
+from .datetime import DATE, DATETIME

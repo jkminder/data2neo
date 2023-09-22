@@ -18,7 +18,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'rel2graph'
-copyright = '2022, Julian Minder'
+copyright = '2023, Julian Minder'
 author = 'Julian Minder'
 
 # The full version, including alpha/beta/rc tags

@@ -3,53 +3,68 @@ Introduction
 
 This chapter will give you an overview of how *rel2graph* works and a first intuition on 
 how to interact with it. Details on how the individual parts of the library work can be 
-found in later chapters. Simplified, the library works like a factory that converts an input, 
-some relational data, into an output, a neo4j_ graph. 
-The factory input is called a |Resource|. A |Resource| can wrap any relational entity. 
-For every supplied resource, the factory will produce a graph. 
-We define a |convschema| ahead that specifies the *"factory blueprints"*: 
-what it produces and how. Once the factory is set up and knows the schema, 
-we can keep supplying it with resources without writing more code. 
+found in later chapters. At the heart of rel2graph is the concept of a factory that
+converts an input (relational data) into an output (a neo4j_
+graph). 
+The factory input is called a |Resource| which can represent
+any relational entity. 
+For every supplied |Resource| , the factory
+will produces a corresponding graph based on a predefined
+|convschema| that specifies the factory's *blueprints*.
+Once the factory is set up and knows the schema, additional
+|Resource| s can be supplied without the need for additional
+coding. The |Resource|  is an API that the user
+must connect to their data source.
 
 .. image:: assets/images/factory.png
     :width: 800
     :alt: rel2graph factory
 
-Since there might be different types of resources, we build a factory per resource type. 
-One specifies all the "blueprints" for all the factories in the |convschema| file. 
-A |Converter|, the main object of *rel2graph*, will take this file and construct all the factories 
-based on your "blueprints". For a set of supplied resources the |Converter| will automatically select 
-the correct factory, use it to produce a graph out of the resource and merge the produced graph with 
-the full neo4j_ graph. We supply resources to the converter with a |ResourceIterator|. 
-This iterator keeps track of what the next resource to process is. 
-The |Resource| and |ResourceIterator| classes can be fully customised. 
-A simple version of it might just point to a specific element in a list of resources, 
-as visualised in the image below. The |Converter| iteratively asks the |ResourceIterator| 
+The library supports the use of different resource types,
+allowing the user to process various entities. Rel2graph then
+constructs one factory per resource type.
+At the core of the library lies the |Converter|. The |Converter| is the main object the
+developer interacts with and is responsible for constructing and
+managing all the factories based on a provided |convschema|. 
+When provided with a set of |Resource| s, the |Converter| automatically
+sends each |Resource| to the corresponding factory and merges
+the output with the full neo4j_ graph. We supply resources to the converter with a |ResourceIterator|, 
+which is a simple python iterator that keeps track of the next |Resource| to be processed.
+The |Resource| and |ResourceIterator| are abstract objects that must be customized by the user. The library comes with a few prebuilt iterators, 
+see :doc:`Resource <resource>` for more information.
+A simple version of the ResourceIterator might just point
+to a specific element in a list of resources. More complex
+implementations might lazily fetch data as the library requests
+it. The |Converter| iteratively asks the |ResourceIterator| 
 for the next resource until the iterator reports no more resources to process.
 
 .. image:: assets/images/overview.png
     :width: 800
     :alt: rel2graph overview
 
-At the simplest, the library consists of the following 4 parts: 
-
-- |Converter|: handles all the factories and builds the graph.
-- The |convschema|, specifying what is converted into what. 
-- |Resource|: A wrapped relational entity 
-- |ResourceIterator|: An iterator for the to-be-processed resources. You can also use the provided :py:class:`IteratorIterator` to iterate over multiple iterators.
-
-The next chapters will go into detail about these 4 parts. 
-In later chapters, we will show you how you can insert your custom code into one of 
-these factories by creating :doc:`Wrapper <wrapper>`. Wrappers can apply a pre- and/or postprocessing to a factory. 
+Lastly, it is possible to extend the factories by injecting custom pre- or postprocessing functions, called Wrappers, into
+the rel2graph pipeline. Wrappers allow the user to specify
+arbitrary procedures that are applied to a Resource just before
+it is passed to the wrapped factory, or to the immediate output
+of the factory before it is passed back to the Converter.
+Wrappers can also be wrapped, allowing the user to build
+complex data integration pipelines.
 
 .. image:: assets/images/wrapper.jpg
     :width: 800
     :alt: rel2graph wrapper
 
-
 A wrapper behaves like a factory and can be wrapped into another wrapper. 
 This allows you to insert arbitrary customisation into the conversion and adapt it to your use-case.
 
+At the simplest, the library consists of the following 4 parts: 
+
+- |Converter|: handles all the factories and builds the graph.
+- The |convschema|, specifying what is converted into what. 
+- |ResourceIterator|: An iterator of a set of |Resource| objects. You can also use the provided :py:class:`IteratorIterator` to iterate over multiple iterators.
+- :doc:`Wrappers <wrapper>`: Custom pre- and postprocessing functions defined by the user.
+
+The next chapters will go into detail about these 4 parts. 
 
 .. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
 .. |Converter| replace:: :py:class:`Converter <rel2graph.Converter>`

@@ -10,6 +10,7 @@ authors: Julian Minder
 import pytest
 
 from rel2graph.relational_modules.odata import ODataResource, ODataListIterator
+import pickle 
 
 class DemoEntity:
     class EntitySet:
@@ -37,6 +38,8 @@ def example_entity_list(example_entity):
 def resource(example_entity):
     return ODataResource(example_entity)
 
+def compare_resources(resource1, resource2):
+    return str(resource1) == str(resource2) and resource2.supplies == resource1.supplies
 
 class TestODataResource:
     def test_attributes(self, resource, example_entity):
@@ -61,6 +64,12 @@ class TestODataResource:
     
     def test_repr(self, resource):
         assert str(resource) == "ODataResource 'Person' (OData Entity Representation)"
+
+   
+    def test_pickling(self, resource):
+        pickled_resource = pickle.dumps(resource)
+        unpickled_resource = pickle.loads(pickled_resource)
+        assert compare_resources(unpickled_resource, resource)
 
 class TestOdataListIterator:
     def compare_resources(self, resource1, resource2):

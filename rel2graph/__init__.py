@@ -12,3 +12,4 @@ from .core.factories.registrar import (
 from .core.factories.matcher import Matcher
 from .core.graph_elements import Attribute
 from .core.schema_compiler import SchemaConfigException
+from .core.global_state import GlobalSharedState

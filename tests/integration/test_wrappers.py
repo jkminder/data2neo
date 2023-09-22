@@ -9,27 +9,35 @@ authors: Julian Minder
 
 import pytest 
 import pandas as pd
+from py2neo import Graph
 
 from rel2graph import Converter
 from rel2graph import AttributeFactoryWrapper, SubgraphFactoryWrapper
 from rel2graph.core.graph_elements import Node, Relation, Subgraph
 from rel2graph.utils import load_file
-from rel2graph.relational_modules.pandas import PandasDataframeIterator
+from rel2graph.relational_modules.pandas import PandasDataFrameIterator
 from rel2graph import register_wrapper, register_attribute_postprocessor, register_attribute_preprocessor, register_subgraph_postprocessor, register_subgraph_preprocessor
 from rel2graph import Attribute
-from mock_graph import MockGraph
-from helpers import update_matcher
 
 # Turn off reinstantiation warnings
 Converter.no_instantiation_warnings = True
 
+
 @pytest.fixture
 def graph():
-    return MockGraph()
+    graph = Graph()
+    graph.delete_all()
+    return graph
 
 @pytest.fixture
 def input():
     return pd.DataFrame({"First": ["F"], "Second": ["S"], "Third": ["T"]})
+
+def get_nodes(graph):
+    return graph.nodes.match().all()
+    
+def get_relations(graph):
+    return graph.relationships.match().all()
 
 # Schema file
 schema_file = "tests/integration/resources/schema_wrappers.yaml"
@@ -122,15 +130,15 @@ class SGWrapper(SubgraphFactoryWrapper):
     "workers",
     [1,5]
 )
-def test_attr_pre(graph, input, workers):
-    iterator = PandasDataframeIterator(input, "ATTRPRE")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers)
-    update_matcher(graph) #REQUIRED to use mock matcher
+@pytest.mark.parametrize("batch_size",[1,100])
+def test_attr_pre(graph, input, workers, batch_size):
+    iterator = PandasDataFrameIterator(input, "ATTRPRE")
+    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(graph.nodes) == 1
-    node = graph.nodes[0]
+    assert len(get_nodes(graph)) == 1
+    node = get_nodes(graph)[0]
     assert node["First"] == "Changed" #attr_pre_change
     assert len(node) == 2 # attr_pre_condition -> one attr removed
     assert node["Third"] == "F" # attr_pre_new
@@ -139,15 +147,15 @@ def test_attr_pre(graph, input, workers):
     "workers",
     [1,5]
 )
-def test_attr_post(graph, input, workers):
-    iterator = PandasDataframeIterator(input, "ATTRPOST")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers)
-    update_matcher(graph) #REQUIRED to use mock matcher
+@pytest.mark.parametrize("batch_size",[1,100])
+def test_attr_post(graph, input, workers, batch_size):
+    iterator = PandasDataFrameIterator(input, "ATTRPOST")
+    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(graph.nodes) == 1
-    node = graph.nodes[0]
+    assert len(get_nodes(graph)) == 1
+    node = get_nodes(graph)[0]
     assert "MyType appendix" in node.labels
     assert node["First"] == "F appendix"
     assert node["Second"] == "S appendix appendix" # Chaining
@@ -158,15 +166,15 @@ def test_attr_post(graph, input, workers):
     "workers",
     [1,5]
 )
-def test_attr_wrapper(graph, input, workers):
-    iterator = PandasDataframeIterator(input, "ATTRWRAPPER")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers)
-    update_matcher(graph) #REQUIRED to use mock matcher
+@pytest.mark.parametrize("batch_size",[1,100])
+def test_attr_wrapper(graph, input, workers, batch_size):
+    iterator = PandasDataFrameIterator(input, "ATTRWRAPPER")
+    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(graph.nodes) == 1
-    node = graph.nodes[0]
+    assert len(get_nodes(graph)) == 1
+    node = get_nodes(graph)[0]
     assert len(node) == 1 # only one 
     assert node["Test2"] == "First:Test1"
 
@@ -174,19 +182,19 @@ def test_attr_wrapper(graph, input, workers):
     "workers",
     [1,5]
 )
-def test_subgraph_pre(graph, input, workers):
-    iterator = PandasDataframeIterator(input, "SGPRE")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers)
-    update_matcher(graph) #REQUIRED to use mock matcher
+@pytest.mark.parametrize("batch_size",[1,100])
+def test_subgraph_pre(graph, input, workers, batch_size):
+    iterator = PandasDataFrameIterator(input, "SGPRE")
+    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(graph.nodes) == 2 # make sure only two node are created
-    node_from = [node for node in graph.nodes if "From" in node.labels][0]
-    print(graph.nodes)
+    assert len(get_nodes(graph)) == 2 # make sure only two node are created
+    node_from = [node for node in get_nodes(graph) if "From" in node.labels][0]
+    print(get_nodes(graph))
     assert node_from["First"] == "Changed"
-    assert len(graph.relations) == 1
-    rel = graph.relations[0]
+    assert len(get_relations(graph)) == 1
+    rel = get_relations(graph)[0]
     assert rel["First"] == "Changed" # The resource was changed earlier -> this is still the case
     assert rel["Second"] == "CHANGED"
 
@@ -194,20 +202,20 @@ def test_subgraph_pre(graph, input, workers):
     "workers",
     [1,5]
 )
-def test_subgraph_post(graph, input, workers):
-    iterator = PandasDataframeIterator(input, "SGPOST")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers)
-    update_matcher(graph) #REQUIRED to use mock matcher
+@pytest.mark.parametrize("batch_size",[1,100])
+def test_subgraph_post(graph, input, workers, batch_size):
+    iterator = PandasDataFrameIterator(input, "SGPOST")
+    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(graph.nodes) == 2 # make sure only two node are created
-    node_from = [node for node in graph.nodes if "From" in node.labels][0] # must exist
-    node_copy = [node for node in graph.nodes if "From Copy" in node.labels][0] # must exist
+    assert len(get_nodes(graph)) == 2 # make sure only two node are created
+    node_from = [node for node in get_nodes(graph) if "From" in node.labels][0] # must exist
+    node_copy = [node for node in get_nodes(graph) if "From Copy" in node.labels][0] # must exist
     assert node_from["First"] == "F"
     assert node_copy["First"] == "F"
-    assert len(graph.relations) == 1
-    rel = graph.relations[0]
+    assert len(get_relations(graph)) == 1
+    rel = get_relations(graph)[0]
     assert type(rel).__name__ == "is copied by"
     assert "From" in rel.start_node.labels
     assert "From Copy" in rel.end_node.labels
@@ -216,15 +224,15 @@ def test_subgraph_post(graph, input, workers):
     "workers",
     [1,5]
 )
-def test_subgraph_wrapper(graph, input, workers):
-    iterator = PandasDataframeIterator(input, "SGWRAPPER")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers)
-    update_matcher(graph) #REQUIRED to use mock matcher
+@pytest.mark.parametrize("batch_size",[1,100])
+def test_subgraph_wrapper(graph, input, workers, batch_size):
+    iterator = PandasDataFrameIterator(input, "SGWRAPPER")
+    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(graph.nodes) == 1 # make sure only one node is created
-    node = graph.nodes[0] # must exist
+    assert len(get_nodes(graph)) == 1 # make sure only one node is created
+    node = get_nodes(graph)[0] # must exist
     assert node["First"] == "F"
     assert node["Fifth"] == "Test1"
     assert node["Sixth"] == "Test2"

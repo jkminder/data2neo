@@ -76,6 +76,8 @@ The library will not check if your registered functions/classes match the expect
 If the function behaves other than expected, this will result in undefined behaviour during runtime. 
 Make sure you define your functions/classes correctly.
 
+**Attention**: If you require shared state between wrappers or wrapper calls you need to explicitly tell rel2graph, e.g. a wrapper that counts the number of processed resources. Read more about it in the :ref:`Global Shared State <converter:Global Shared State>` chapter.
+
 Preprocessors
 ~~~~~~~~~~~~~
 

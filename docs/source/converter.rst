@@ -17,78 +17,43 @@ To start the conversion, one simply calls the object. It then iterates twice ove
     converter()
 
 If your conversion schema is saved in a seperate file you can use the provided ``load_file`` function to load it into a string.
+When calling a |Converter| instance you can provide a **progress bar** class, that will be used to display progress. 
+The progress bar class must be an instance of the `tqdm <https://tqdm.github.io>`_ progress bar (or follow its API). 
 
 .. code-block:: python
 
     from rel2graph import Converter
     from rel2graph.utils import load_file
+    from tqdm import tqdm
 
     converter = Converter(load_file(conversion_schema_file), iterator, graph)
+    converter(progress_bar = tqdm)
 
-The |Converter| **buffers** the results, meaning the graph outputs of multiple resources are stored locally in a buffer before commiting them to the graph. Once the buffer is full all the buffered results 
-are pushed to the graph. The size of this buffer is adapted dynamically. The |Converter| monitors the throughput of resources (number of resource processed per second) and adapts the buffer size to optimize the throughput. This has significant performance benefits.  
-
-Further the |Converter| can leverage **multithreading**. When initialising you can set the number of parallel workers. Each worker operates in its own thread and with its own buffer. 
-Be aware that the committing to the graph is serialized, since the semantics require this (e.g. nodes must be committed before any relation or when  :ref:`merging <conversion_schema:merging nodes>`) all the nodes must be serially committed). No two workers can commit their buffer to the graph at the same time.
-So the primary use-case of using multiple workers is if your resources are utilising a network connection (e.g. remote database), if you require a lot of  :ref:`matching <conversion_schema:match>` in the graph (matching is parallelised) or if you create wrappers that use local compute.
-It is suggested you test the performance of your conversion with different amount of workers to find the optimal number of workers for your use-case.
+By default, the |Converter| uses multiple processes to speed up the conversion
+process by dividing the resources into batches and distributing
+them among the available processes. The number of worker
+processes and the batch size can be customized with the
+parameters ``num_workers`` and ``batch_size`` (default values are
+``number of cores - 2`` and ``10000``, respectively).  It's important
+to note that the transfer of data to the graph is always serialized
+to ensure correctness. If the Neo4j instance is running locally,
+ensure that you have sufficient resources for the database as a
+large portion of the processing power required for conversion
+is used by the database.
 
 .. code-block:: python
 
-    converter = Converter(conversion_schema, iterator, graph, num_workers = 20)
+    converter = Converter(conversion_schema, iterator, graph, num_workers=10, batch_size=20000)
 
-**Attention:** Ensure that all your :doc:`wrappers <wrapper>` are free of dependencies between resources. Because results are buffered, the order of the commits to the graph may be different than the order in which your iterator yields the resources. 
-If you use multiple workers this problem is even more pronounced. If you require serialized processing of your resources you can use the ``serialize`` option. This will disable buffering and multithreading and process the resources one after the other.
+**Attention:** Ensure that all your :doc:`wrappers <wrapper>` are free of dependencies between resources. Because results are batched and parallelised, the order of the commits to the graph may be different than the order in which your iterator yields the resources. 
+Further if your wrappers need to have a state you need to make sure that the state is shared between the processes. Refer to the :ref:`Global Shared State <converter:Global Shared State>` chapter for details.
+If you require serialized processing of your resources or limitation to a single process you can use the ``serialize`` option. This will disable multiprocessing and process the resources one after the other in a single process.
 Note that this will make the conversion significantly slower.
 
 .. code-block:: python
 
     converter = Converter(conversion_schema, iterator, graph, serialize = True)
 
-Statefullness
-~~~~~~~~~~~~~
- 
-The converter is **stateful**. If you call the converter in a *jupyter notebook* and an exception is raised during the converter's execution (e.g. due to a KeyboardInterrupt, a network problem, an error in the conversion schema file), you can fix the problem and call the converter again. The converter will continue its work where it left off (the resource responsible for the exception, will be reconverted). **It is guaranteed that no resource is lost.**
-
-The state of the converter is reset when *initialising it* or when *you change the underlying iterator* with ``converter.iterator = new_iterator``. So if you don't want the stateful behaviour, you need to do one of these two things.
-
-Example 1
----------
-
-You use OData Resources, and the network connection suddenly drops out.
-In the first cell, you initially have created the converter object and called it.
-
-.. code-block:: python
-
-    converter = Converter(conversion_schema, iterator, graph)
-    converter()
-
-Now a ``ConnectionException`` is raised due to network problems. You can now fix the problem and then recall the converter in a new cell:
-
-.. code-block:: python
-
-    converter()
-
-The converter will just continue where it left off. 
-
-Example 2
----------
-
-You have a small error in your :doc:`conversion schema <conversion_schema>` for a specific entity (e.g. a typo in an attribute key), which is not immediately a problem since you first process a lot of other entities. Again in the first cell, you initially have created the converter object and called it.
-
-.. code-block:: python
-
-    converter = Converter(conversion_schema, iterator, graph)
-    converter()
-
-Now, e.g. ``KeyError`` is raised since the attribute name was written slightly wrong. Instead of rerunning the whole conversion (which might take hours), you can fix the schema file and reload the schema file and recall the converter:
-
-.. code-block:: python
-
-    converter.reload_schema(conversion_schema)
-    converter()
-
-The converter will just continue where it left off with the new :doc:`conversion schema <conversion_schema>`. 
 
 Data types
 ~~~~~~~~~~~
@@ -102,8 +67,52 @@ All inputs that are not of type: `numbers.Number <https://docs.python.org/3/libr
 
 For converting strings to datetime/date the library provides some predefined wrappers. See :doc:`here <common_modules>` for more details.
 
-Logging and progress monitoring
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Global Shared State
+~~~~~~~~~~~~~~~~~~~
+
+If you need to share state between your wrappers you must notify rel2graph explicitly about this. An example of this is a wrapper that needs to keep track of the number of resources it has processed. Because the |Converter| uses multiple workers
+the wrapper may be called in different processes and the state is not shared between the processes (note that parallel processes do not share the same memory). To share state between the processes you need to use the ``GlobalSharedState``. The ``GlobalSharedState`` is a singleton class that can be used to share state between the processes.
+Before calling the |Converter| you need to register your state with the ``GlobalSharedState`` by simply defining an attribute on it ``GlobalSharedState.my_state = my_state``. By default the ``GlobalSharedState`` will provide the py2neo graph object to every process under ``GlobalSharedState.graph``. 
+
+Note that the ``GlobalSharedState`` only makes sure that the variable you give it is passed to all processes. You need to make sure that the variable is sharable between the processes. For example if you want to share a counter between the processes you need to use a ``multiprocessing.Value``. 
+Other options include ``multiprocessing.Array``, ``multiprocessing.Queue``, ``multiprocessing.Pipe`` and ``multiprocessing.Manager``. See the `multiprocessing documentation <https://docs.python.org/3/library/multiprocessing.html#sharing-state-between-processes>`_ for more details.
+
+.. code-block:: python
+
+    from rel2graph import GlobalSharedState, register_subgraph_preprocessor
+
+
+    @register_subgraph_preprocessor
+    def COUNT_RESOURCES(resource)
+        GlobalSharedState.count += 1
+        return resource
+
+    """
+    The following doesn't work because the state is not shared between the processes:
+
+    count = 0
+    @register_subgraph_preprocessor
+    def COUNT_RESOURCES(resource)
+        count += 1
+        return resource
+    """
+
+    @register_subgraph_preprocessor
+    def DO_SMTH_WITH_THE_GRAPH(resource)
+        GlobalSharedState.graph.run("CREATE (n:Node {name: 'test'})")
+        return resource
+
+    # First register your state with the GlobalSharedState
+    from multiprocessing import Value
+    GlobalSharedState.count = Value('i', 0)
+
+    # Now you can start the conversion, the state is shared between the processes
+    converter = Converter(conversion_schema, iterator, graph)
+    converter(progress_bar = tqdm)
+    
+        
+Logging
+~~~~~~~
 
 The whole rel2graph library uses the standard python `logging <https://docs.python.org/3/howto/logging.html>`_ library. 
 See an example of how to use it below. For more information, check out the `official documentation <https://docs.python.org/3/howto/logging.html>`_.
@@ -119,25 +128,41 @@ See an example of how to use it below. For more information, check out the `offi
     console_handler.setFormatter(log_formatter) # Add formater to handler
     logger.addHandler(console_handler) # add handler to logger
 
+Peformance Optimization
+~~~~~~~~~~~~~~~~~~~~~~~
 
-When calling a |Converter| instance you can provide a **progress bar** class, that will be used to display progress. 
-The progress bar class must be an instance of the `tqdm <https://tqdm.github.io>`_ progress bar (or behave like it). 
+MATCH clauses
+^^^^^^^^^^^^^
+While the MATCH clause is very flexible it comes with an overhead, that can be avoided if some assumptions can be made about the data.
+If you know that your MATCH clause will always return a single node and you match by exactly one property it is faster to 
+merge the node instead of matching it. This will allow the backend to process the merges in batches and will be much faster.
 
-.. code-block:: python
+Replace this:
 
-    from tqdm import tqdm
-    converter(progress_bar = tqdm)
+.. code-block::
 
-You can use any of the tdqm progress bars. For example to monitor the progress via telegram you can use:
+    ENTITY("Name"):
+        NODE("Label") source:
+            ...    
 
-.. code-block:: python
+        RELATION(source, "TO", MATCH("Target", uid=Name.uid)):
 
-    from tqdm.contrib.telegram import tqdm
-    pb = lambda **kwargs: tqdm(token="yourtoken", chat_id="yourchatid", **kwargs) # Config your tokens
-    converter(progress_bar=pb)
+With this:
+
+.. code-block:: 
+
+    ENTITY("Name"):
+        NODE("Source") source:
+            ...    
+
+        NODE("Target") target:
+            + uid = Name.uid 
+        
+        RELATION(source, "TO", target):
 
 .. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
 .. |Converter| replace:: :py:class:`Converter <rel2graph.Converter>`
 .. |ResourceIterator| replace:: :py:class:`ResourceIterator <rel2graph.ResourceIterator>`
 .. _neo4j: https://neo4j.com/
 .. _py2neo: https://py2neo.org/2021.1/index.html
+.. _tqdm: https://tqdm.github.io

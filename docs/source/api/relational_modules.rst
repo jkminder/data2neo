@@ -4,25 +4,25 @@ Relational modules
 The provided implementations for relational entities. 
 They implement the abstract classes of the main interface.
 
-=====
-OData
-=====
+======
+SQLite
+======
 
-Implements the :py:class:`Resource <rel2graph.Resource>` and :py:class:`ResourceIterator <rel2graph.ResourceIterator>` for OData based on `pyodata <https://pyodata.readthedocs.io>`_.
+Implements the :py:class:`Resource <rel2graph.Resource>` and :py:class:`ResourceIterator <rel2graph.ResourceIterator>` for sqlite based on `sqlite3 <https://docs.python.org/3/library/sqlite3.html>`_.
 
 
-ODataResource
-~~~~~~~~~~~~~
+SQLiteResource
+~~~~~~~~~~~~~~
 
-.. autoclass:: rel2graph.relational_modules.odata.ODataResource
+.. autoclass:: rel2graph.relational_modules.sqlite.SQLiteResource
    :members:
    :show-inheritance:
 
 
-ODataListItereator
+SQLiteIterator
 ~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: rel2graph.relational_modules.odata.ODataListIterator
+.. autoclass:: rel2graph.relational_modules.sqlite.SQLiteIterator
    :members:
    :show-inheritance:
 
@@ -40,9 +40,9 @@ PandasSeriesResource
    :show-inheritance:
 
 
-PandasDataframeIterator
+PandasDataFrameIterator
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: rel2graph.relational_modules.pandas.PandasDataframeIterator
+.. autoclass:: rel2graph.relational_modules.pandas.PandasDataFrameIterator
    :members:
    :show-inheritance:

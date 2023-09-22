@@ -1,42 +1,22 @@
 ENTITY("Flower"):
     NODE("Flower") flower:
-        - sepal_length = Flower.sepal_length
-        - sepal_width = Flower.sepal_width
-        - petal_length = Flower.petal_length
-        - petal_width = Flower.petal_width
+        - sepal_length = FLOAT(Flower.sepal_length)
+        - sepal_width = FLOAT(Flower.sepal_width)
+        - petal_length = FLOAT(Flower.petal_length)
+        - petal_width = FLOAT(Flower.petal_width)
     NODE("Species", "BioEntity", Flower.species) species:
         + Name = Flower.species
     RELATION(flower, "is", species):
     
 ENTITY("Person"):
     NODE("Person") person:
-        + ID = Person.ID
+        + ID = INT(Person.ID)
         - FirstName = Person.FirstName
         - Renamed = Person.LastName
         - Static = "staticstring"
     RELATION(person, "likes", MATCH("Species", Name=Person.FavoriteFlower)):
         - Since = "4ever"
-        - EntityAttribute = Person.ID
-
-ENTITY("FlowerStateRecovery"):
-    stop_after_10(NODE("Flower")) flower:
-        - sepal_length = FlowerStateRecovery.sepal_length
-        - sepal_width = FlowerStateRecovery.sepal_width
-        - petal_length = FlowerStateRecovery.petal_length
-        - petal_width = FlowerStateRecovery.petal_width
-    stop_after_10(NODE("Species", "BioEntity", FlowerStateRecovery.species)) species:
-        + Name = FlowerStateRecovery.species
-    stop_after_10(RELATION(flower, "is", species)):
-
-ENTITY("PersonStateRecovery"):
-    stop_after_10(NODE("Person")) person:
-        + ID = PersonStateRecovery.ID
-        - FirstName = PersonStateRecovery.FirstName
-        - Renamed = PersonStateRecovery.LastName
-        - Static = "staticstring"
-    stop_after_10(RELATION(person, "likes", MATCH("Species", Name=PersonStateRecovery.FavoriteFlower))):
-        - Since = "4ever"
-        - EntityAttribute = PersonStateRecovery.ID
+        - EntityAttribute = INT(Person.ID)
 
 ENTITY("FlowerParallel"):
     NODE("Species", "BioEntity", FlowerParallel.species) species:
@@ -44,15 +24,22 @@ ENTITY("FlowerParallel"):
     
 ENTITY("PersonParallel"):
     NODE("Person") person:
-        + ID = PersonParallel.ID
+        + ID = INT(PersonParallel.ID)
         - FirstName = PersonParallel.FirstName
         - Renamed = PersonParallel.LastName
         - Static = "staticstring"
     RELATION(MATCH("Person", ID = 1), "likes_parallel", MATCH("Species", Name="virginica")):
-        - pk = PersonParallel.ID
+        - pk = INT(PersonParallel.ID)
     RELATION(MATCH("Person", ID = 1), "likes_merged", MATCH("Species", Name="virginica")):
         + pk = 1
 
 ENTITY("Entity"):
     DELAY_AND_MAYBE_EXIT(NODE("Entity")) entity:
-        + ID = Entity.ID
+        + ID = INT(Entity.ID)
+
+ENTITY("PersonRaiseError"):
+    RAISE_ERROR(NODE("Person")) person:
+        + ID = INT(PersonRaiseError.ID)
+        - FirstName = PersonRaiseError.FirstName
+        - Renamed = PersonRaiseError.LastName
+        - Static = "staticstring"

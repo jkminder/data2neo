@@ -11,7 +11,7 @@ authors: Julian Minder
 from abc import ABC, abstractmethod
 from typing import Dict
 
-class Resource(ABC):
+class Resource():
     """Abstract Resource class. Contains everything a factory needs to produce its output.
     This must be implemented.
     """
