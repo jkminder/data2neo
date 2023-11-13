@@ -15,15 +15,15 @@ class __DynamicGetter(type):
     def __getattr__(self, name):
         if name == "_custom_global_vars":
             return super().__getattr__(name)
-        if name == "graph":
-            return self.__graph
+        if name == "graph_driver":
+            return self.__driver
         if name in self._custom_global_vars:
             return self._custom_global_vars[name]
         else:
             raise AttributeError("No such global variable: " + name)
 
     def __setattr__(self, __name: str, __value: Any) -> None:
-        if __name in ["_custom_global_vars", "graph"]:
+        if __name in ["_custom_global_vars", "graph_driver"]:
             raise AttributeError(f"Cannot set {__name}. Forbidden attribute.")
         self._custom_global_vars[__name] = __value
     
@@ -33,11 +33,11 @@ class __DynamicGetter(type):
     def keys(self):
         return self._custom_global_vars.keys()
 
-    def _set_graph(self, graph):
-        self.__graph = graph
+    def _set_graph_driver(self, driver):
+        self.__driver = driver
 
-    def _del_graph(self):
-        del self.__graph
+    def _del_graph_driver(self):
+        del self.__driver
 
     def get_state(self):
         return self._custom_global_vars

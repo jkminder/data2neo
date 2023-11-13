@@ -30,7 +30,7 @@ class Resource():
     @abstractmethod
     def type(self) -> str:
         """Returns the type of the resource. Is used to select correct factory."""
-
+    
     @abstractmethod
     def __repr__(self) -> str:
         """

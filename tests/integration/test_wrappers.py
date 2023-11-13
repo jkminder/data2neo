@@ -13,7 +13,7 @@ from py2neo import Graph
 
 from rel2graph import Converter
 from rel2graph import AttributeFactoryWrapper, SubgraphFactoryWrapper
-from rel2graph.core.graph_elements import Node, Relation, Subgraph
+from rel2graph.neo4j.graph_elements import Node, Relationship, Subgraph
 from rel2graph.utils import load_file
 from rel2graph.relational_modules.pandas import PandasDataFrameIterator
 from rel2graph import register_wrapper, register_attribute_postprocessor, register_attribute_preprocessor, register_subgraph_postprocessor, register_subgraph_preprocessor
@@ -103,7 +103,7 @@ def sg_pre_condition(resource):
 def sg_post_add(subgraph):
     first_node = subgraph.nodes[0]
     new_node = Node([Attribute(None, "From Copy")], [Attribute("First", first_node["First"])])
-    new_rel = Relation(first_node, Attribute(None, "is copied by"), new_node, [])
+    new_rel = Relationship(first_node, Attribute(None, "is copied by"), new_node, [])
     return subgraph|new_node|new_rel
 
 @register_subgraph_postprocessor

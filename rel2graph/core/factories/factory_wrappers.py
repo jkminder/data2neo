@@ -13,7 +13,7 @@ from typing import Callable
 
 
 from .resource import Resource
-from ..graph_elements import Attribute, GraphElement, Subgraph
+from ...neo4j.graph_elements import Attribute, GraphElement, Subgraph
 from .factory import AttributeFactory, Factory, SubgraphFactory
 from .registrar import register_factory
 
