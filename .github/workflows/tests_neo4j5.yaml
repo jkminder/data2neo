@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
-        neo4j-version: ["5.2.0"]   
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        neo4j-version: ["5.13"]   
   
     services:
           neo4j:
