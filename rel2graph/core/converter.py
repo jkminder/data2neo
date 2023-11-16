@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 class WorkType(IntEnum):
     NODE = 0
-    RELATION = 1
+    RELATIONSHIP = 1
 
 __process_config = None
 
@@ -46,7 +46,7 @@ class WorkerConfig:
         nodes_flag: Flag that is set when the worker should process nodes
         processed_resources: Counter for the number of processed resources
         processed_nodes: Counter for the number of processed nodes
-        processed_relations: Counter for the number of processed relations
+        processed_relationships: Counter for the number of processed relationships
         processed_lock: Lock to ensure that only one process is writing to the counters at a time
     """
 
@@ -57,7 +57,7 @@ class WorkerConfig:
             neo4j_uri: The uri of the neo4j database
             neo4j_auth: The authentication for the neo4j database
         """
-        self.factories, self.node_mask, self.relation_mask = None, None, None
+        self.factories, self.node_mask, self.relationship_mask = None, None, None
         self.graph_lock = mp.Lock()
         self.neo4j_uri = neo4j_uri
         self.neo4j_auth = neo4j_auth
@@ -66,7 +66,7 @@ class WorkerConfig:
         self.nodes_flag = mp.Event()
         self.processed_resources = mp.Value('i', 0)
         self.processed_nodes = mp.Value('i', 0)
-        self.processed_relations = mp.Value('i', 0)
+        self.processed_relationships = mp.Value('i', 0)
         self.processed_lock = mp.Lock()
 
         self._graph_driver = None
@@ -101,14 +101,14 @@ def commit_wrap(function):
 def commit_batch(to_create: Subgraph, to_merge: Subgraph) -> None:
         """"Commits processed batch to graph."""
         nodes_committed = 0 
-        relations_committed = 0
+        relationships_committed = 0
         
         # Creating does not rely on synchronous executions
         if len(to_create.nodes) + len(to_create.relationships) > 0:
             with __process_config.graph_driver.session() as session:
                 commit_wrap(lambda: session.execute_write(to_create.__db_create__))
             nodes_committed += len(to_create.nodes)
-            relations_committed += len(to_create.relationships)
+            relationships_committed += len(to_create.relationships)
             
         # Merging nodes requires serialization (synchronous executions) between processes
         # Using locks to enforce this
@@ -117,13 +117,13 @@ def commit_batch(to_create: Subgraph, to_merge: Subgraph) -> None:
                 with __process_config.graph_driver.session() as session:
                     commit_wrap(lambda: session.execute_write(to_merge.__db_merge__))
             nodes_committed += len(to_merge.nodes)
-            relations_committed += len(to_merge.relationships)
+            relationships_committed += len(to_merge.relationships)
 
         # Update the processed nodes and relations
-        if nodes_committed > 0 or relations_committed > 0:
+        if nodes_committed > 0 or relationships_committed > 0:
             with __process_config.processed_lock:
                 __process_config.processed_nodes.value += nodes_committed
-                __process_config.processed_relations.value += relations_committed
+                __process_config.processed_relationships.value += relationships_committed
 
 def process_batch(batch) -> None:
     """
@@ -134,8 +134,8 @@ def process_batch(batch) -> None:
     # __process_config is a global variable that contains the configuration for the current process
     batch = pickle.loads(batch)
     try:
-        work_type = WorkType.NODE if __process_config.nodes_flag.is_set() else WorkType.RELATION
-        mask = __process_config.node_mask if work_type == WorkType.NODE else __process_config.relation_mask
+        work_type = WorkType.NODE if __process_config.nodes_flag.is_set() else WorkType.RELATIONSHIP
+        mask = __process_config.node_mask if work_type == WorkType.NODE else __process_config.relationship_mask
         to_merge = [[], []] # List of resources to merge (nodes, rels)
         to_create = [[], []] # List of resources to create (nodes, rels)
         processed_resources = []
@@ -154,15 +154,13 @@ def process_batch(batch) -> None:
                 try:
                     subgraph = factory.construct(resource)
                 except Exception as err:
-                    err.args += (f"Encountered error when processing {'nodes' if __process_config.nodes_flag.is_set() else 'relations'} of {resource}.",)
+                    err.args += (f"Encountered error when processing {'nodes' if __process_config.nodes_flag.is_set() else 'relationships'} of {resource}.",)
                     raise err
                 
                 
                 # We sort the subgraph based on if its parts should be 
                 # merged or just created. This is selected based on if the
-                # __primarykey__ property is set. Note that for relations 
-                # this only matters if you use the GraphWithParallelRelations from
-                # rel2graph.py2neo_extensions (otherwise relations are always merged)
+                # __primarykey__ property is set. 
 
                 for node in subgraph.nodes:
                     if node.__primarykey__ is not None:
@@ -170,15 +168,15 @@ def process_batch(batch) -> None:
                         to_merge[0].append(node)
                     else:
                         to_create[0].append(node)
-                for relation in subgraph.relationships:
-                    if getattr(relation, "__primarykey__", None) is not None:
-                        # If a primary key is existing we merge the relation to the graph
-                        to_merge[1].append(relation)
+                for relationship in subgraph.relationships:
+                    if getattr(relationship, "__primarykey__", None) is not None:
+                        # If a primary key is existing we merge the relationship to the graph
+                        to_merge[1].append(relationship)
                         pass
                     else:
-                        # If no primary key is existing we create the relation to the graph
-                        relation.__primarykey__ = -1
-                        to_create[1].append(relation)
+                        # If no primary key is existing we create the relationship to the graph
+                        relationship.__primarykey__ = -1
+                        to_create[1].append(relationship)
             processed_resources.append(resource)
 
         
@@ -201,7 +199,7 @@ def process_batch(batch) -> None:
         bin_resources = pickle.dumps(processed_resources)
         return bin_resources
     else:
-        # No need to return anything for relations as no synchronization is needed
+        # No need to return anything for relationship as no synchronization is needed
         return []
 
 class Batcher:
@@ -245,10 +243,10 @@ def init_process_state(proc_config: WorkerConfig, conversion_objects: Tuple, glo
     __process_config.setup()
 
     # Load the conversion objects
-    factories,node_mask,relation_mask = conversion_objects
+    factories,node_mask,relationship_mask = conversion_objects
     __process_config.factories = factories
     __process_config.node_mask = node_mask
-    __process_config.relation_mask = relation_mask
+    __process_config.relationship_mask = relationship_mask
     
     # Set driver for matcher
     # TODO: This is a hacky way to set the matcher to the graph. 
@@ -294,7 +292,9 @@ class Converter:
         driver.close()
 
         # Compile the schema 
-        self._factories, self._node_mask, self._relation_mask =  compile_schema(schema) 
+        if "RELATION(" in schema:
+            raise DeprecationWarning("The RELATION keyword is deprecated. Please use RELATIONSHIP instead.")
+        self._factories, self._node_mask, self._relationship_mask =  compile_schema(schema) 
         self.iterator = iterator
         self._num_workers = num_workers
 
@@ -334,17 +334,17 @@ class Converter:
             raise e
         return processed_resources
 
-    def __call__(self, progress_bar: "tdqm.tqdm" = None, skip_nodes = False, skip_relations = False) -> None:
-        """Runs the convertion and commits the produced nodes and relations to the graph.
+    def __call__(self, progress_bar: "tdqm.tqdm" = None, skip_nodes = False, skip_relationships = False) -> None:
+        """Runs the convertion and commits the produced nodes and relationships to the graph.
         
         Args:
             progress_bar: An optional tqdm like instance for a progress bar. 
             skip_nodes: (default: False) If true creation of nodes will be skiped. ATTENTION: this might lead to problems if you use identifiers.
-            skip_relation: If true creation of relations will be skiped (default: False)
+            skip_relationships: If true creation of relationships will be skiped (default: False)
         """
         config = WorkerConfig(self._neo4j_uri, self._neo4j_auth)
 
-        conversion_objects = (self._factories, self._node_mask, self._relation_mask)
+        conversion_objects = (self._factories, self._node_mask, self._relationship_mask)
 
         # Handle progress bar (create new or update it)
         pb = None
@@ -372,9 +372,9 @@ class Converter:
                 else:
                     logger.info("Skipping creation of nodes.")
 
-                if not skip_relations:  
-                    config.set_work_type(WorkType.RELATION)
-                    logger.info("Starting creation of relations.")
+                if not skip_relationships:  
+                    config.set_work_type(WorkType.RELATIONSHIP)
+                    logger.info("Starting creation of relationships.")
 
                     self._process_iteration(pool, processed_batches, config)
                 else:
@@ -396,12 +396,12 @@ class Converter:
                 else:
                     logger.info("Skipping creation of nodes.")
 
-                if not skip_relations:
-                    config.set_work_type(WorkType.RELATION)
+                if not skip_relationships:
+                    config.set_work_type(WorkType.RELATIONSHIP)
                     logger.info("Starting creation of relations.")
                     list(map(process_batch, processed_batches))
                 else:
-                    logger.info("Skipping creation of relations.")
+                    logger.info("Skipping creation of relationships.")
             finally:
                 # Cleanup the process state
                 cleanup_process_state()
@@ -414,4 +414,4 @@ class Converter:
             pb.refresh()
             time.sleep(0.1)
             pb.close()
-        logger.info(f"Processed in total {config.processed_nodes.value} nodes and {config.processed_relations.value} relations (this run took {int(time.time()-start)}s)")
+        logger.info(f"Processed in total {config.processed_nodes.value} nodes and {config.processed_relationships.value} relationships (this run took {int(time.time()-start)}s)")

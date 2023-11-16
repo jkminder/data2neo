@@ -34,7 +34,7 @@ def session():
 def get_nodes(session):
     return session.run("MATCH (c:test) RETURN c").data()
 
-def get_relations(session):
+def get_relationships(session):
     return session.run("MATCH p=()-[d]->() RETURN p, properties(d) AS props").data()
 
 
@@ -69,7 +69,7 @@ def test_create_relations(session):
     r1 = Relationship(n1, "to", n2)
     session.execute_write(r1.__db_create__)
 
-    rels = get_relations(session)
+    rels = get_relationships(session)
     assert(len(rels) == 1)
     assert rels[0]["p"][0]["id"] == 1
     assert rels[0]["p"][2]["id"] == 2
@@ -82,7 +82,7 @@ def test_create_relations(session):
     graph = r2 | r3
     session.execute_write(graph.__db_create__)
 
-    rels = get_relations(session)
+    rels = get_relationships(session)
     assert(len(rels) == 3)
     assert(len([rel for rel in rels if rel["p"][0]["id"] == 1 and rel["p"][2]["id"] == 2 and rel["p"][1] == "to"]) == 1)
     assert(len([rel for rel in rels if rel["p"][0]["id"] == 1 and rel["p"][2]["id"] == 2 and rel["p"][1] == "another"]) == 1)
@@ -95,7 +95,7 @@ def test_create_relations(session):
     r4 = Relationship(n1, "attribute", n2, attribute=1, another_attribute="test")
     session.execute_write(r4.__db_create__)
 
-    rels = get_relations(session)
+    rels = get_relationships(session)
     assert(len(rels) == 1)
     assert rels[0]["p"][0]["id"] == 1
     assert rels[0]["p"][2]["id"] == 2
@@ -143,7 +143,7 @@ def test_merge_relationships(session):
     r2.set_primary_key("pk")
     session.execute_write(r2.__db_merge__)
 
-    rels = get_relations(session)
+    rels = get_relationships(session)
     assert(len(rels) == 1)
     assert rels[0]["p"][0]["id"] == 1
     assert rels[0]["p"][2]["id"] == 2
@@ -172,7 +172,7 @@ def test_merge_relationships(session):
 
     session.execute_write(graph.__db_merge__)
 
-    rels = get_relations(session)
+    rels = get_relationships(session)
     assert(len(rels) == 2)
     assert(len([rel for rel in rels if rel["p"][0]["id"] == 1 and rel["p"][2]["id"] == 2 and rel["p"][1] == "to"]) == 1)
     assert(len([rel for rel in rels if rel["p"][0]["id"] == 1 and rel["p"][2]["id"] == 2 and rel["p"][1] == "another"]) == 1)
@@ -189,7 +189,7 @@ def test_create_parallel_relations_with_id(session):
     graph = r1 | r2 | r3 | r4
     
     session.execute_write(graph.__db_create__) # this results in a subgraph with 4 relations (bc of different attribtues)
-    rels = get_relations(session)
+    rels = get_relationships(session)
     assert(len(rels) == 4)
     assert(len([rel for rel in rels if rel["p"][0]["id"] == 1 and rel["p"][2]["id"] == 2 and rel["p"][1] == "to"]) == 3)
     assert(len([rel for rel in rels if rel["p"][0]["id"] == 1 and rel["p"][2]["id"] == 2 and rel["p"][1] == "relates to"]) == 1)
@@ -206,7 +206,7 @@ def test_create_parallel_relations_no_id(session):
     graph = r1 | r2 | r3 | r4
     
     session.execute_write(graph.__db_create__) # this results in a subgraph with 4 relations (bc of different attribtues)
-    rels = get_relations(session)
+    rels = get_relationships(session)
     assert(len(rels) == 4)
     assert(len([rel for rel in rels if rel["p"][0]["id"] == 1 and rel["p"][2]["id"] == 2 and rel["p"][1] == "to"]) == 3)
     assert(len([rel for rel in rels if rel["p"][0]["id"] == 1 and rel["p"][2]["id"] == 2 and rel["p"][1] == "relates to"]) == 1)
@@ -251,7 +251,7 @@ def test_merge_nodes_pk_in_node(session):
     assert(len([node for node in nodes if node["c"]["id"] == 2]) == 1)
     assert(len([node for node in nodes if node["c"]["id"] == 1]) == 1)
 
-def test_merge_relations_no_pk(session):
+def test_merge_relationships_no_pk(session):
     n1 = Node("test", id=1)
     n2 = Node("test", id=2)
     r1 = Relationship(n1, "to", n2, id=1)
@@ -261,7 +261,7 @@ def test_merge_relations_no_pk(session):
     with pytest.raises(ValueError): # without primary keys
         session.execute_write(r2.__db_merge__)
 
-def test_merge_relations_pk_arg(session):
+def test_merge_relationships_pk_arg(session):
     n1 = Node("test", id=1)
     n2 = Node("test", id=2)
     r1 = Relationship(n1, "to", n2, id=1)
@@ -269,11 +269,11 @@ def test_merge_relations_pk_arg(session):
     session.execute_write(r1.__db_create__)
     r2 = Relationship(n1, "to", n2, id=1)
     session.execute_write(r2.__db_merge__, primary_key="id")
-    rels = get_relations(session=session)
+    rels = get_relationships(session=session)
     assert(len(rels) == 1)
     assert(rels[0]["p"][0]["id"] == 1)
 
-def test_merge_relations_pk_in_rel(session):
+def test_merge_relationships_pk_in_rel(session):
     """Additional test for merge_relations"""
     n1 = Node("test", id=1)
     n2 = Node("test", id=2)
@@ -287,7 +287,7 @@ def test_merge_relations_pk_in_rel(session):
     r4.set_primary_key("id")
     graph = r3 | r4
     session.execute_write(graph.__db_merge__)
-    rels = get_relations(session=session)
+    rels = get_relationships(session=session)
     assert(len(rels) == 2)
     assert(len([rel for rel in rels if rel["p"][0]["id"] == 1 and rel["p"][2]["id"] == 2 and rel["p"][1] == "to" and rel["props"]["id"] == 1]) == 1)
     assert(len([rel for rel in rels if rel["p"][0]["id"] == 1 and rel["p"][2]["id"] == 2 and rel["p"][1] == "to" and rel["props"]["id"] == 2]) == 1)
@@ -300,6 +300,6 @@ def test_MERGE_RELATIONSHIPS(session):
 
     r2 = MERGE_RELATIONSHIPS(Relationship(n1, "to", n2))
     session.execute_write(Subgraph(relationships=[r2]).__db_merge__)
-    rels = get_relations(session=session)
+    rels = get_relationships(session=session)
     assert(len(rels) == 1)
     assert(len([r for r in rels if r["p"][0]["id"] == 1 and r["p"][2]["id"] == 2 and r["p"][1] == "to"]) == 1)

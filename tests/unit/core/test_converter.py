@@ -33,3 +33,11 @@ def test_invalid_auth():
     exception_msg = excinfo.value.args[0]
     
     assert "The client is unauthorized due to authentication failure" in exception_msg
+
+
+def test_deprecated():
+    with pytest.raises(DeprecationWarning) as excinfo:
+        Converter("RELATION()", None, "bolt://localhost:7687", ("neo4j", "password"))
+
+    exception_msg = excinfo.value.args[0]
+    assert "The RELATION keyword is deprecated. Please use RELATIONSHIP instead." in exception_msg

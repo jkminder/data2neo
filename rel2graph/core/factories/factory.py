@@ -187,7 +187,7 @@ class NodeFactory(SubgraphFactory):
         return Node.from_attributes([l for l in labels if l is not None], [attr for attr in attributes if attr is not None], self._primary_key)
 
 @register_factory
-class RelationFactory(SubgraphFactory):
+class RelationshipFactory(SubgraphFactory):
     """Factory for creating Relations from a Resource
     
     The RelationFactory is initialised with two Matcher objects (from_matcher and to_matcher) that specify how to

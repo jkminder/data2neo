@@ -522,10 +522,10 @@ class Relationship(PropertyDict, Subgraph):
             >>> a_knows_b = Relationship(a, "KNOWS", b, since=1999)
 
         Args:
-            start_node: Origin of the relation
-            end_node: Destination of the relation
-            type: Type of the relation
-            attributes: Key value pairs of attributes for the Relation
+            start_node: Origin of the relationship
+            end_node: Destination of the relationship
+            type: Type of the relationship
+            attributes: Key value pairs of attributes for the Relationship
         """
         self._type = type 
         

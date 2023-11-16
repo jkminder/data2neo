@@ -44,7 +44,7 @@ class SchemaConfigParser:
         'BOOL',
         'ENTITY',
         'NODE',
-        'RELATION',
+        'RELATIONSHIP',
         'MATCH',
         'NAME',
         'DOT',
@@ -57,10 +57,10 @@ class SchemaConfigParser:
     )
 
     t_STRING = r'"(?:(?!"|\\).|\\.)*"|\'(?:(?!\'|\\).|\\.)*\''
-    t_NAME = r'\b(?!\b(?:False|True|ENTITY|NODE|RELATION|MATCH)\b)[a-zA-Z_]\w*\b'
+    t_NAME = r'\b(?!\b(?:False|True|ENTITY|NODE|RELATIONSHIP|MATCH)\b)[a-zA-Z_]\w*\b'
     t_ENTITY = r'\bENTITY\b'
     t_NODE = r'\bNODE\b'
-    t_RELATION = r'\bRELATION\b'
+    t_RELATIONSHIP = r'\bRELATIONSHIP\b'
     t_MATCH = r'\bMATCH\b'
     t_DOT = r'\.(?!\d+\b)'
     t_COMMA = r'\,'
@@ -154,7 +154,7 @@ class SchemaConfigParser:
         Returns:
             Instructions with injected arguments, flag if this is a node
         """
-        if instructions[0] in ["NodeFactory", "RelationFactory"]:
+        if instructions[0] in ["NodeFactory", "RelationshipFactory"]:
             is_node = instructions[0] == "NodeFactory"
             # Find primary attribute and extract attributes
             raw_attributes = []
@@ -177,7 +177,7 @@ class SchemaConfigParser:
         '''graphelements : graphelement identifier COLON attributes graphelements
                          | empty'''
         case = len(p)-1
-        instructions = [[], []]  # nodes, relations
+        instructions = [[], []]  # nodes, relationships
         if case == 5:
             # We need to inject the attributes into the correct location in the graph element instructions
             # The attributes are always the first argument for any graphelement
@@ -198,7 +198,7 @@ class SchemaConfigParser:
 
     def p_graphelement(self, p):
         '''graphelement : node
-                        | relation
+                        | relationship
                         | NAME LPAR graphelement staticarguments RPAR'''
         case = len(p)-1
         instructions = []
@@ -212,9 +212,9 @@ class SchemaConfigParser:
         '''node : NODE LPAR arguments RPAR'''
         p[0] = ["NodeFactory", [p[3]]]
 
-    def p_relation(self, p):
-        '''relation : RELATION LPAR destination COMMA argument COMMA destination RPAR'''
-        p[0] = ["RelationFactory", [p[5], p[3], p[7]]]
+    def p_relationship(self, p):
+        '''relationship : RELATIONSHIP LPAR destination COMMA argument COMMA destination RPAR'''
+        p[0] = ["RelationshipFactory", [p[5], p[3], p[7]]]
 
     def p_destination(self, p):
         '''destination : NAME
@@ -381,7 +381,7 @@ def compile_schema(schema: str) -> List["Factory"]:
         schema: The schema as a string.
     Returns:
         A tuple (compiled_factory_dict, node_mask, relationship_mask)
-        compiled_factory_dict: A dict in form of (entity_type_name, (NodeSupplyChain, RelationSupplyChain))
+        compiled_factory_dict: A dict in form of (entity_type_name, (NodeSupplyChain, RelationshipSupplyChain))
         for all provided entity_types.
         node_mask: A set of all entities that produce a node.
         relationship_mask: A set of all entities that produce a relationship.
@@ -392,18 +392,18 @@ def compile_schema(schema: str) -> List["Factory"]:
     parser = SchemaConfigParser()
     instructions = parser.parse(precompiled_string)
     compiled = {}
-    relation_mask = set()
+    relationship_mask = set()
     node_mask = set()
 
     for entity_type, entity_instructions in instructions:
         if entity_type in compiled.keys():
             raise SchemaConfigException(f"Found two conflicting definitions of entity '{entity_type}'. Please only specify each entity once.")
-        node_instructions, relation_instructions = entity_instructions
-        node_factories, relation_factories = _compile_instructions(node_instructions), _compile_instructions(relation_instructions)
+        node_instructions, relationship_instructions = entity_instructions
+        node_factories, relationship_factories = _compile_instructions(node_instructions), _compile_instructions(relationship_instructions)
         compiled[entity_type] = (get_factory("SupplyChain")(node_factories, "NodeSupplyChain"),
-                                 get_factory("SupplyChain")(relation_factories, "RelationSupplyChain"))
+                                 get_factory("SupplyChain")(relationship_factories, "RelationSupplyChain"))
         if len(node_factories) > 0:
             node_mask.add(entity_type)
-        if len(relation_factories) > 0:
-            relation_mask.add(entity_type)
-    return compiled, node_mask, relation_mask
+        if len(relationship_factories) > 0:
+            relationship_mask.add(entity_type)
+    return compiled, node_mask, relationship_mask

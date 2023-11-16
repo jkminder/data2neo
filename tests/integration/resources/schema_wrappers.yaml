@@ -17,10 +17,10 @@ ENTITY("SGPRE"):
     - First = SGPRE.First
   sg_pre_change(NODE("To")) to:
   sg_pre_condition(NODE("WillNotBeCreated")):
-  sg_pre_change_parametrized(RELATION(from, "relates to", to), "Second", "CHANGED"):
+  sg_pre_change_parametrized(RELATIONSHIP(from, "relates to", to), "Second", "CHANGED"):
     - Second = SGPRE.Second
     - First = SGPRE.First
-  sg_pre_condition(RELATION(from, "notexisting", to)):
+  sg_pre_condition(RELATIONSHIP(from, "notexisting", to)):
 ENTITY("SGPOST"):
   sg_post_add(NODE("From")) from:
     - First = SGPOST.First

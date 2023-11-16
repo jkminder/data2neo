@@ -5,4 +5,4 @@ ENTITY("entity"):
     - myint = 1 #int
     - myTrue = True # bool
     - myFalse = False # bool
-  RELATION(test, "to", MATCH("node", mystr = "1", myint = 1, myfloat = 1.1, myTrue = True, myFalse = False)):
+  RELATIONSHIP(test, "to", MATCH("node", mystr = "1", myint = 1, myfloat = 1.1, myTrue = True, myFalse = False)):
