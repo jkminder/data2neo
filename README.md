@@ -31,7 +31,7 @@ pip install **path-to-repository**
 The rel2graph library supports Python 3.7+.
 
 ## Quick Start
-A quick example for converting data in a [Pandas](https://pandas.pydata.org) dataframe into a graph. The full example code can be found under [examples](/examples). For more details, please checkout the [full documentation][wiki]. We first define a *convertion schema* in a YAML style config file. In this config file we specify, which entites are converted into which nodes and which relations. 
+A quick example for converting data in a [Pandas](https://pandas.pydata.org) dataframe into a graph. The full example code can be found under [examples](/examples). For more details, please checkout the [full documentation][wiki]. We first define a *convertion schema* in a YAML style config file. In this config file we specify, which entites are converted into which nodes and which relationships. 
 ##### **`schema.yaml`**
 ```yaml
 ENTITY("Flower"):
@@ -42,14 +42,14 @@ ENTITY("Flower"):
         - petal_width = append(Flower.petal_width, " milimeters")
     NODE("Species", "BioEntity") species:
         + Name = Flower.species
-    RELATION(flower, "is", species):
+    RELATIONSHIP(flower, "is", species):
     
 ENTITY("Person"):
     NODE("Person") person:
         + ID = Person.ID
         - FirstName = Person.FirstName
         - LastName = Person.LastName
-    RELATION(person, "likes", MATCH("Species", Name=Person.FavoriteFlower)):
+    RELATIONSHIP(person, "likes", MATCH("Species", Name=Person.FavoriteFlower)):
         - Since = "4ever"
 ```
 The library itself has 2 basic elements, that are required for the conversion: the `Converter` that handles the conversion itself and an `Iterator` that iterates over the relational data. The iterator can be implemented for arbitrary data in relational format. Rel2graph currently has preimplemented iterators under:
