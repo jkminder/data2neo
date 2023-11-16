@@ -9,7 +9,6 @@ authors: Julian Minder
 
 import pytest 
 
-from py2neo import Graph
 import pandas as pd
 import multiprocessing as mp
 

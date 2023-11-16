@@ -10,7 +10,6 @@ authors: Julian Minder
 import pytest 
 
 import pandas as pd
-from py2neo import Graph
 
 from rel2graph import Converter, IteratorIterator, register_attribute_postprocessor, Attribute
 from rel2graph.relational_modules.pandas import PandasDataFrameIterator

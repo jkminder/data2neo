@@ -15,5 +15,5 @@ setup(
     author_email = "jminder@ethz.ch",   
     url = "github.com/sg-dev/rel2graph",    
     install_requires = requirements,
-    python_requires = ">=3.7"
+    python_requires = ">=3.8"
 )
