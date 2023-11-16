@@ -89,10 +89,8 @@ class Matcher:
             else:
                 value = "r"
             clause = _match_clause("n", (tuple(parsed_labels), *keys), value)
-            print(clause)
             clause, params = cypher_join("UNWIND $data AS r", clause, "RETURN LABELS(n) as labels, n as properties, elementId(n) as identity", data=[values])
 
-            print(clause)
             with Matcher.graph_driver.session() as session:
                 match_list = session.run(clause, **params).data()
                 logger.debug(f"Found {len(match_list)} matches")

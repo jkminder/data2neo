@@ -236,7 +236,6 @@ def _match_clause(name, node_key, value, prefix="(", suffix=")"):
             return "MATCH %s%s%s {%s:%s}%s" % (
                 prefix, name, nk.label_string(), cypher_escape(nk.keys()[0]), value, suffix)
         else:
-            print( nk.key_value_string(value, list(range(n_pk))))
             return "MATCH %s%s%s {%s}%s" % (
                 prefix, name, nk.label_string(), nk.key_value_string(value, list(range(n_pk))),
                 suffix)
