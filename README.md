@@ -1,11 +1,11 @@
-[![Tests Neo4j 4.4.15](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j4.yml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j4.yml) [![Tests Neo4j 5.13](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml)
+[![Tests Neo4j 5.13](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml)
 [![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%C2%A03.9%C2%A0%7C%C2%A03.10%C2%A0%7C%203.11%C2%A0%7C%203.12-orange)](https://github.com/sg-dev/rel2graph/actions/workflows) 
 
 # Rel2graph
 
 **Rel2graph** is a library that simplifies the convertion of data in relational format to a graph knowledge database. It reliefs you of the cumbersome manual work of writing the conversion code and let's you focus on the conversion schema and data processing.
 
-The library is built specifically for converting data into a [neo4j](https://neo4j.com/) graph. The library further supports extensive customization capabilities to clean and remodel data. As neo4j python client it uses the native [neo4j python client](https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/).
+The library is built specifically for converting data into a [neo4j](https://neo4j.com/) graph (minimum version 5.2). The library further supports extensive customization capabilities to clean and remodel data. As neo4j python client it uses the native [neo4j python client](https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/).
 
 
  - [Latest Releases](https://github.com/sg-dev/rel2graph/tags)
