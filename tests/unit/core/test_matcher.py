@@ -11,6 +11,7 @@ authors: Julian Minder
 import pytest
 import neo4j
 import os
+import warnings
 
 from rel2graph.core.factories import Matcher, AttributeFactory
 from rel2graph import Resource
@@ -48,7 +49,7 @@ def session():
     # This will be raised by neo4j due to how the session is yielded
     # You can ignore this as it is correctly closed
     warnings.filterwarnings("ignore", category=DeprecationWarning)
-     
+
     # Check if custom port
     try:
         port = os.environ["NEO4J PORT"]
