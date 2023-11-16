@@ -45,6 +45,10 @@ class DummyResource(Resource):
 
 @pytest.fixture
 def session():
+    # This will be raised by neo4j due to how the session is yielded
+    # You can ignore this as it is correctly closed
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+     
     # Check if custom port
     try:
         port = os.environ["NEO4J PORT"]
