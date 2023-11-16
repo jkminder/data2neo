@@ -42,7 +42,7 @@ class TestPandasSeriesResource:
     
     def test_getitem(self, resource, example_series):
         # Test get item
-        for key, value in example_series.iteritems():
+        for key, value in example_series.items():
             assert resource[key] == value
 
     def test_setitem(self, resource, example_series):

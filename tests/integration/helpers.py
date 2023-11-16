@@ -8,9 +8,14 @@ import pytest
 from rel2graph import register_subgraph_postprocessor
 from rel2graph.neo4j import Node, Relationship, Subgraph
 
+import warnings
 
 @pytest.fixture
 def session():
+    # This will be raised by neo4j due to how the session is yielded
+    # You can ignore this as it is correctly closed
+    warnings.filterwarnings("ignore", category=DeprecationWarning) 
+    
     # Check if custom port
     try:
         port = os.environ["NEO4J PORT"]
@@ -24,6 +29,7 @@ def session():
             yield session
         finally:
             pass        
+        
 @pytest.fixture
 def uri():
     # Check if custom port

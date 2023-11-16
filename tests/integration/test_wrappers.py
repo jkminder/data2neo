@@ -9,35 +9,24 @@ authors: Julian Minder
 
 import pytest 
 import pandas as pd
-from py2neo import Graph
 
 from rel2graph import Converter
 from rel2graph import AttributeFactoryWrapper, SubgraphFactoryWrapper
-from rel2graph.neo4j.graph_elements import Node, Relationship, Subgraph
+from rel2graph.neo4j import Node, Relationship, Subgraph
 from rel2graph.utils import load_file
 from rel2graph.relational_modules.pandas import PandasDataFrameIterator
 from rel2graph import register_wrapper, register_attribute_postprocessor, register_attribute_preprocessor, register_subgraph_postprocessor, register_subgraph_preprocessor
 from rel2graph import Attribute
 
+from helpers import *
 # Turn off reinstantiation warnings
 Converter.no_instantiation_warnings = True
 
 
 @pytest.fixture
-def graph():
-    graph = Graph()
-    graph.delete_all()
-    return graph
-
-@pytest.fixture
 def input():
     return pd.DataFrame({"First": ["F"], "Second": ["S"], "Third": ["T"]})
 
-def get_nodes(graph):
-    return graph.nodes.match().all()
-    
-def get_relations(graph):
-    return graph.relationships.match().all()
 
 # Schema file
 schema_file = "tests/integration/resources/schema_wrappers.yaml"
@@ -102,8 +91,8 @@ def sg_pre_condition(resource):
 @register_subgraph_postprocessor
 def sg_post_add(subgraph):
     first_node = subgraph.nodes[0]
-    new_node = Node([Attribute(None, "From Copy")], [Attribute("First", first_node["First"])])
-    new_rel = Relationship(first_node, Attribute(None, "is copied by"), new_node, [])
+    new_node = Node("From Copy", First=first_node["First"])
+    new_rel = Relationship(first_node, "is copied by", new_node)
     return subgraph|new_node|new_rel
 
 @register_subgraph_postprocessor
@@ -131,14 +120,14 @@ class SGWrapper(SubgraphFactoryWrapper):
     [1,5]
 )
 @pytest.mark.parametrize("batch_size",[1,100])
-def test_attr_pre(graph, input, workers, batch_size):
+def test_attr_pre(input, workers, batch_size, session, uri, auth):
     iterator = PandasDataFrameIterator(input, "ATTRPRE")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
+    converter = Converter(load_file(schema_file), iterator, uri, auth, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(get_nodes(graph)) == 1
-    node = get_nodes(graph)[0]
+    assert num_nodes(session) == 1
+    node = get_nodes(session)[0]
     assert node["First"] == "Changed" #attr_pre_change
     assert len(node) == 2 # attr_pre_condition -> one attr removed
     assert node["Third"] == "F" # attr_pre_new
@@ -148,14 +137,14 @@ def test_attr_pre(graph, input, workers, batch_size):
     [1,5]
 )
 @pytest.mark.parametrize("batch_size",[1,100])
-def test_attr_post(graph, input, workers, batch_size):
+def test_attr_post(input, workers, batch_size, session, uri, auth):
     iterator = PandasDataFrameIterator(input, "ATTRPOST")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
+    converter = Converter(load_file(schema_file), iterator, uri, auth, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(get_nodes(graph)) == 1
-    node = get_nodes(graph)[0]
+    assert num_nodes(session) == 1
+    node = get_nodes(session)[0]
     assert "MyType appendix" in node.labels
     assert node["First"] == "F appendix"
     assert node["Second"] == "S appendix appendix" # Chaining
@@ -167,14 +156,14 @@ def test_attr_post(graph, input, workers, batch_size):
     [1,5]
 )
 @pytest.mark.parametrize("batch_size",[1,100])
-def test_attr_wrapper(graph, input, workers, batch_size):
+def test_attr_wrapper(input, workers, batch_size, session, uri, auth):
     iterator = PandasDataFrameIterator(input, "ATTRWRAPPER")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
+    converter = Converter(load_file(schema_file), iterator, uri, auth, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(get_nodes(graph)) == 1
-    node = get_nodes(graph)[0]
+    assert len(get_nodes(session)) == 1
+    node = get_nodes(session)[0]
     assert len(node) == 1 # only one 
     assert node["Test2"] == "First:Test1"
 
@@ -183,18 +172,18 @@ def test_attr_wrapper(graph, input, workers, batch_size):
     [1,5]
 )
 @pytest.mark.parametrize("batch_size",[1,100])
-def test_subgraph_pre(graph, input, workers, batch_size):
+def test_subgraph_pre(input, workers, batch_size, session, uri, auth):
     iterator = PandasDataFrameIterator(input, "SGPRE")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
+    converter = Converter(load_file(schema_file), iterator, uri, auth, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(get_nodes(graph)) == 2 # make sure only two node are created
-    node_from = [node for node in get_nodes(graph) if "From" in node.labels][0]
-    print(get_nodes(graph))
+    assert len(get_nodes(session)) == 2 # make sure only two node are created
+    node_from = [node for node in get_nodes(session) if "From" in node.labels][0]
+    print(get_nodes(session))
     assert node_from["First"] == "Changed"
-    assert len(get_relations(graph)) == 1
-    rel = get_relations(graph)[0]
+    assert len(get_relations(session)) == 1
+    rel = get_relations(session)[0]
     assert rel["First"] == "Changed" # The resource was changed earlier -> this is still the case
     assert rel["Second"] == "CHANGED"
 
@@ -203,20 +192,20 @@ def test_subgraph_pre(graph, input, workers, batch_size):
     [1,5]
 )
 @pytest.mark.parametrize("batch_size",[1,100])
-def test_subgraph_post(graph, input, workers, batch_size):
+def test_subgraph_post(input, workers, batch_size, session, uri, auth):
     iterator = PandasDataFrameIterator(input, "SGPOST")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
+    converter = Converter(load_file(schema_file), iterator, uri, auth, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(get_nodes(graph)) == 2 # make sure only two node are created
-    node_from = [node for node in get_nodes(graph) if "From" in node.labels][0] # must exist
-    node_copy = [node for node in get_nodes(graph) if "From Copy" in node.labels][0] # must exist
+    assert len(get_nodes(session)) == 2 # make sure only two node are created
+    node_from = [node for node in get_nodes(session) if "From" in node.labels][0] # must exist
+    node_copy = [node for node in get_nodes(session) if "From Copy" in node.labels][0] # must exist
     assert node_from["First"] == "F"
     assert node_copy["First"] == "F"
-    assert len(get_relations(graph)) == 1
-    rel = get_relations(graph)[0]
-    assert type(rel).__name__ == "is copied by"
+    assert len(get_relations(session)) == 1
+    rel = get_relations(session)[0]
+    assert rel.type == "is copied by"
     assert "From" in rel.start_node.labels
     assert "From Copy" in rel.end_node.labels
 
@@ -225,14 +214,14 @@ def test_subgraph_post(graph, input, workers, batch_size):
     [1,5]
 )
 @pytest.mark.parametrize("batch_size",[1,100])
-def test_subgraph_wrapper(graph, input, workers, batch_size):
+def test_subgraph_wrapper(input, workers, batch_size, session, uri, auth):
     iterator = PandasDataFrameIterator(input, "SGWRAPPER")
-    converter = Converter(load_file(schema_file), iterator, graph, num_workers=workers, batch_size=batch_size)
+    converter = Converter(load_file(schema_file), iterator, uri, auth, num_workers=workers, batch_size=batch_size)
     # run 
     converter()
     #compare
-    assert len(get_nodes(graph)) == 1 # make sure only one node is created
-    node = get_nodes(graph)[0] # must exist
+    assert len(get_nodes(session)) == 1 # make sure only one node is created
+    node = get_nodes(session)[0] # must exist
     assert node["First"] == "F"
     assert node["Fifth"] == "Test1"
     assert node["Sixth"] == "Test2"
