@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Integration tests for testing the py2neo extensions and behavior of parallel relations.
+Integration tests for testing the py2neo extensions and behavior of parallel relationships.
 This is especially relevant due to the batch processing.
 
 authors: Julian Minder

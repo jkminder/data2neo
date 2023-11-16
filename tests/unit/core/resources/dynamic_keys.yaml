@@ -9,8 +9,8 @@ ENTITY("entity"):
   NODE(entity.dynamic_key , WRAPPER(entity.dynamic_key) ):
   NODE(WRAPPER(entity.dynamic_key), entity.dynamic_key):
     + attr = entity.dynamic_key
-  RELATION(node, entity.dynamic_key, node):
+  RELATIONSHIP(node, entity.dynamic_key, node):
     + attr = entity.dynamic_key
-  RELATION(node, WRAPPER(entity.dynamic_key), node):
-  RELATION(node, WRAPPER(entity.dynamic_key) , node):
-  RELATION(node, WRAPPER( entity.dynamic_key ) , node):
+  RELATIONSHIP(node, WRAPPER(entity.dynamic_key), node):
+  RELATIONSHIP(node, WRAPPER(entity.dynamic_key) , node):
+  RELATIONSHIP(node, WRAPPER( entity.dynamic_key ) , node):

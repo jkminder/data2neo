@@ -51,41 +51,41 @@ species_nodes = [
 flower_nodes = [(["Flower"], {"sepal_length": f["sepal_length"], "sepal_width": f["sepal_width"], 
         "petal_length": f["petal_length"], "petal_width": f["petal_width"]}) for f in iris[1].iloc]
 
-is_relations = [((["Flower"], {"sepal_length": f["sepal_length"], "sepal_width": f["sepal_width"], 
+is_relationships = [((["Flower"], {"sepal_length": f["sepal_length"], "sepal_width": f["sepal_width"], 
         "petal_length": f["petal_length"], "petal_width": f["petal_width"]}),"is", 
         (["Species", "BioEntity", f["species"]], {"Name": f["species"]}), {}) for f in iris[1].iloc]
 
-likes_relations = [((["Person"], {"ID": p["ID"], "FirstName": p["FirstName"], 
+likes_relationships = [((["Person"], {"ID": p["ID"], "FirstName": p["FirstName"], 
         "Renamed": p["LastName"], "Static": "staticstring"}),"likes", 
         (["Species", "BioEntity", p["FavoriteFlower"]], {"Name": p["FavoriteFlower"]}), {"Since":"4ever", "EntityAttribute": p["ID"]}) for p in no_duplicates[1].iloc]
 
-likes_relations_parallel = [((["Person"],  {"ID": 1, "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_parallel", 
+likes_relationships_parallel = [((["Person"],  {"ID": 1, "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_parallel", 
         (["Species", "BioEntity", "virginica"], {"Name": "virginica"}), {"pk": i}) for i in [1,2,3,4]]
 
-likes_relations_parallel = [((["Person"],  {"ID": 1, "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_parallel", 
+likes_relationships_parallel = [((["Person"],  {"ID": 1, "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_parallel", 
         (["Species", "BioEntity", "virginica"], {"Name": "virginica"}), {"pk": i}) for i in [1,2,3,4]]
 
-likes_relations_merged = [((["Person"],  {"ID": 1, "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_merged", 
+likes_relationships_merged = [((["Person"],  {"ID": 1, "FirstName": "Julian", "Renamed": "Minder", "Static": "staticstring"}),"likes_merged", 
         (["Species", "BioEntity", "virginica"], {"Name": "virginica"}), {"pk": 1})]
 
 person_only_nodes_only_result = {
     "nodes": person_nodes, 
-    "relations": []
+    "relationships": []
 }
 
 flower_only_result = {
     "nodes": flower_nodes + species_nodes,
-    "relations": is_relations
+    "relationships": is_relationships
 }
 
 full_result = {
     "nodes": person_nodes + species_nodes + flower_nodes, 
-    "relations": is_relations + likes_relations
+    "relationships": is_relationships + likes_relationships
 }
 
 result_parallel = {
     "nodes": person_nodes + species_nodes, 
-    "relations": likes_relations_parallel + likes_relations_merged
+    "relationships": likes_relationships_parallel + likes_relationships_merged
 }
 
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Integration tests for converting pandas dataframes to graphs.
+Integration tests for converting pandas dataframes to graphs - end to end tests.
 
 authors: Julian Minder
 """
@@ -92,7 +92,7 @@ def test_two_types(data_type_1, data_type_2, result, workers, batch_size, sessio
     "data_type_1,data_type_2,result",
     [(iris, no_duplicates, result_parallel)]
 )
-def test_parallel_relations(data_type_1, data_type_2, result, workers, batch_size, session, uri, auth):
+def test_parallel_relationships(data_type_1, data_type_2, result, workers, batch_size, session, uri, auth):
     iterator = IteratorIterator([
         PandasDataFrameIterator(data_type_1[1], data_type_1[0]+"Parallel"),
         PandasDataFrameIterator(data_type_2[1], data_type_2[0]+"Parallel")
@@ -140,7 +140,7 @@ def test_serialize(session, uri, auth):
     data = pd.DataFrame({"ID": list(range(10)), "next": list(range(1,11))})
     result = {
         "nodes": [(["Entity"], {"ID": i}) for i in range(5)],
-        "relations": []
+        "relationships": []
     }
     iterator = PandasDataFrameIterator(data, "Entity")
     # We run with batchsize 1 to make sure that the serialization is actually used

@@ -182,8 +182,8 @@ def test_subgraph_pre(input, workers, batch_size, session, uri, auth):
     node_from = [node for node in get_nodes(session) if "From" in node.labels][0]
     print(get_nodes(session))
     assert node_from["First"] == "Changed"
-    assert len(get_relations(session)) == 1
-    rel = get_relations(session)[0]
+    assert len(get_relationships(session)) == 1
+    rel = get_relationships(session)[0]
     assert rel["First"] == "Changed" # The resource was changed earlier -> this is still the case
     assert rel["Second"] == "CHANGED"
 
@@ -203,8 +203,8 @@ def test_subgraph_post(input, workers, batch_size, session, uri, auth):
     node_copy = [node for node in get_nodes(session) if "From Copy" in node.labels][0] # must exist
     assert node_from["First"] == "F"
     assert node_copy["First"] == "F"
-    assert len(get_relations(session)) == 1
-    rel = get_relations(session)[0]
+    assert len(get_relationships(session)) == 1
+    rel = get_relationships(session)[0]
     assert rel.type == "is copied by"
     assert "From" in rel.start_node.labels
     assert "From Copy" in rel.end_node.labels

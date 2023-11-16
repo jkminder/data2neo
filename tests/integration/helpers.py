@@ -59,7 +59,7 @@ def get_nodes(session, labels=[]):
     match_list = [Node.from_dict(r['labels'], r['properties'], identity=r["identity"]) for r in res]
     return match_list
 
-def get_relations(session, types=[]):
+def get_relationships(session, types=[]):
     if not isinstance(types, list) and not isinstance(types, tuple):
         types = [types]
     res = session.run("""MATCH (a)-[r{}]->(b) RETURN TYPE(r) as type, PROPERTIES(r) as properties, elementId(r) as identity, 
@@ -87,7 +87,7 @@ def eq_node(rnode, gnode):
             return False
     return True
 
-def eq_relation(rrel, grel):
+def eq_relationship(rrel, grel):
     # same type
     if rrel[1] != grel.type:
         return False
@@ -116,23 +116,23 @@ def compare_nodes(session, result):
                 break
         assert found, f"The following node was not found: {rnode}"
 
-def compare_relations(session, result):
-    graph_relations = get_relations(session)
-    print("Graph Relations: ")
-    for grel in graph_relations:
+def compare_relationships(session, result):
+    graph_relationships = get_relationships(session)
+    print("Graph Relationships: ")
+    for grel in graph_relationships:
         print("- ", grel)
-    print("Result Relations: ")
-    for rrel in result["relations"]:
+    print("Result Relationships: ")
+    for rrel in result["relationships"]:
         print("- ", rrel)
-    assert len(graph_relations) == len(result["relations"]), "Same number of relations"
-    for rrel in result["relations"]:
+    assert len(graph_relationships) == len(result["relationships"]), "Same number of relationship"
+    for rrel in result["relationships"]:
         found = False
-        for grel in graph_relations:
-            found = found or eq_relation(rrel, grel)
+        for grel in graph_relationships:
+            found = found or eq_relationship(rrel, grel)
             if found:
                 break
-        assert found, f"The following relation was not found: {rrel}"
+        assert found, f"The following relationship was not found: {rrel}"
 
 def compare(session, result):
     compare_nodes(session, result)
-    compare_relations(session, result)
+    compare_relationships(session, result)

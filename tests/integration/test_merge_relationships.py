@@ -28,12 +28,12 @@ def test_standart(config, session, uri, auth):
         NODE("Entity") node:
             + id = INT(Entity.id)
     
-    ENTITY("Relation"):
-        RELATION(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id))):
+    ENTITY("Relationship"):
+        RELATIONSHIP(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id))):
     """
     entities = pd.DataFrame({"id": [1,2]})
     relations = pd.DataFrame({"source_id": [1,1], "target_id": [2,2]})
-    iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(relations, "Relation")])
+    iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(relations, "Relationship")])
     converter = Converter(schema, iterator, uri, auth, serialize=config[1], num_workers=config[0])
     converter()
     assert num_relationships(session) == 2
@@ -45,13 +45,13 @@ def test_standart_same_resource(config, session, uri, auth):
         NODE("Entity") node:
             + id = INT(Entity.id)
     
-    ENTITY("Relation"):
-        RELATION(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id))):
-        RELATION(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id))):
+    ENTITY("Relationship"):
+        RELATIONSHIP(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id))):
+        RELATIONSHIP(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id))):
     """
     entities = pd.DataFrame({"id": [1,2]})
     relations = pd.DataFrame({"source_id": [1], "target_id": [2]})
-    iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(relations, "Relation")])
+    iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(relations, "Relationship")])
     converter = Converter(schema, iterator, uri, auth, serialize=config[1], num_workers=config[0])
     converter()
     assert num_relationships(session) == 2
@@ -65,7 +65,7 @@ def test_merge(config, session, uri, auth):
             + id = INT(Entity.id)
     
     ENTITY("Relation"):
-        MERGE_RELATIONSHIPS(RELATION(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id)))):
+        MERGE_RELATIONSHIPS(RELATIONSHIP(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id)))):
     """
     entities = pd.DataFrame({"id": [1,2]})
     relations = pd.DataFrame({"source_id": [1,1], "target_id": [2,2]})
@@ -82,8 +82,8 @@ def test_merge_same_resource(config, session, uri, auth):
             + id = INT(Entity.id)
     
     ENTITY("Relation"):
-        MERGE_RELATIONSHIPS(RELATION(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id)))):
-        MERGE_RELATIONSHIPS(RELATION(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id)))):
+        MERGE_RELATIONSHIPS(RELATIONSHIP(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id)))):
+        MERGE_RELATIONSHIPS(RELATIONSHIP(MATCH("Entity", id = INT(Relation.source_id)), "RELATED_TO", MATCH("Entity", id = INT(Relation.target_id)))):
     """
     entities = pd.DataFrame({"id": [1,2]})
     relations = pd.DataFrame({"source_id": [1], "target_id": [2]})

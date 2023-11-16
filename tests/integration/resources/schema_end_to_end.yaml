@@ -8,7 +8,7 @@ ENTITY("Flower"):
     NODE("Species", "BioEntity", Flower.species) species:
         + Name = Flower.species
 
-    RELATION(flower, "is", species):
+    RELATIONSHIP(flower, "is", species):
     
 ENTITY("Person"):
     NODE("Person") person:
@@ -16,7 +16,7 @@ ENTITY("Person"):
         - FirstName = Person.FirstName
         - Renamed = Person.LastName
         - Static = "staticstring"
-    MERGE_RELATIONSHIPS(RELATION(person, "likes", MATCH("Species", Name=Person.FavoriteFlower))):
+    MERGE_RELATIONSHIPS(RELATIONSHIP(person, "likes", MATCH("Species", Name=Person.FavoriteFlower))):
         - Since = "4ever"
         - EntityAttribute = INT(Person.ID)
 
@@ -30,9 +30,9 @@ ENTITY("PersonParallel"):
         - FirstName = PersonParallel.FirstName
         - Renamed = PersonParallel.LastName
         - Static = "staticstring"
-    RELATION(MATCH("Person", ID = 1), "likes_parallel", MATCH("Species", Name="virginica")):
+    RELATIONSHIP(MATCH("Person", ID = 1), "likes_parallel", MATCH("Species", Name="virginica")):
         - pk = INT(PersonParallel.ID)
-    RELATION(MATCH("Person", ID = 1), "likes_merged", MATCH("Species", Name="virginica")):
+    RELATIONSHIP(MATCH("Person", ID = 1), "likes_merged", MATCH("Species", Name="virginica")):
         + pk = 1
 
 ENTITY("Entity"):

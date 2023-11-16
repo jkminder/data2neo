@@ -24,13 +24,13 @@ def test_precompile_commentremoval():
         + test = entity.column #######
         - test1 = "static \\" string" ##ka asdflkjasdölfj
         - test2 = WRAP2(WRAP(entity.col))
-    RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+    RELATIONSHIP(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
         + test = entity.column # testi 123 vier fünf
         - test1 = "static \\" string" 
         - test2 = WRAP2(WRAP(entity.col))
     # this is another comment ,!'_
     ENTITY("second"):
-        RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+        RELATIONSHIP(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
         + test = entity.column # this is a coomment
         - test1 = "static \\" string"
         - test2 = WRAP2(WRAP(entity.col))
@@ -42,13 +42,13 @@ def test_precompile_commentremoval():
         + test = entity.column 
         - test1 = "static \\" string" 
         - test2 = WRAP2(WRAP(entity.col))
-    RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+    RELATIONSHIP(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
         + test = entity.column 
         - test1 = "static \\" string" 
         - test2 = WRAP2(WRAP(entity.col))
     
     ENTITY("second"):
-        RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+        RELATIONSHIP(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
         + test = entity.column 
         - test1 = "static \\" string"
         - test2 = WRAP2(WRAP(entity.col))
@@ -66,18 +66,18 @@ def test_parser_complex():
         + test = entity.column
         - test1 = "static \\" string"
         - test2 = WRAP2(WRAP(entity.col))
-    RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+    RELATIONSHIP(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
         + test = entity.column
         - test1 = "static \\" string"
         - test2 = WRAP2(WRAP(entity.col))
     ENTITY("second"):
-        RELATION(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
+        RELATIONSHIP(MATCH("label", "label2", name="test", id=WRAP(test.idcolumn)), "type", to):
         + test = entity.column
         - test1 = "static \\" string"
         - test2 = WRAP2(WRAP(entity.col))
     ENTITY("third"):
     """
-    ground_truth = [['entity', [[['WRAPPER', [['NodeFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], [['AttributeFactory', [None, None, 'label']], ['WRAP', [['AttributeFactory', [None, None, 'label2']]]], ['WRAP', [['AttributeFactory', [None, None, 'label3']], ['AttributeFactory', [None, None, 1234]]]], ['AttributeFactory', [None, 'column', None]]], 'test', 'nodeid']], ['AttributeFactory', [None, None, 'someargument']], ['AttributeFactory', [None, None, 123]]]]], [['RelationFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], ['AttributeFactory', [None, None, 'type']], ['Matcher', [None, ['AttributeFactory', [None, None, 'label']], ['AttributeFactory', [None, None, 'label2']], ['AttributeFactory', ['name', None, 'test']], ['WRAP', [['AttributeFactory', ['id', 'idcolumn', None]]]]]], ['Matcher', ['to']], 'test', None]]]]], ['second', [[], [['RelationFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], ['AttributeFactory', [None, None, 'type']], ['Matcher', [None, ['AttributeFactory', [None, None, 'label']], ['AttributeFactory', [None, None, 'label2']], ['AttributeFactory', ['name', None, 'test']], ['WRAP', [['AttributeFactory', ['id', 'idcolumn', None]]]]]], ['Matcher', ['to']], 'test', None]]]]], ['third', [[], []]]]
+    ground_truth = [['entity', [[['WRAPPER', [['NodeFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], [['AttributeFactory', [None, None, 'label']], ['WRAP', [['AttributeFactory', [None, None, 'label2']]]], ['WRAP', [['AttributeFactory', [None, None, 'label3']], ['AttributeFactory', [None, None, 1234]]]], ['AttributeFactory', [None, 'column', None]]], 'test', 'nodeid']], ['AttributeFactory', [None, None, 'someargument']], ['AttributeFactory', [None, None, 123]]]]], [['RelationshipFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], ['AttributeFactory', [None, None, 'type']], ['Matcher', [None, ['AttributeFactory', [None, None, 'label']], ['AttributeFactory', [None, None, 'label2']], ['AttributeFactory', ['name', None, 'test']], ['WRAP', [['AttributeFactory', ['id', 'idcolumn', None]]]]]], ['Matcher', ['to']], 'test', None]]]]], ['second', [[], [['RelationshipFactory', [[['AttributeFactory', ['test', 'column', None]], ['AttributeFactory', ['test1', None, 'static \\" string']], ['WRAP2', [['WRAP', [['AttributeFactory', ['test2', 'col', None]]]]]]], ['AttributeFactory', [None, None, 'type']], ['Matcher', [None, ['AttributeFactory', [None, None, 'label']], ['AttributeFactory', [None, None, 'label2']], ['AttributeFactory', ['name', None, 'test']], ['WRAP', [['AttributeFactory', ['id', 'idcolumn', None]]]]]], ['Matcher', ['to']], 'test', None]]]]], ['third', [[], []]]]
     parser = SchemaConfigParser()
     assert ground_truth == parser.parse(input_string)
 
@@ -163,8 +163,8 @@ def test_parser_raises_illegal_token():
 def WRAPPER(resource):
     return resource
 
-def get_rel_type(relation_factory):
-    return relation_factory._type.static_attribute_value
+def get_rel_type(relationship_factory):
+    return relationship_factory._type.static_attribute_value
 
 def get_labels(node_factory):
     return [af.static_attribute_value for af in node_factory._labels]
@@ -178,8 +178,8 @@ def get_filepath(name):
 
 def test_full_compiler_matcher_conditions():
     """Tests if conditions of matcher (dynamic and static) are parsed and compiled correctly"""
-    relation_supplychain = compile_schema(load_file(get_filepath("matcher_condition")))[0]["entity"][1] # get relation supplychain
-    for rf in relation_supplychain.factories:
+    relationship_supplychain = compile_schema(load_file(get_filepath("matcher_condition")))[0]["entity"][1] # get relationship supplychain
+    for rf in relationship_supplychain.factories:
         type =  get_rel_type(rf) 
         assert type in ["static-dyn", "static", "two-static", "dyn", "two-dyn", "two-dyn-two-static"]
         # check from matcher
@@ -211,11 +211,11 @@ def test_full_compiler_node_primary():
         if label in ["pk"]:
             assert(nf._primary_key == "pk")
 
-def test_full_compiler_relations_primary():
-    """Test if primary keys for relations are correct parsed"""
-    _, relation_supplychain = compile_schema(load_file(get_filepath("primary_keys")))[0]["entity"]
+def test_full_compiler_relationships_primary():
+    """Test if primary keys for relationships are correct parsed"""
+    _, relationship_supplychain = compile_schema(load_file(get_filepath("primary_keys")))[0]["entity"]
      
-    for rf in relation_supplychain.factories:
+    for rf in relationship_supplychain.factories:
         type =  get_rel_type(rf) 
 
         assert(type in ["noattr", "nopk", "pk"])
@@ -241,20 +241,20 @@ def check_types(list_of_attribuets):
 
 def test_full_compiler_typing():
     """Test if different types for static arguments are correctly parsed"""
-    node_supplychain, relation_supplychain = compile_schema(load_file(get_filepath("typing")))[0]["entity"]
+    node_supplychain, relationship_supplychain = compile_schema(load_file(get_filepath("typing")))[0]["entity"]
 
     for nf in node_supplychain.factories:
         attributes = af2str(nf._attributes)
         check_types(attributes)
 
-    for rf in relation_supplychain.factories:
+    for rf in relationship_supplychain.factories:
         # check to matcher
         fm = rf._to_matcher
         conditions = af2str(fm._conditions)
         check_types(conditions)
 
 def test_full_compiler_dynkeys():
-    node_supplychain, relation_supplychain = compile_schema(load_file(get_filepath("dynamic_keys")))[0]["entity"]
+    node_supplychain, relationship_supplychain = compile_schema(load_file(get_filepath("dynamic_keys")))[0]["entity"]
     
     for nf in node_supplychain.factories:
         for label in nf._labels:
@@ -262,15 +262,15 @@ def test_full_compiler_dynkeys():
         for attr in nf._attributes:
             assert(attr._entity_attribute == "dynamic_key")
     
-    for rf in relation_supplychain.factories:
+    for rf in relationship_supplychain.factories:
         assert(rf._type._entity_attribute == "dynamic_key")
         for attr in nf._attributes:
             assert(attr._entity_attribute == "dynamic_key")
         
 def test_full_compiler_empty_entity():
-    node_supplychain, relation_supplychain = compile_schema(load_file(get_filepath("empty_entity")))[0]["entity"]
+    node_supplychain, relationship_supplychain = compile_schema(load_file(get_filepath("empty_entity")))[0]["entity"]
     assert len(node_supplychain.factories) == 0 
-    assert len(relation_supplychain.factories) == 0
+    assert len(relationship_supplychain.factories) == 0
 
 def test_compiler_raises_same_entity_twice():
     """Make sure compiler raises exception when defining an entity twice."""
