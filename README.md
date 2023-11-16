@@ -14,9 +14,9 @@ The library is built specifically for converting data into a [neo4j](https://neo
 
 
 ## Installation
-If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v0.7.2][latest_tag]):
+If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v1.0.0][latest_tag]):
 ```
-pip install git+ssh://git@github.com/sg-dev/rel2graph@v0.7.2
+pip install git+ssh://git@github.com/sg-dev/rel2graph@v1.0.0
 ```
 
 If you don't have ssh set up, download the latest wheel [here][latest_wheel] and install the wheel with:
@@ -90,7 +90,7 @@ converter()
 # Known issues
 If you encounter a bug or an unexplainable behavior, please check the [known issues](https://github.com/sg-dev/rel2graph/labels/bug) list. If your issue is not found, submit a new one.
 
-[latest_version]: v0.7.2
-[latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v0.7.2
-[latest_wheel]: https://github.com/sg-dev/rel2graph/releases/download/v0.7.2/rel2graph-0.7.2-py3-none-any.whl
+[latest_version]: v1.0.0
+[latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v1.0.0
+[latest_wheel]: https://github.com/sg-dev/rel2graph/releases/download/v1.0.0/rel2graph-1.0.0-py3-none-any.whl
 [wiki]: https://rel2graph.jkminder.ch/index.html
