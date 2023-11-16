@@ -34,7 +34,7 @@ jobs:
               NEO4J_dbms_connector_bolt_advertised__address: localhost:7687
               NEO4JLABS_PLUGINS: '["apoc"]'
             options: >-
-              --health-cmd "cypher-shell 'match (n) return count(n)'"
+              --health-cmd "cypher-shell -u neo4j -pw password 'match (n) return count(n)'"
               --health-timeout 10s
               --health-retries 20
               --health-interval 10s
