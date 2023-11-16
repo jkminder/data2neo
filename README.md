@@ -1,18 +1,18 @@
-[![Tests Neo4j 4.4.15](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j4.yml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j4.yml) [![Tests Neo4j 5.2.0](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml)
-[![Python Versions](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%C2%A03.9%C2%A0%7C%C2%A03.10%C2%A0%7C%203.11-orange)](https://github.com/sg-dev/rel2graph/actions/workflows) 
+[![Tests Neo4j 5.13](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml)
+[![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%C2%A03.9%C2%A0%7C%C2%A03.10%C2%A0%7C%203.11%C2%A0%7C%203.12-orange)](https://github.com/sg-dev/rel2graph/actions/workflows) 
 
 # Rel2graph
 
 **Rel2graph** is a library that simplifies the convertion of data in relational format to a graph knowledge database. It reliefs you of the cumbersome manual work of writing the conversion code and let's you focus on the conversion schema and data processing.
 
-The library is built specifically for converting data into a [neo4j](https://neo4j.com/) graph. The library further supports extensive customization capabilities to clean and remodel data. As neo4j python client it uses the [py2neo](https://py2neo.org/2021.1/index.html) library.
+The library is built specifically for converting data into a [neo4j](https://neo4j.com/) graph (minimum version 5.2). The library further supports extensive customization capabilities to clean and remodel data. As neo4j python client it uses the native [neo4j python client](https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/).
 
 
  - [Latest Releases](https://github.com/sg-dev/rel2graph/tags)
  - [Documentation](https://rel2graph.jkminder.ch)
  - [Developer Interface](https://rel2graph.jkminder.ch/api/api.html)
 
-Note: The [py2neo](https://py2neo.org/2021.1/index.html) library does not support parallel relations of the same type (same source, same target and same type). If your graph requires such parallel relations please checkout the provided [py2neo extensions](https://rel2graph.jkminder.ch/py2neo_extensions.html).
+
 ## Installation
 If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v0.7.2][latest_tag]):
 ```
@@ -53,19 +53,20 @@ ENTITY("Person"):
         - Since = "4ever"
 ```
 The library itself has 2 basic elements, that are required for the conversion: the `Converter` that handles the conversion itself and an `Iterator` that iterates over the relational data. The iterator can be implemented for arbitrary data in relational format. Rel2graph currently has preimplemented iterators under:
-- `rel2graph.relational_modules.odata`  for [OData](https://www.odata.org) databases (based on [pyodata](https://pyodata.readthedocs.io))
+- `rel2graph.relational_modules.sqlite`  for [SQLite](https://www.sqlite.org/index.html) databases
 - `rel2graph.relational_modules.pandas` for [Pandas](https://pandas.pydata.org) dataframes
 
-We will use the `PandasDataframeIterator` from `rel2graph.relational_modules.pandas`. Further we will use the `IteratorIterator` that can wrap multiple iterators to handle multiple dataframes. Since a pandas dataframe has no type/table name associated, we need to specify the name when creating a `PandasDataframeIterator`. We also define define a custom function `append` that can be refered to in the schema file and that appends a string to the attribute value. For an entity with `Flower["petal_width"] = 5`, the outputed node will have the attribute `petal_width = "5 milimeters"`.
+We will use the `PandasDataFrameIterator` from `rel2graph.relational_modules.pandas`. Further we will use the `IteratorIterator` that can wrap multiple iterators to handle multiple dataframes. Since a pandas dataframe has no type/table name associated, we need to specify the name when creating a `PandasDataFrameIterator`. We also define define a custom function `append` that can be refered to in the schema file and that appends a string to the attribute value. For an entity with `Flower["petal_width"] = 5`, the outputed node will have the attribute `petal_width = "5 milimeters"`.
 ```python
-from py2neo import Graph
+import neo4j
 import pandas as pd 
 from rel2graph.relational_modules.pandas import PandasDataframeIterator 
 from rel2graph import IteratorIterator, Converter, Attribute, register_attribute_postprocessor
 from rel2graph.utils import load_file
 
-# Create a connection to the neo4j graph with the py2neo Graph object
-graph = Graph(scheme="bolt", host="localhost", port=7474,  auth=('neo4j', 'password')) 
+# Setup the neo4j uri and credentials
+uri = "bolt:localhost:7687"
+auth = neo4j.basic_auth("neo4j", "password")
 
 people = ... # a dataframe with peoples data (ID, FirstName, LastName, FavoriteFlower)
 people_iterator = PandasDataframeIterator(people, "Person")
@@ -82,7 +83,7 @@ def append(attribute, append_string):
 iterator = IteratorIterator([pandas_iterator, iris_iterator])
 
 # Create converter instance with schema, the final iterator and the graph
-converter = Converter(load_file("schema.yaml"), iterator, graph)
+converter = Converter(load_file("schema.yaml"), iterator, uri, auth)
 # Start the conversion
 converter()
 ```

@@ -14,12 +14,12 @@ from enum import IntEnum
 import time
 import os
 import multiprocessing as mp
-from py2neo import Graph, Node, Relationship
 from itertools import chain
 import pickle
+from neo4j import GraphDatabase, Auth, Driver
 
 from .resource_iterator import ResourceIterator
-from .graph_elements import Graph, Subgraph, NodeMatcher, Attribute, Relation
+from ..neo4j import Subgraph, Relationship, Node
 from .schema_compiler import compile_schema
 from .factories import Matcher, Resource
 from .global_state import GlobalSharedState
@@ -32,8 +32,6 @@ class WorkType(IntEnum):
 
 __process_config = None
 
-def _get_graph():
-    return __process_config.graph
 
 class WorkerConfig:
     """Config container including information, data and configuration of the convertion that has to be done.
@@ -41,8 +39,9 @@ class WorkerConfig:
     Attributes:
         schema: The schema that is used to convert the resources
         factories: The factories that are used to convert the resources
-        graph_lock: Lock to ensure that only one thread is writing to the graph at a time
-        graph: The graph that is used to store the converted resources
+        graph_lock: Lock to ensure that only one process is writing to the graph at a time
+        neo4j_uri: The uri of the neo4j database
+        neo4j_auth: The authentication for the neo4j database 
         exit_flag: Flag that is set when the worker should exit
         nodes_flag: Flag that is set when the worker should process nodes
         processed_resources: Counter for the number of processed resources
@@ -51,16 +50,17 @@ class WorkerConfig:
         processed_lock: Lock to ensure that only one process is writing to the counters at a time
     """
 
-    def __init__(self) -> None:
+    def __init__(self, neo4j_uri: str, neo4j_auth: Auth) -> None:
         """Initialises a Worker config with the required data. Part of the data is set when the worker is started.
         
         Args:
-            schema: The schema that is used to convert the resources
+            neo4j_uri: The uri of the neo4j database
+            neo4j_auth: The authentication for the neo4j database
         """
         self.factories, self.node_mask, self.relation_mask = None, None, None
         self.graph_lock = mp.Lock()
-        self.graph = None
-
+        self.neo4j_uri = neo4j_uri
+        self.neo4j_auth = neo4j_auth
         self.exit_flag = mp.Event()
         self.exit_flag.clear()
         self.nodes_flag = mp.Event()
@@ -68,6 +68,19 @@ class WorkerConfig:
         self.processed_nodes = mp.Value('i', 0)
         self.processed_relations = mp.Value('i', 0)
         self.processed_lock = mp.Lock()
+
+        self._graph_driver = None
+    
+    @property
+    def graph_driver(self) -> Driver:
+        """Gets the graph driver."""
+        if self._graph_driver is None:
+            raise ValueError("Graph driver is not set. Please call setup() first.")
+        return self._graph_driver
+    
+    def setup(self) -> None:
+        """Sets up the worker config. This is called when the worker is started."""
+        self._graph_driver = GraphDatabase.driver(self.neo4j_uri, auth=self.neo4j_auth)
 
     def set_work_type(self, work_type: WorkType):
         if work_type == WorkType.NODE:
@@ -80,7 +93,7 @@ def commit_wrap(function):
     try:
         function()
     except Exception as e:
-        logger.error(f"Py2neo Exception '{type(e).__name__}': " + str(e))
+        logger.error(f"Neo4j Exception '{type(e).__name__}': " + str(e))
         logger.error("Sleeping for 10 second and retrying commit")
         time.sleep(10)
         function()
@@ -92,7 +105,8 @@ def commit_batch(to_create: Subgraph, to_merge: Subgraph) -> None:
         
         # Creating does not rely on synchronous executions
         if len(to_create.nodes) + len(to_create.relationships) > 0:
-            commit_wrap(lambda: __process_config.graph.create(to_create))
+            with __process_config.graph_driver.session() as session:
+                commit_wrap(lambda: session.execute_write(to_create.__db_create__))
             nodes_committed += len(to_create.nodes)
             relations_committed += len(to_create.relationships)
             
@@ -100,7 +114,8 @@ def commit_batch(to_create: Subgraph, to_merge: Subgraph) -> None:
         # Using locks to enforce this
         if len(to_merge.nodes) + len(to_merge.relationships) > 0:
             with __process_config.graph_lock:
-                commit_wrap(lambda: __process_config.graph.merge(to_merge))
+                with __process_config.graph_driver.session() as session:
+                    commit_wrap(lambda: session.execute_write(to_merge.__db_merge__))
             nodes_committed += len(to_merge.nodes)
             relations_committed += len(to_merge.relationships)
 
@@ -109,49 +124,6 @@ def commit_batch(to_create: Subgraph, to_merge: Subgraph) -> None:
             with __process_config.processed_lock:
                 __process_config.processed_nodes.value += nodes_committed
                 __process_config.processed_relations.value += relations_committed
-
-
-
-def picklize_supplies(resource) -> Resource:
-    """
-    Removes the graph from the nodes and relations of the resource. Further we parse the relations to a tuple because
-    of their dynamic type.
-    """
-    for key in resource.supplies:
-        supply = resource.supplies[key]
-        for node in supply.nodes:
-            if node.graph is not None:
-                node.graph = 0
-        if not isinstance(supply, Node) and supply.relationships is not None:
-            relations = []
-            if resource.supplies[key].relationships is not None:
-                for rel in supply.relationships:
-                    if rel.start_node.graph is not None:
-                        rel.start_node.graph = 0
-                    if rel.end_node.graph is not None:
-                        rel.end_node.graph = 0
-                    relations.append((rel.start_node, rel.__class__.__name__, rel.end_node, rel.identity))
-            resource.supplies[key] = (set(supply.nodes), relations)
-
-def rebuild_supplies(resource: Resource) -> Resource:
-    """
-    Adds the graph to the nodes and relations of the resource
-    """
-    for key in resource.supplies: 
-        if isinstance(resource.supplies[key], tuple):
-            relations = []
-            for (start, typename, end, identity) in resource.supplies[key][1]:
-                rel = Relationship(start, typename, end)
-                rel.identity = identity
-                if identity is not None:
-                    rel.graph = __process_config.graph
-                    rel.start_node.graph = __process_config.graph
-                    rel.end_node.graph = __process_config.graph
-                relations.append(rel)
-            resource.supplies[key] = Subgraph(resource.supplies[key][0], relations)
-        for node in resource.supplies[key].nodes:
-            if node.graph == 0:
-                node.graph = __process_config.graph
 
 def process_batch(batch) -> None:
     """
@@ -176,10 +148,6 @@ def process_batch(batch) -> None:
                 # This is mainly done for performance reasons, as the conversion is not needed
 
                 logger.debug(f"Processing {resource}")
-
-                # add graph to resource (only necessary for relations)
-                if work_type == WorkType.RELATION:
-                    rebuild_supplies(resource)
                 
                 factory = __process_config.factories[resource.type][int(work_type)]
 
@@ -229,9 +197,6 @@ def process_batch(batch) -> None:
         raise err
     
     if work_type == WorkType.NODE:
-        # Prepare resources for pickling
-        for resource in processed_resources:
-            picklize_supplies(resource)
         # For memory reasons we return the processed resources as a binary string
         bin_resources = pickle.dumps(processed_resources)
         return bin_resources
@@ -271,12 +236,13 @@ def update_progress_bar(progress_bar, num, exit_flag) -> None:
         progress_bar.refresh()
         time.sleep(0.1)
 
-def init_process_state(proc_config: WorkerConfig, graph_class: type, graph_profile: "py2neo.ServiceProfile", conversion_objects: Tuple, global_shared_state: Dict[str, Any]):
+def init_process_state(proc_config: WorkerConfig, conversion_objects: Tuple, global_shared_state: Dict[str, Any]):
     '''Initialize each process with a global config.
     '''
     global __process_config
     __process_config = proc_config
-    __process_config.graph = graph_class(profile=graph_profile)
+    # Setup the worker config in the local process (this sets up the graph driver)
+    __process_config.setup()
 
     # Load the conversion objects
     factories,node_mask,relation_mask = conversion_objects
@@ -284,34 +250,34 @@ def init_process_state(proc_config: WorkerConfig, graph_class: type, graph_profi
     __process_config.node_mask = node_mask
     __process_config.relation_mask = relation_mask
     
-    # Set the matcher to the graph
+    # Set driver for matcher
     # TODO: This is a hacky way to set the matcher to the graph. 
-    Matcher.graph_matcher = NodeMatcher(__process_config.graph)
+    Matcher.graph_driver = __process_config.graph_driver
 
     # Set the global shared state
     GlobalSharedState.set_state(global_shared_state)
-    GlobalSharedState._set_graph(__process_config.graph)
+    GlobalSharedState._set_graph_driver(__process_config.graph_driver)
 
 def cleanup_process_state():
     '''Cleanup the process state. Only used in serial processing.
     '''
     global __process_config
-    del __process_config.graph
     del __process_config
     __process_config = None
-    GlobalSharedState._del_graph()
+    GlobalSharedState._del_graph_driver()
 
 
 class Converter:
     """The converter handles the whole conversion pipeline.  """
 
-    def __init__(self, schema: str, iterator: ResourceIterator, graph: Graph, num_workers: int = 1, serialize: bool = False, batch_size: int = 5000) -> None:
+    def __init__(self, schema: str, iterator: ResourceIterator, neo4j_uri: str, neo4j_auth: Auth, num_workers: int = 1, serialize: bool = False, batch_size: int = 5000) -> None:
         """Initialises a converter. Note that this is a singleton and only the most recent instantiation is valid.
         
         Args:
             schema: The schema to convert.
             iterator: The resource iterator.
-            graph: The neo4j graph (from py2neo)
+            neo4j_uri: The uri of the neo4j database.
+            neo4j_auth: The authentication for the neo4j database.
             num_workers: The number of parallel workers. Please make sure that your usage supports parallelism. To use serial processing set this to 1. (default: 1)
             serialize: If true, the converter will make sure that all resources are processed serially and does not use any buffering. This is useful if you want to make sure that all resources are processed 
                 and committed to the graph in the same order as they are returned by the iterator. Note that you can't set both serialize to true and set num_workers > 1. (default: False)
@@ -319,13 +285,17 @@ class Converter:
         """
         if serialize and num_workers > 1:
             raise ValueError("You can't use serialization and parallel processing (num_workers > 1) at the same time.")
+        
+        # Verify connection to neo4j
+        self._neo4j_uri = neo4j_uri
+        self._neo4j_auth = neo4j_auth
+        driver = GraphDatabase.driver(self._neo4j_uri, auth=self._neo4j_auth)
+        driver.verify_connectivity()
+        driver.close()
 
         # Compile the schema 
         self._factories, self._node_mask, self._relation_mask =  compile_schema(schema) 
-
-
         self.iterator = iterator
-        self._graph = graph
         self._num_workers = num_workers
 
         # Parse the schema and compile it into factories
@@ -372,7 +342,7 @@ class Converter:
             skip_nodes: (default: False) If true creation of nodes will be skiped. ATTENTION: this might lead to problems if you use identifiers.
             skip_relation: If true creation of relations will be skiped (default: False)
         """
-        config = WorkerConfig()
+        config = WorkerConfig(self._neo4j_uri, self._neo4j_auth)
 
         conversion_objects = (self._factories, self._node_mask, self._relation_mask)
 
@@ -392,7 +362,7 @@ class Converter:
         if not self._serialize:
             logger.info(f"Running convertion with {self._num_workers} parallel workers.")
             with mp.Pool(processes=self._num_workers, initializer=init_process_state, 
-                        initargs=(config, self._graph.__class__, self._graph.service.profile, conversion_objects, GlobalSharedState.get_state()), 
+                        initargs=(config, conversion_objects, GlobalSharedState.get_state()), 
                         maxtasksperchild=50) as pool:
                 if not skip_nodes:
                     config.set_work_type(WorkType.NODE)
@@ -414,7 +384,7 @@ class Converter:
             # Serialize the processing
             try:
                 # Initialize the process state
-                init_process_state(config, self._graph.__class__, self._graph.service.profile, conversion_objects, GlobalSharedState.get_state())
+                init_process_state(config, conversion_objects, GlobalSharedState.get_state())
                 logger.info("Starting serial processing.")
                 if not skip_nodes:
                     config.set_work_type(WorkType.NODE)

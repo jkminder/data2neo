@@ -14,7 +14,7 @@ import logging
 
 from .resource import Resource
 from .matcher import Matcher
-from ..graph_elements import Attribute, GraphElement, Node, Relation, Subgraph
+from ...neo4j.graph_elements import Attribute, GraphElement, Node, Relationship, Subgraph
 from .registrar import register_factory
 
 logger = logging.getLogger(__name__)
@@ -184,7 +184,7 @@ class NodeFactory(SubgraphFactory):
             return Subgraph()
         labels = [label_factory.construct(resource) for label_factory in self._labels]
         attributes = [attr_factory.construct(resource) for attr_factory in self._attributes]
-        return Node([l for l in labels if l is not None], [attr for attr in attributes if attr is not None], self._primary_key)
+        return Node.from_attributes([l for l in labels if l is not None], [attr for attr in attributes if attr is not None], self._primary_key)
 
 @register_factory
 class RelationFactory(SubgraphFactory):
@@ -229,14 +229,14 @@ class RelationFactory(SubgraphFactory):
             return Subgraph()
         from_nodes = self._from_matcher.match(resource)
         to_nodes = self._to_matcher.match(resource)
-        type = self._type.construct(resource)
-        logger.debug(f"For relation type {type.value} matched {len(from_nodes)} from_nodes and {len(to_nodes)} to nodes")
+        rel_type = self._type.construct(resource)
+        logger.debug(f"For relation type {rel_type.value} matched {len(from_nodes)} from_nodes and {len(to_nodes)} to nodes")
         attributes = [attr_factory.construct(resource) for attr_factory in self._attributes]
         attributes = [attr for attr in attributes if attr is not None]
         relations = Subgraph()
         for from_node in from_nodes:
             for to_node in to_nodes:
-                relation = Relation(from_node, type, to_node, attributes)
+                relation = Relationship.from_attributes(from_node, rel_type, to_node, attributes)
                 relation.__primarykey__ = self._primary_key
                 relations = relations | relation
         return relations

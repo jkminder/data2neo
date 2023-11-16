@@ -1,9 +1,10 @@
 import logging
-from typing import List, Tuple
+from typing import List
 
 from .resource import Resource
 from .registrar import register_factory
-from ..graph_elements import Node, NodeMatcher
+from ...neo4j.graph_elements import Node
+from ...neo4j.cypher import cypher_join, _match_clause
 
 logger = logging.getLogger(__name__)
 
@@ -14,9 +15,9 @@ class Matcher:
     It is used for RelationFactories that need to dynamically match nodes based on a resource
 
     Static Attributes:
-        graph_matcher: The graph matcher that is used to query the graph, must be set before querying
+        graph_driver: The driver used for the graph, must be set before using the matcher
     """
-    graph_matcher: NodeMatcher = None
+    graph_driver: 'GraphDatabase' = None
 
 
     def __init__(self, node_id: str = None, *conditions: 'AttributeFactory') -> None:
@@ -77,7 +78,24 @@ class Matcher:
             parsed_labels = [attr.value for attr in constructed_labels if attr is not None]
 
             logger.debug(f"Matching based on labels: '{parsed_labels}' and conditions: {parsed_conditions}")
-            match_list = Matcher.graph_matcher.match(*parsed_labels, 
-                                                   **parsed_conditions).all()
+            
+            if len(parsed_conditions) == 0:
+                keys, values = [], []
+            else:
+                keys, values = zip(*parsed_conditions.items())
+            
+            if len(keys) == 1:
+                value = "r[0]"
+            else:
+                value = "r"
+            clause = _match_clause("n", (tuple(parsed_labels), *keys), value)
+            clause, params = cypher_join("UNWIND $data AS r", clause, "RETURN LABELS(n) as labels, n as properties, elementId(n) as identity", data=[values])
+
+            with Matcher.graph_driver.session() as session:
+                match_list = session.run(clause, **params).data()
+                logger.debug(f"Found {len(match_list)} matches")
+
+            # Convert to nodes
+            match_list = [Node.from_dict(r['labels'], r['properties'], identity=r["identity"]) for r in match_list]
             return match_list
 

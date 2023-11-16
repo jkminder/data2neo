@@ -4,8 +4,10 @@ ENTITY("Flower"):
         - sepal_width = FLOAT(Flower.sepal_width)
         - petal_length = FLOAT(Flower.petal_length)
         - petal_width = FLOAT(Flower.petal_width)
+    
     NODE("Species", "BioEntity", Flower.species) species:
         + Name = Flower.species
+
     RELATION(flower, "is", species):
     
 ENTITY("Person"):
@@ -14,7 +16,7 @@ ENTITY("Person"):
         - FirstName = Person.FirstName
         - Renamed = Person.LastName
         - Static = "staticstring"
-    RELATION(person, "likes", MATCH("Species", Name=Person.FavoriteFlower)):
+    MERGE_RELATIONSHIPS(RELATION(person, "likes", MATCH("Species", Name=Person.FavoriteFlower))):
         - Since = "4ever"
         - EntityAttribute = INT(Person.ID)
 

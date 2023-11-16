@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Tests Neo4j 5.x
+name: Tests Neo4j 5.2 | 5.13
 
 on:
   push:
@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
-        neo4j-version: ["5.2.0"]   
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        neo4j-version: ["5.2", "5.13"]   
   
     services:
           neo4j:
@@ -30,13 +30,13 @@ jobs:
               apoc.import.file.enabled: "true" # For 5.x
               apoc.import.file.use_neo4j_config: "true" # For 5.x
               NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
-              NEO4J_dbms_security_auth__enabled: "false"
+              NEO4J_AUTH: neo4j/password
               NEO4J_dbms_connector_bolt_advertised__address: localhost:7687
               NEO4JLABS_PLUGINS: '["apoc"]'
             options: >-
-              --health-cmd "cypher-shell 'match (n) return count(n)'"
+              --health-cmd "cypher-shell -u neo4j -p password 'match (n) return count(n)'"
               --health-timeout 10s
-              --health-retries 20
+              --health-retries 30
               --health-interval 10s
               --health-start-period 30s
             ports:

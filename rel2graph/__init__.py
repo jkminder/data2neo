@@ -10,6 +10,7 @@ from .core.factories.registrar import (
                             register_wrapper
                             )
 from .core.factories.matcher import Matcher
-from .core.graph_elements import Attribute
+from .neo4j.graph_elements import Attribute
 from .core.schema_compiler import SchemaConfigException
 from .core.global_state import GlobalSharedState
+
