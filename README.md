@@ -60,7 +60,7 @@ We will use the `PandasDataFrameIterator` from `rel2graph.relational_modules.pan
 ```python
 import neo4j
 import pandas as pd 
-from rel2graph.relational_modules.pandas import PandasDataframeIterator 
+from rel2graph.relational_modules.pandas import PandasDataFrameIterator 
 from rel2graph import IteratorIterator, Converter, Attribute, register_attribute_postprocessor
 from rel2graph.utils import load_file
 
@@ -69,9 +69,9 @@ uri = "bolt:localhost:7687"
 auth = neo4j.basic_auth("neo4j", "password")
 
 people = ... # a dataframe with peoples data (ID, FirstName, LastName, FavoriteFlower)
-people_iterator = PandasDataframeIterator(people, "Person")
+people_iterator = PandasDataFrameIterator(people, "Person")
 iris = ... # a dataframe with the iris dataset
-iris_iterator = PandasDataframeIterator(iris, "Flower")
+iris_iterator = PandasDataFrameIterator(iris, "Flower")
 
 # register a custom data processing function
 @register_attribute_postprocessor
