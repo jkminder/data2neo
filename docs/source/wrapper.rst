@@ -9,7 +9,7 @@ or a **postprocessor** (processing the factory's output). They are created by wr
 If you need more sophisticated functionality that uses both, you can define an entire wrapper class. 
 This chapter will guide you through the creation of your own wrappers.
 
-.. image:: assets/images/wrapper.jpg
+.. image:: assets/images/wrapper.png
     :width: 400
 
 Background
@@ -48,14 +48,13 @@ SubgraphFactories
 -----------------
 
 *SubgraphFactories* produce, as the name suggests, 
-a py2neo `Subgraph <https://py2neo.org/2021.1/data/index.html#subgraph-objects>`_ object containing py2neo 
-`Nodes <https://py2neo.org/2021.1/data/index.html#node-objects>`_ and `Relationships <https://py2neo.org/2021.1/data/index.html#relationship-objects>`_. 
-When your write ``NODE(...)`` or ``RELATION(...)`` in the schema file, 
+a |Subgraph| object containing |Node| s and |Relationship| s. 
+When your write ``NODE(...)`` or ``RELATIONSHIP(...)`` in the schema file, 
 the parser will create a *NodeFactory* or a *RelationFactory*, respectively, out of your specification. 
 Both of them are *SubgraphFactories*. The *NodeFactory* returns a subgraph with a maximum of one node, and the 
 *RelationFactory* returns a subgraph with an arbitrary number of relationships. 
-The nodes and relations of a subgraph can be accessed with ``subgraph.nodes`` and ``subgraph.relationships``. 
-Please check out the documentation of the py2neo objects for details about how to operate with them (click on the links).
+The nodes and relationships of a subgraph can be accessed with ``subgraph.nodes`` and ``subgraph.relationships``. 
+Please check out the documentation of the :doc:`neo4j integration <neo4j>`  for details about how to operate with them.
 
 Registering
 ~~~~~~~~~~~
@@ -165,7 +164,7 @@ As for pre/postprocessor functions, the constructor can take static string argum
 Further, the wrapper class needs to implement the ``construct(resource)`` method. 
 To get the resulting product of the wrapped factory, call ``super().construct(resource)`` in your ``construct`` function.
 
-The following example checks that at least one relation exists in the resulting subgraph, 
+The following example checks that at least one relationshipexists in the resulting subgraph, 
 iff the provided resource is not None. This could not be done with simple pre/postprocessor functions. 
 Obviously, everything that can be done with pre/postprocessor functions can also be done with full wrapper classes. 
 
@@ -194,7 +193,7 @@ schema.yaml
 
     ENTITY("type"):
         ...
-        REQUIRED(RELATION(from, "relation type", MATCH("other", key="value")), "No match for label other and key=value"):
+        REQUIRED(RELATIONSHIP(from, "relationship type", MATCH("other", key="value")), "No match for label other and key=value"):
 
 
 .. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
@@ -203,6 +202,9 @@ schema.yaml
 .. |Attribute| replace:: :py:class:`Attribute <rel2graph.Attribute>`
 .. |SubgraphWrapper| replace:: :py:class:`SubgraphFactoryWrapper <rel2graph.SubgraphFactoryWrapper>`
 .. |AttributeWrapper| replace:: :py:class:`AttributeFactoryWrapper <rel2graph.AttributeFactoryWrapper>`
+.. |Subgraph| replace:: :py:class:`Subgraph <rel2graph.neo4j.Subgraph>`
+.. |Node| replace:: :py:class:`Node <rel2graph.neo4j.Node>`
+.. |Relationship| replace:: :py:class:`Relationship <rel2graph.neo4j.Relationship>`
 
 .. _neo4j: https://neo4j.com/
 .. _py2neo: https://py2neo.org/2021.1/index.html

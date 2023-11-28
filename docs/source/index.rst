@@ -12,22 +12,35 @@ and lets you focus on the conversion schema and data processing.
 
 The library is built specifically for converting data into a neo4j_ graph. 
 The library further supports extensive customisation capabilities to clean and remodel data. 
-As neo4j python client it uses the py2neo_ library.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    Quick Start <quick_start>
+   installation
    Introduction <introduction>
    Converter <converter>
-   Schema syntax <conversion_schema>
+   Conversion Schema <conversion_schema>
    resource
    wrapper
+   neo4j
    common_modules
-   py2neo_extensions
    information_for_developers
-   API reference <api/api>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Guides:
+
+   guides/update1.0.0
+
+.. toctree::
+   :caption: API reference:
+   
+   Core <api/core>
+   Relational modules <api/relational_modules>
+   Neo4j <api/neo4j>
+   Utils <api/utils>
 
 
 Indices and tables

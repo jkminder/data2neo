@@ -3,6 +3,36 @@ Common modules
 
 The rel2graph library comes with some predefined wrappers. To use them you must import them from the ``rel2graph.common_modules`` module. The following wrappers are available:
 
+
+general
+-------
+.. code-block:: python
+
+    import rel2graph.common_modules
+
+**MERGE_RELATIONSHIPS**
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Subgraph postprocessor that merges relationships between the same two nodes. Only applicable if a GraphWithParallelRelations is used (otherwise this is the default) and 
+if the relationship has no primary key.
+
+Usage:
+
+.. code-block:: yaml
+    
+    ENTITY("Test"):
+        NODE("Test") n1:
+            + name = "first"
+        NODE("Test") n2:
+            + name = "second"
+        
+        MERGE_RELATIONSHIP(RELATIONSHIP(n1, "REL", n2)):
+
+        MERGE_RELATIONSHIP(RELATIONSHIP(n1, "REL", n2)):
+
+
+This will create just one relationship between n1 and n2.
+
 types
 --------
 .. code-block:: python

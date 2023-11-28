@@ -17,8 +17,8 @@ from ..neo4j.graph_elements import _GhostPrimaryKey
 @register_subgraph_postprocessor
 def MERGE_RELATIONSHIPS(subgraph):
     """
-    Subgraph postprocessor that merges relations between the same two nodes. Only applicable if a GraphWithParallelRelations is used (otherwise this is the default) and 
-    if the relation has no primary key.
+    Subgraph postprocessor that merges relationships between the same two nodes. Only applicable if a GraphWithParallelRelations is used (otherwise this is the default) and 
+    if the relationship has no primary key.
     """
     for relationships in subgraph.relationships:
         if getattr(relationships, "__primarykey__", None) is None:

@@ -268,7 +268,7 @@ def cleanup_process_state():
 class Converter:
     """The converter handles the whole conversion pipeline.  """
 
-    def __init__(self, schema: str, iterator: ResourceIterator, neo4j_uri: str, neo4j_auth: Auth, num_workers: int = 1, serialize: bool = False, batch_size: int = 5000) -> None:
+    def __init__(self, schema: str, iterator: ResourceIterator, neo4j_uri: str, neo4j_auth: Auth, num_workers: int = max(mp.cpu_count()-2, 1), serialize: bool = False, batch_size: int = 5000) -> None:
         """Initialises a converter. Note that this is a singleton and only the most recent instantiation is valid.
         
         Args:
@@ -276,7 +276,7 @@ class Converter:
             iterator: The resource iterator.
             neo4j_uri: The uri of the neo4j database.
             neo4j_auth: The authentication for the neo4j database.
-            num_workers: The number of parallel workers. Please make sure that your usage supports parallelism. To use serial processing set this to 1. (default: 1)
+            num_workers: The number of parallel workers. Please make sure that your usage supports parallelism. To use serial processing set this to 1. (default: cpu_count-2)
             serialize: If true, the converter will make sure that all resources are processed serially and does not use any buffering. This is useful if you want to make sure that all resources are processed 
                 and committed to the graph in the same order as they are returned by the iterator. Note that you can't set both serialize to true and set num_workers > 1. (default: False)
             batch_size: The batch size for the parallel processing. (default: 5000)

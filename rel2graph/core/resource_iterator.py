@@ -26,7 +26,7 @@ class ResourceIterator(ABC):
         raise NotImplementedError("__next__ is not implemented")
     
     @abstractmethod
-    def __len__(self) -> None:
+    def __len__(self) -> int:
         """Returns the total amount of resources in the iterator"""
         pass
     

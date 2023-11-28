@@ -100,7 +100,7 @@ Note that your iterator can also traverse resources of different types.
             """
             ...
 
-A note on **multithreading**: If you intend to multithread your conversion with multiple workers 
+A note on **multiprocessing**: If you intend to parallelise your conversion with multiple workers 
 (see chapter :doc:`converter`), be aware that ``next(iterator)`` is not parallelised. 
 If you want to leverage multiple threads for loading remote data, you must implement this in the |Resource| class (in ``__getitem__``).
 
@@ -131,7 +131,7 @@ Since a dataframe has no type associated, you need to also provide a type name.
 .. code-block:: python
 
     from rel2graph.relational_modules.pandas import PandasDataFrameIterator
-    iterator = PandasDataFrameIterator(pandas.Dataframe(...), "MyType")
+    iterator = PandasDataFrameIterator(pandas.DataFrame(...), "MyType")
 
 
 SQLite

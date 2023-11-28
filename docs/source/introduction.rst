@@ -16,9 +16,9 @@ Once the factory is set up and knows the schema, additional
 coding. The |Resource|  is an API that the user
 must connect to their data source.
 
-.. image:: assets/images/factory.png
+.. image:: assets/images/overview.png
     :width: 800
-    :alt: rel2graph factory
+    :alt: rel2graph overview
 
 The library supports the use of different resource types,
 allowing the user to process various entities. Rel2graph then
@@ -38,33 +38,18 @@ implementations might lazily fetch data as the library requests
 it. The |Converter| iteratively asks the |ResourceIterator| 
 for the next resource until the iterator reports no more resources to process.
 
-.. image:: assets/images/overview.png
-    :width: 800
-    :alt: rel2graph overview
-
 Lastly, it is possible to extend the factories by injecting custom pre- or postprocessing functions, called Wrappers, into
-the rel2graph pipeline. Wrappers allow the user to specify
+the rel2graph pipeline. :doc:`Wrappers <wrapper>` allow the user to specify
 arbitrary procedures that are applied to a Resource just before
 it is passed to the wrapped factory, or to the immediate output
 of the factory before it is passed back to the Converter.
 Wrappers can also be wrapped, allowing the user to build
-complex data integration pipelines.
+complex data integration pipelines. :doc:`Read more here. <wrapper>`
 
-.. image:: assets/images/wrapper.jpg
+.. image:: assets/images/wrapper.png
     :width: 800
     :alt: rel2graph wrapper
 
-A wrapper behaves like a factory and can be wrapped into another wrapper. 
-This allows you to insert arbitrary customisation into the conversion and adapt it to your use-case.
-
-At the simplest, the library consists of the following 4 parts: 
-
-- |Converter|: handles all the factories and builds the graph.
-- The |convschema|, specifying what is converted into what. 
-- |ResourceIterator|: An iterator of a set of |Resource| objects. You can also use the provided :py:class:`IteratorIterator` to iterate over multiple iterators.
-- :doc:`Wrappers <wrapper>`: Custom pre- and postprocessing functions defined by the user.
-
-The next chapters will go into detail about these 4 parts. 
 
 .. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
 .. |Converter| replace:: :py:class:`Converter <rel2graph.Converter>`

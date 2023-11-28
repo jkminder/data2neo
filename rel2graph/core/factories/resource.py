@@ -22,7 +22,7 @@ class Resource():
 
     @property
     def supplies(self) -> Dict:
-        """Returns access to supplies from past factories.
+        """Returns access to supplies from past factories. Is used to pass data between factories. This should not be customised.
         """
         return self._supplies
 

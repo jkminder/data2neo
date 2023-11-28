@@ -1,8 +1,6 @@
 Information for Developers
 ==========================
 
-If you intend to extend the library, please check out the `class diagram of the core of the library <https://github.com/sg-dev/rel2graph/blob/main/docs/assets/pdfs/class_diagram_core.pdf>`_.
-
 Testing
 ~~~~~~~
 
