@@ -31,7 +31,7 @@ If you have cloned the repository you can also build it locally with
 ```
 pip install **path-to-repository**
 ```
-The rel2graph library supports Python 3.7+.
+The rel2graph library supports Python 3.8+.
 
 ## Quick Start
 A quick example for converting data in a [Pandas](https://pandas.pydata.org) dataframe into a graph. The full example code can be found under [examples](/examples). For more details, please checkout the [full documentation][wiki]. We first define a *convertion schema* in a YAML style config file. In this config file we specify, which entites are converted into which nodes and which relationships. 
