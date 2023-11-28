@@ -18,8 +18,7 @@
 """
 Adapted from the now EOL py2neo: https://github.com/py2neo-org/py2neo
 
-Elements that represents any entity in a Neo4j graph or interactions with the graph. Subgraph, Node and Relation are abstractions of the py2neo node and relation.
-This allows us to customize their functionality and one could easily exchange the neo4j driver. 
+Elements that represents any entity in a Neo4j graph.
 
 Inheritance Structure:
 
@@ -27,7 +26,7 @@ Inheritance Structure:
         |- Attribute
         |- Subgraph
             |- Node
-            |- Relation
+            |- Relationship
 
 TODO: If you want to change the underlying driver, be sure to update the classes Subgraph, Node, Relation and NodeMatcher.
 
@@ -95,7 +94,8 @@ class _GhostPrimaryKey:
     pass
 
 class Subgraph(GraphElement):
-    """ A :class:`.Subgraph` is an arbitrary collection of nodes and
+    """ 
+    A :class:`.Subgraph` is an arbitrary collection of nodes and
     relationships. It is also the base class for :class:`.Node`,
     :class:`.Relationship` and :class:`.Path`.
 
@@ -316,7 +316,7 @@ class Subgraph(GraphElement):
         return Subgraph(n, r)
 
 
-class PropertyDict(ABC):
+class PropertyDict:
     """Abstract PropertyDict class that represents a dictionary of properties."""
     def __init__(self, **properties):
         self.properties = properties
@@ -325,6 +325,7 @@ class PropertyDict(ABC):
 
     @property
     def identity(self):
+        """Identity of element"""
         return self._identity
     
     @identity.setter
@@ -350,9 +351,11 @@ class PropertyDict(ABC):
         return len(self.properties)
 
     def keys(self):
+        """Returns properties keys"""
         return self.properties.keys()
 
     def set_primary_key(self, key):
+        """Sets the primary key of the element"""
         if key not in self.properties.keys() and not isinstance(key, _GhostPrimaryKey):
             raise ValueError("Primary key must be one of the node properties")
         self.__primarykey__ = key
@@ -390,6 +393,7 @@ class Node(PropertyDict, Subgraph):
     @staticmethod
     def from_attributes(labels: List[Attribute], attributes: List[Attribute] = [], primary_key: str = None, primary_label: str = None):
         """Creates a Node from a list of attributes and labels
+        
         Args:
             labels: List of static attributes specifying the labels of the Node (first label will be the primary label)
             attributes: List of attributes (only one can be primary)
@@ -408,6 +412,7 @@ class Node(PropertyDict, Subgraph):
     @staticmethod
     def from_dict(labels: List[str], properties: dict, primary_key: str = None, primary_label: str = None, identity: str = None):
         """Creates a Node from a list of attributes and labels
+        
         Args:
             labels: List of static attributes specifying the labels of the Node (first label will be the primary label)
             properties: Dictionary of attributes (only one can be primary)
@@ -437,6 +442,11 @@ class Node(PropertyDict, Subgraph):
         Subgraph.__init__(self, nodes=[self])
 
     def set_primary_label(self, label):
+        """Sets the primary label of the node
+        
+        Args:
+            label: Label of the primary attribute. Used to merge the Node with existing nodes in the graph
+        """
         if label not in self.labels:
             raise ValueError("Primary label must be one of the node labels")
         self.__primarylabel__ = label
@@ -473,12 +483,13 @@ class Node(PropertyDict, Subgraph):
 
     def __hash__(self):
         return super().__hash__()
-    
-    
+
+
 class Relationship(PropertyDict, Subgraph):
     @staticmethod
     def from_attributes(start_node: Node, type: Attribute, end_node: Node, attributes: List[Attribute] = [], primary_key: str = None):
         """Creates a Relationship from a list of attributes and labels
+        
         Args:
             start_node: Origin of the relationship
             type: Type of the relationship
@@ -495,6 +506,7 @@ class Relationship(PropertyDict, Subgraph):
     @staticmethod
     def from_dict(start_node: Node, end_node: Node, type: str, properties: dict, primary_key: str = None, identity: str = None):
         """Creates a Relationship from a list of attributes and labels
+        
         Args:
             start_node: Origin of the relationship
             end_node: Destination of the relationship
@@ -537,14 +549,17 @@ class Relationship(PropertyDict, Subgraph):
 
     @property
     def start_node(self):
+        """Start node of the relationship"""
         return self._start_node
     
     @property
     def end_node(self):
+        """End node of the relationship"""
         return self._end_node
     
     @property
     def type(self):
+        """Type of the relationship"""
         return self._type
     
     def __repr__(self):

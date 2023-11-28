@@ -19,7 +19,7 @@ import pickle
 from neo4j import GraphDatabase, Auth, Driver
 
 from .resource_iterator import ResourceIterator
-from ..neo4j import Subgraph, Relationship, Node
+from ..neo4j import Subgraph, Relationship, Node, create, merge
 from .schema_compiler import compile_schema
 from .factories import Matcher, Resource
 from .global_state import GlobalSharedState
@@ -106,7 +106,7 @@ def commit_batch(to_create: Subgraph, to_merge: Subgraph) -> None:
         # Creating does not rely on synchronous executions
         if len(to_create.nodes) + len(to_create.relationships) > 0:
             with __process_config.graph_driver.session() as session:
-                commit_wrap(lambda: session.execute_write(to_create.__db_create__))
+                commit_wrap(lambda: create(to_create, session))
             nodes_committed += len(to_create.nodes)
             relationships_committed += len(to_create.relationships)
             
@@ -115,7 +115,7 @@ def commit_batch(to_create: Subgraph, to_merge: Subgraph) -> None:
         if len(to_merge.nodes) + len(to_merge.relationships) > 0:
             with __process_config.graph_lock:
                 with __process_config.graph_driver.session() as session:
-                    commit_wrap(lambda: session.execute_write(to_merge.__db_merge__))
+                    commit_wrap(lambda: merge(to_merge, session))
             nodes_committed += len(to_merge.nodes)
             relationships_committed += len(to_merge.relationships)
 
