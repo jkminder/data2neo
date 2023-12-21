@@ -228,6 +228,7 @@ class Subgraph(GraphElement):
                     p_key = node.__primarykey__
                 else:
                     p_key = primary_key
+                
                 # Add node to the node dictionary
                 key = (p_label, p_key, frozenset(node.labels))
                 node_dict.setdefault(key, []).append(node)
@@ -365,7 +366,7 @@ class PropertyDict:
     
     def __hash__(self):
         try:
-            if self._identity:
+            if self._identity is not None:
                 return hash(self._identity)
         except:
             pass
@@ -424,7 +425,7 @@ class Node(PropertyDict, Subgraph):
             node.set_primary_key(primary_key)
         if primary_label:
             node.set_primary_label(primary_label)
-        if identity:
+        if identity is not None:
             node.identity = identity
         return node
 
@@ -455,6 +456,8 @@ class Node(PropertyDict, Subgraph):
         args = list(self.labels)
         kwargs = OrderedDict()
         d = dict(self)
+        if self.identity is None:
+            d["identity"] = self.identity
         for key in sorted(d):
             if is_safe_key(key):
                 args.append("%s=%r" % (key, d[key]))
@@ -517,7 +520,7 @@ class Relationship(PropertyDict, Subgraph):
         relationship = Relationship(start_node, type, end_node, **properties)
         if primary_key:
             relationship.set_primary_key(primary_key)
-        if identity:
+        if identity is not None:
             relationship.identity = identity
         return relationship
 

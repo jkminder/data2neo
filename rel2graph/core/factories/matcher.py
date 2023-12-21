@@ -97,5 +97,6 @@ class Matcher:
 
             # Convert to nodes
             match_list = [Node.from_dict(r['labels'], r['properties'], identity=r["identity"]) for r in match_list]
+
             return match_list
 

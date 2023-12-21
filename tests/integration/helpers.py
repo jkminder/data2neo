@@ -44,13 +44,13 @@ def auth():
     return neo4j.basic_auth("neo4j", "password")
 
 def delete_all(session):
-    session.run("MATCH (n) DETACH DELETE n")
+    session.run("MATCH (n) DETACH DELETE n;")
 
 def num_nodes(session):
-    return session.run("MATCH (n) RETURN COUNT(n) AS num_nodes").single()["num_nodes"]
+    return session.run("MATCH (n) RETURN COUNT(DISTINCT n) AS num_nodes").single()["num_nodes"]
 
 def num_relationships(session):
-    return session.run("MATCH ()-[r]->() RETURN COUNT(r) AS num_relations").single()["num_relations"]
+    return session.run("MATCH ()-[r]->() RETURN COUNT(DISTINCT r) AS num_relations").single()["num_relations"]
 
 def get_nodes(session, labels=[]):
     if not isinstance(labels, list) and not isinstance(labels, tuple):

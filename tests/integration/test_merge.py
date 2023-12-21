@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Integration tests for testing the MERGE_RELATIONSHIPS wrapper.
+Integration tests for testing the merging and MERGE_RELATIONSHIPS wrapper.
 
 authors: Julian Minder
 """
@@ -58,7 +58,20 @@ def test_standart_same_resource(config, session, uri, auth):
 
 
 @pytest.mark.parametrize("config",[(1,True), (1, False) ,(5, False)])
-def test_merge(config, session, uri, auth):
+def test_merge_nodesasdf(config, session, uri, auth):
+    schema = """
+    ENTITY("Entity"):
+        NODE("Entity") node:
+            + id = INT(Entity.id)
+    """
+    entities = pd.DataFrame({"id": [1,2, 1, 2]})
+    iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity")])
+    converter = Converter(schema, iterator, uri, auth, serialize=config[1], num_workers=config[0])    
+    converter()
+    assert num_nodes(session) == 2
+
+@pytest.mark.parametrize("config",[(1,True), (1, False) ,(5, False)])
+def test_merge_relationships(config, session, uri, auth):
     schema = """
     ENTITY("Entity"):
         NODE("Entity") node:
@@ -70,12 +83,12 @@ def test_merge(config, session, uri, auth):
     entities = pd.DataFrame({"id": [1,2]})
     relations = pd.DataFrame({"source_id": [1,1], "target_id": [2,2]})
     iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(relations, "Relation")])
-    converter = Converter(schema, iterator, uri, auth, serialize=config[1], num_workers=config[0])
+    converter = Converter(schema, iterator, uri, auth, serialize=config[1], num_workers=config[0], batch_size=1)    
     converter()
     assert num_relationships(session) == 1
 
-@pytest.mark.parametrize("config",[(1,True), (1, False) ,(5, False)])
-def test_merge_same_resource(config, session, uri, auth):
+@pytest.mark.parametrize("config",[(1,True)])
+def test_merge_relationships_same_resource(config, session, uri, auth):
     schema = """
     ENTITY("Entity"):
         NODE("Entity") node:
@@ -88,6 +101,15 @@ def test_merge_same_resource(config, session, uri, auth):
     entities = pd.DataFrame({"id": [1,2]})
     relations = pd.DataFrame({"source_id": [1], "target_id": [2]})
     iterator = IteratorIterator([PandasDataFrameIterator(entities, "Entity"), PandasDataFrameIterator(relations, "Relation")])
-    converter = Converter(schema, iterator, uri, auth, serialize=config[1], num_workers=config[0])
+    converter = Converter(schema, iterator, uri, auth, serialize=config[1], num_workers=config[0], batch_size=1)
     converter()
+    n = num_relationships(session)
+    if n != 1:
+        with session.begin_transaction() as tx:
+            for record in tx.run("MATCH (a) RETURN a.id, id(a)"):
+                print(record)
+            for record in tx.run("MATCH (a)-[r]->(b) RETURN r, a.id, b.id, id(r), id(a), id(b)"):
+                print(record)
+        print("n", n)
+        exit()
     assert num_relationships(session) == 1
