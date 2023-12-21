@@ -55,16 +55,18 @@ def num_relationships(session):
 def get_nodes(session, labels=[]):
     if not isinstance(labels, list) and not isinstance(labels, tuple):
         labels = [labels]
-    res = session.run("MATCH (n{}) RETURN LABELS(n) as labels, n as properties, elementId(n) as identity".format(":" + ":".join(labels) if len(labels) else "")).data()
+    # TODO: id() is deprecated, in the future we need to move to something else
+    res = session.run("MATCH (n{}) RETURN LABELS(n) as labels, n as properties, id(n) as identity".format(":" + ":".join(labels) if len(labels) else "")).data()
     match_list = [Node.from_dict(r['labels'], r['properties'], identity=r["identity"]) for r in res]
     return match_list
 
 def get_relationships(session, types=[]):
     if not isinstance(types, list) and not isinstance(types, tuple):
         types = [types]
-    res = session.run("""MATCH (a)-[r{}]->(b) RETURN TYPE(r) as type, PROPERTIES(r) as properties, elementId(r) as identity, 
-                        LABELS(a) as start_labels, a as start_properties, elementId(a) as start,
-                        LABELS(b) as end_labels, b as end_properties, elementId(b) as end
+    # TODO: id() is deprecated, in the future we need to move to something else
+    res = session.run("""MATCH (a)-[r{}]->(b) RETURN TYPE(r) as type, PROPERTIES(r) as properties, id(r) as identity, 
+                        LABELS(a) as start_labels, a as start_properties, id(a) as start,
+                        LABELS(b) as end_labels, b as end_properties, id(b) as end
                       """.format(":" + "|".join(types) if len(types) else "")).data()
     
     match_list = [Relationship(Node.from_dict(r['start_labels'], r['start_properties'], identity=r["start"]),

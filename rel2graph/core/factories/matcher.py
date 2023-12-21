@@ -89,7 +89,7 @@ class Matcher:
             else:
                 value = "r"
             clause = _match_clause("n", (tuple(parsed_labels), *keys), value)
-            clause, params = cypher_join("UNWIND $data AS r", clause, "RETURN LABELS(n) as labels, n as properties, elementId(n) as identity", data=[values])
+            clause, params = cypher_join("UNWIND $data AS r", clause, "RETURN LABELS(n) as labels, n as properties, id(n) as identity", data=[values])
 
             with Matcher.graph_driver.session() as session:
                 match_list = session.run(clause, **params).data()
