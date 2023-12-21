@@ -184,11 +184,10 @@ class Subgraph(GraphElement):
 
         for labels, nodes in node_dict.items():
             pq = unwind_create_nodes_query(list(map(dict, nodes)), labels=labels)
-            pq = cypher_join(pq, "RETURN elementId(_)")
+            # TODO: id() is deprecated, in the future we need to move to something else
+            pq = cypher_join(pq, "RETURN id(_)")
             records = tx.run(*pq)
-            # print("##CREATE REL##\n\n")
-            # print(pq)
-            # print("####\n\n")
+
             for i, record in enumerate(records):
                 node = nodes[i]
                 node.identity = record[0]
@@ -196,10 +195,9 @@ class Subgraph(GraphElement):
             data = map(lambda r: [r.start_node.identity, dict(r), r.end_node.identity],
                        relationships)
             pq = unwind_create_relationships_query(data, r_type)
-            pq = cypher_join(pq, "RETURN elementId(_)")
-            # print("##CREATE REL##\n\n")
-            # print(pq)
-            # print("####\n\n")
+            # TODO: id() is deprecated, in the future we need to move to something else
+            pq = cypher_join(pq, "RETURN id(_)")
+
             for i, record in enumerate(tx.run(*pq)):
                 relationship = relationships[i]
                 relationship.identity = record[0]
@@ -251,7 +249,8 @@ class Subgraph(GraphElement):
             if pl is None or pk is None:
                 raise ValueError("Primary label and primary key are required for node MERGE operation")
             pq = unwind_merge_nodes_query(map(dict, nodes), (pl, pk), labels)
-            pq = cypher_join(pq, "RETURN elementId(_)")
+             # TODO: id() is deprecated, in the future we need to move to something else
+            pq = cypher_join(pq, "RETURN id(_)")
             identities = [record[0] for record in tx.run(*pq)]
             if len(identities) > len(nodes):
                 raise ValueError("Found %d matching nodes for primary label %r and primary "
@@ -269,7 +268,8 @@ class Subgraph(GraphElement):
                 pq = unwind_merge_relationships_query(data, r_type)
             else:
                 pq = unwind_merge_relationships_query(data, (r_type, pk))
-            pq = cypher_join(pq, "RETURN elementId(_)")
+            # TODO: id() is deprecated, in the future we need to move to something else
+            pq = cypher_join(pq, "RETURN id(_)")
             identities = [record[0] for record in tx.run(*pq)]
             if len(identities) > len(relationships):
                 raise ValueError("Found %d matching relations for primary "

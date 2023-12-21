@@ -222,9 +222,9 @@ def _merge_clause(name, merge_key, value, keys, prefix="(", suffix=")"):
 
 def _match_clause(name, node_key, value, prefix="(", suffix=")"):
     if node_key is None:
-        # ... add MATCH by id clause # TODO: elementid() is only guaranteed to be consistent within a transaction
+        # ... add MATCH by id clause # TODO: id() is deprecated, in the future we need to move to something else
         #  -> find alternative
-        return "MATCH %s%s%s WHERE elementId(%s) = %s" % (prefix, name, suffix, name, value)
+        return "MATCH %s%s%s WHERE id(%s) = %s" % (prefix, name, suffix, name, value)
     else:
         # ... add MATCH by label/property clause
         nk = NodeKey(node_key)
