@@ -2,11 +2,15 @@
 Neo4j Integration
 -----------------
 
-These functions abstract complexity of interacting with Neo4j. Instead of writing Cypher queries, you can use Python objects to create and merge nodes and relationships.
+These functions abstract complexity of interacting with Neo4j. Instead of writing Cypher queries, you can use Python objects to create, merge and match nodes and relationships.
 
 .. autofunction:: rel2graph.neo4j.create
 
 .. autofunction:: rel2graph.neo4j.merge
+
+.. autofunction:: rel2graph.neo4j.match_nodes
+
+.. autofunction:: rel2graph.neo4j.match_relationships
 
 Subgraph
 ~~~~~~~~
