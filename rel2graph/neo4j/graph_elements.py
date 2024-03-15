@@ -42,7 +42,7 @@ from .cypher import unwind_create_nodes_query, \
                     unwind_merge_nodes_query, \
                     unwind_create_relationships_query, \
                     unwind_merge_relationships_query, \
-                    cypher_join
+                    cypher_join, cypher_escape
 from .encoder import encode_value, xstr, is_safe_key
 from collections import OrderedDict
 
@@ -191,6 +191,7 @@ class Subgraph(GraphElement):
             for i, record in enumerate(records):
                 node = nodes[i]
                 node.identity = record[0]
+                node._remote_labels = frozenset(labels)
         for r_type, relationships in rel_dict.items():
             data = map(lambda r: [r.start_node.identity, dict(r), r.end_node.identity],
                        relationships)
@@ -260,6 +261,7 @@ class Subgraph(GraphElement):
             for i, identity in enumerate(identities):
                 node = nodes[i]
                 node.identity = identity
+                node._remote_labels = frozenset(labels)
         for (pk, r_type), relationships in rel_dict.items():
             if pk is None:
                 raise ValueError("Primary key are required for relationship MERGE operation")
@@ -279,6 +281,60 @@ class Subgraph(GraphElement):
             for i, identity in enumerate(identities):
                 relationship = relationships[i]
                 relationship.identity = identity
+
+    def __db_pull__(self, tx):
+        """ Copy data from a remote :class:`.Graph` into this
+        :class:`.Subgraph`.
+
+        :param tx:
+        """
+        # Pull nodes
+        nodes = {}
+        for node in self.nodes:
+            if node.identity is not None:
+                nodes[node.identity] = node
+        query = tx.run("MATCH (_) WHERE id(_) in $x "
+                       "RETURN id(_), labels(_), properties(_)", x=list(nodes.keys()))
+        for identity, new_labels, new_properties in query:
+            node = nodes[identity]
+            node.labels = set(new_labels)
+            node.properties = new_properties
+
+        # Pull relationships
+        relationships = {}
+        for relationship in self.relationships:
+            if relationship.identity is not None:
+                relationships[relationship.identity] = relationship
+        query = tx.run("MATCH ()-[_]->() WHERE id(_) in $x "
+                       "RETURN id(_), properties(_)", x=list(relationships.keys()))
+        for identity, new_properties in query:
+            relationship = relationships[identity]
+            relationship.properties = new_properties
+
+    def __db_push__(self, tx):
+        """ Copy data into a remote :class:`.Graph` from this
+        :class:`.Subgraph`.
+
+        :param tx:
+        """
+        for node in self.nodes:
+            if node.identity is not None:
+                clauses = ["MATCH (_) WHERE id(_) = $x", "SET _ = $y"]
+                parameters = {"x": node.identity, "y": dict(node)}
+                old_labels = node._remote_labels - node.labels
+                if old_labels:
+                    clauses.append("REMOVE _:%s" % ":".join(map(cypher_escape, old_labels)))
+                new_labels = node.labels - node._remote_labels
+                if new_labels:
+                    clauses.append("SET _:%s" % ":".join(map(cypher_escape, new_labels)))
+                tx.run("\n".join(clauses), parameters)
+                node._remote_labels = node.labels
+        for relationship in self.relationships:
+            if relationship.identity is not None:
+                clauses = ["MATCH ()-[_]->() WHERE id(_) = $x", "SET _ = $y"]
+                parameters = {"x": relationship.identity, "y": dict(relationship)}
+                tx.run("\n".join(clauses), parameters)
+
     @property
     def nodes(self):
         """ The set of all nodes in this subgraph.
@@ -437,6 +493,7 @@ class Node(PropertyDict, Subgraph):
             attributes: Key value pairs of attributes for the Node
         """
         self.labels = set(labels)
+        self._remote_labels = frozenset()
         self.__primarylabel__ = labels[0]
         
         PropertyDict.__init__(self, **attributes)

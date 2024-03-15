@@ -8,6 +8,10 @@ These functions abstract complexity of interacting with Neo4j. Instead of writin
 
 .. autofunction:: rel2graph.neo4j.merge
 
+.. autofunction:: rel2graph.neo4j.push
+
+.. autofunction:: rel2graph.neo4j.pull
+
 .. autofunction:: rel2graph.neo4j.match_nodes
 
 .. autofunction:: rel2graph.neo4j.match_relationships

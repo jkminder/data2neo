@@ -27,6 +27,26 @@ def merge(graph: Subgraph, session: Session, primary_label=None, primary_key=Non
     session.execute_write(graph.__db_merge__, primary_label=primary_label, primary_key=primary_key)
 
 
+def push(graph: Subgraph, session: Session):
+    """
+    Updates local graph elements with the database. The graph needs to be already in the database.
+
+    Args:
+        graph (Subgraph): The graph to create.
+        session (Session): The `session <https://neo4j.com/docs/api/python-driver/current/api.html#session>`_ to use.
+    """
+    session.execute_write(graph.__db_push__)
+
+def pull(graph: Subgraph, session: Session):
+    """
+    Pulls remote changes to the graph to the local copy. The graph needs to be already in the database.
+
+    Args:
+        graph (Subgraph): The graph to create.
+        session (Session): The `session <https://neo4j.com/docs/api/python-driver/current/api.html#session>`_ to use.
+    """
+    session.execute_write(graph.__db_pull__)
+
 
 def match_nodes(session: Session, *labels: List[str], **properties: dict):
     """

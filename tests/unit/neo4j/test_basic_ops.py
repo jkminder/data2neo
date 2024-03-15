@@ -11,7 +11,7 @@ import pytest
 import datetime
 from neo4j import GraphDatabase, time
 
-from rel2graph.neo4j import Node, Relationship, Subgraph, create, merge
+from rel2graph.neo4j import Node, Relationship, Subgraph, create, merge, push, pull
 from rel2graph.common_modules import MERGE_RELATIONSHIPS
 
 @pytest.fixture
@@ -32,8 +32,9 @@ def session():
             session.close()
             driver.close()
             return
+        
 def get_nodes(session):
-    return session.run("MATCH (c:test) RETURN c").data()
+    return session.run("MATCH (c:test) RETURN c, labels(c)").data()
 
 def get_relationships(session):
     return session.run("MATCH p=()-[d]->() RETURN p, properties(d) AS props").data()
@@ -315,3 +316,65 @@ def test_create_node_with_date(session):
     assert(nodes[0]["c"]["id"] == 1)
     assert(nodes[0]["c"]["date"] == time.Date(2020,1,1))
 
+def test_push_node(session):
+    n1 = Node("test", id=1)
+    create(n1, session)
+    n1["id"] = 2
+    push(n1, session)
+    nodes = get_nodes(session)
+    assert(len(nodes) == 1)
+    assert(nodes[0]["c"]["id"] == 2)
+
+    # labels
+    n1.labels = set(["test", "another"])
+    push(n1, session)
+    nodes = get_nodes(session)
+    assert(len(nodes) == 1)
+    assert(nodes[0]["labels(c)"] == ["test", "another"])
+
+    # remove label
+    n1.labels = set(["test"])
+    push(n1, session)
+    nodes = get_nodes(session)
+    assert(len(nodes) == 1)
+    assert(nodes[0]["labels(c)"] == ["test"])
+
+def test_pull_node(session):
+    n1 = Node("test", id=1)
+    create(n1, session)
+    n1["id"] = 2
+    pull(n1, session)
+    assert(n1["id"] == 1)
+
+    # remove label
+    n1.labels = set(["test", "another"])
+    pull(n1, session)
+    assert(n1.labels == {"test"})
+
+    # add label
+    n1.labels = set(["test", "another"])
+    push(n1, session)
+    n1.labels = set(["test"])
+    pull(n1, session)
+    assert(n1.labels == {"test", "another"})
+
+
+def test_push_relationship(session):
+    n1 = Node("test", id=1)
+    n2 = Node("test", id=2)
+    r1 = Relationship(n1, "to", n2)
+    create(r1, session)
+    r1["id"] = 2
+    push(r1, session)
+    rels = get_relationships(session)
+    assert(len(rels) == 1)
+    assert(rels[0]["props"]["id"] == 2)
+
+def test_pull_relationship(session):
+    n1 = Node("test", id=1)
+    n2 = Node("test", id=2)
+    r1 = Relationship(n1, "to", n2, id=1)
+    create(r1, session)
+    r1["id"] = 2
+    pull(r1, session)
+    assert(r1["id"] == 1)
