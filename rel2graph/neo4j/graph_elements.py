@@ -547,41 +547,41 @@ class Node(PropertyDict, Subgraph):
 
 class Relationship(PropertyDict, Subgraph):
     @staticmethod
-    def from_attributes(start_node: Node, type: Attribute, end_node: Node, attributes: List[Attribute] = [], primary_key: str = None):
+    def from_attributes(start_node: Node, relationship_type: Attribute, end_node: Node, attributes: List[Attribute] = [], primary_key: str = None):
         """Creates a Relationship from a list of attributes and labels
         
         Args:
             start_node: Origin of the relationship
-            type: Type of the relationship
+            relationship_type: Type of the relationship
             end_node: Destination of the relationship
             attributes: List of attributes for the relationship
             primary_key: Optional key of the primary attribute. Used to merge the Relationship with existing relationships in the graph (default: None)
         """
         properties = dict((attr.key, attr.value) for attr in attributes)
-        relationship = Relationship(start_node, type.value, end_node, **properties)
+        relationship = Relationship(start_node, relationship_type.value, end_node, **properties)
         if primary_key:
             relationship.set_primary_key(primary_key)
         return relationship
     
     @staticmethod
-    def from_dict(start_node: Node, end_node: Node, type: str, properties: dict, primary_key: str = None, identity: str = None):
+    def from_dict(start_node: Node, end_node: Node, relationship_type: str, properties: dict, primary_key: str = None, identity: str = None):
         """Creates a Relationship from a list of attributes and labels
         
         Args:
             start_node: Origin of the relationship
             end_node: Destination of the relationship
-            type: Type of the relationship
+            relationship_type: Type of the relationship
             properties: Dictionary of attributes for the relationship
             primary_key: Optional key of the primary attribute. Used to merge the relationship with existing relations in the graph (default: None)
         """
-        relationship = Relationship(start_node, type, end_node, **properties)
+        relationship = Relationship(start_node, relationship_type, end_node, **properties)
         if primary_key:
             relationship.set_primary_key(primary_key)
         if identity is not None:
             relationship.identity = identity
         return relationship
 
-    def __init__(self, start_node: Node, type: str, end_node: Node, **attributes) -> None:
+    def __init__(self, start_node: Node, relationship_type: str, end_node: Node, **attributes) -> None:
         """ A relationship represents a typed connection between a pair of nodes.
 
         The positional arguments passed to the constructor identify the nodes to
@@ -596,10 +596,10 @@ class Relationship(PropertyDict, Subgraph):
         Args:
             start_node: Origin of the relationship
             end_node: Destination of the relationship
-            type: Type of the relationship
+            relationship_type: Type of the relationship
             attributes: Key value pairs of attributes for the Relationship
         """
-        self._type = type 
+        self._type = relationship_type 
         
         self._start_node = start_node
         self._end_node = end_node
