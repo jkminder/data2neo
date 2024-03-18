@@ -66,7 +66,6 @@ def match_nodes(session: Session, *labels: List[str], **properties: dict):
     unwind = "UNWIND $data as r" if len(data) > 0 else ""
     clause = cypher_join(unwind, _match_clause('n', tuple(flat_params), "r"), "RETURN n, LABELS(n), ID(n)", data=data)
     records = session.run(*clause).data()
-    print(clause)
     # Convert to Node
     out = []
     for record in records:
@@ -113,11 +112,9 @@ def match_relationships(session: Session, from_node: Node =None, to_node:Node =N
         "RETURN PROPERTIES(r), TYPE(r), ID(r), from_node, LABELS(from_node), ID(from_node), to_node, LABELS(to_node), ID(to_node)"
     )
 
-    print(clause)
     records = session.run(*clause).data()
     out = []
     for record in records:
-        print(record)
         fn = Node.from_dict(record['LABELS(from_node)'], record['from_node'], identity=record['ID(from_node)']) if from_node is None else from_node
         tn = Node.from_dict(record['LABELS(to_node)'], record['to_node'], identity=record['ID(to_node)']) if to_node is None else to_node
         rel = Relationship.from_dict(fn, tn, record['TYPE(r)'], record['PROPERTIES(r)'], identity=record['ID(r)'])
