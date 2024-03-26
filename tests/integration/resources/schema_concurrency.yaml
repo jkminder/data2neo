@@ -1,0 +1,8 @@
+ENTITY("Entity"):
+  NODE("Test"):
+    + uid = Entity.uid
+
+
+ENTITY("Relationship"):
+  RELATIONSHIP(MATCH("Test", uid=Relationship.to), "FROM", MATCH("Test", uid=Relationship.from)):
+  MERGE_RELATIONSHIPS(RELATIONSHIP(MATCH("Test", uid=Relationship.from), "TO", MATCH("Test", uid=Relationship.to))):

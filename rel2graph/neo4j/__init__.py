@@ -45,7 +45,7 @@ def pull(graph: Subgraph, session: Session):
         graph (Subgraph): The graph to create.
         session (Session): The `session <https://neo4j.com/docs/api/python-driver/current/api.html#session>`_ to use.
     """
-    session.execute_write(graph.__db_pull__)
+    session.execute_read(graph.__db_pull__)
 
 
 def match_nodes(session: Session, *labels: List[str], **properties: dict):

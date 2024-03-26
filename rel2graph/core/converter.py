@@ -103,13 +103,20 @@ def commit_batch(to_create: Subgraph, to_merge: Subgraph) -> None:
         nodes_committed = 0 
         relationships_committed = 0
         
-        # Creating does not rely on synchronous executions
-        if len(to_create.nodes) + len(to_create.relationships) > 0:
+        # Creating nodes does not rely on serialized executions
+        # If there are relationships to create, we need to serialize the creation
+        # TODO: We could split the creation of nodes and relationships into two separate branches, might be more efficient
+        #       but considering that in almost all cases no relationships are created in the first loop, it's not worth it
+        if len(to_create.relationships) > 0:
+            with __process_config.graph_lock:
+                with __process_config.graph_driver.session() as session:
+                    commit_wrap(lambda: create(to_create, session))
+            relationships_committed += len(to_create.relationships)
+        elif len(to_create.nodes) > 0:
             with __process_config.graph_driver.session() as session:
                 commit_wrap(lambda: create(to_create, session))
             nodes_committed += len(to_create.nodes)
-            relationships_committed += len(to_create.relationships)
-            
+
         # Merging nodes requires serialization (synchronous executions) between processes
         # Using locks to enforce this
         if len(to_merge.nodes) + len(to_merge.relationships) > 0:

@@ -58,7 +58,7 @@ def test_standart_same_resource(config, session, uri, auth):
 
 
 @pytest.mark.parametrize("config",[(1,True), (1, False) ,(5, False)])
-def test_merge_nodesasdf(config, session, uri, auth):
+def test_merge_nodes(config, session, uri, auth):
     schema = """
     ENTITY("Entity"):
         NODE("Entity") node:
