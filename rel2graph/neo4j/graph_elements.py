@@ -389,6 +389,14 @@ class PropertyDict:
     def identity(self, value):
         self._identity = value
 
+    def keys(self):
+        """Returns properties keys"""
+        return self.properties.keys()
+    
+    def update(self, properties):
+        """Updates the properties of the element"""
+        self.properties.update(properties)
+        
     def __getitem__(self, key):
         return self.properties[key]
     
