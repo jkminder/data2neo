@@ -33,7 +33,7 @@ def session():
             n3 = Node("anotherlabel", id=3, name="test3")
 
             r1 = Relationship(n1, "to", n2, id=1)
-            r2 = Relationship(n1, "to", n3, id=2, name="test")
+            r2 = Relationship(n1, "to", n3, id=2, anotherattr="test")
 
             graph = n1 | n2 | n3 | r1 | r2
             create(graph, session)
@@ -92,9 +92,9 @@ def test_match_relationships(session):
     assert(check_rel(rels, 1))  
 
     # match by multiple properties
-    rels = match_relationships(session, rel_type="to", id=1, name="test")
+    rels = match_relationships(session, rel_type="to", id=2, anotherattr="test")
     assert(len(rels) == 1)
-    assert(check_rel(rels, 1))
+    assert(check_rel(rels,2))
 
     # match by from node
     n1 = match_nodes(session, "test", id=1)[0]
