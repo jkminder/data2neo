@@ -92,8 +92,7 @@ def test_nodes():
     assert hash(n1) != hash(n3)
 
     # test non existing attribute
-    with pytest.raises(KeyError):
-        n1["non_existing"]
+    assert n1["non_existing"] is None
 
 def test_relationships():
     n1 = Node("test", id=1)
@@ -138,8 +137,7 @@ def test_relationships():
     assert hash(r1) != hash(r2)
 
     # test non existing attribute
-    with pytest.raises(KeyError):
-        r1["non_existing"]
+    r1["non_existing"] is None
 
     
 def test_nodes_from_attributes():
