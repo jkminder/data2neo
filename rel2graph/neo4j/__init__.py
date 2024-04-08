@@ -63,8 +63,12 @@ def match_nodes(session: Session, *labels: List[str], **properties: dict):
         data.append(v)
         flat_params.append(k)
 
+    if len(data) > 1:
+        data = [data]
+        
     unwind = "UNWIND $data as r" if len(data) > 0 else ""
     clause = cypher_join(unwind, _match_clause('n', tuple(flat_params), "r"), "RETURN n, LABELS(n), ID(n)", data=data)
+    print(clause)
     records = session.run(*clause).data()
     # Convert to Node
     out = []

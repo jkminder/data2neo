@@ -28,12 +28,12 @@ def session():
         try:    
             delete_all(session)
             # generate test data
-            n1 = Node("test", "second", id=1, name="test1")
-            n2 = Node("test", id=2, name="test2")
+            n1 = Node("test", "second", id=1, name="test1", anotherattr="test")
+            n2 = Node("test", id=2, name="test2", anotherattr="test")
             n3 = Node("anotherlabel", id=3, name="test3")
 
             r1 = Relationship(n1, "to", n2, id=1)
-            r2 = Relationship(n1, "to", n3, id=2)
+            r2 = Relationship(n1, "to", n3, id=2, name="test")
 
             graph = n1 | n2 | n3 | r1 | r2
             create(graph, session)
@@ -74,6 +74,11 @@ def test_match_nodes(session):
     assert(len(nodes) == 1)
     assert(check_node(nodes, 1))
 
+    # match by two properties
+    nodes = match_nodes(session, name="test1", anotherattr="test")
+    assert(len(nodes) == 1)
+    assert(check_node(nodes, 1))
+
 def test_match_relationships(session):
     # match by type
     rels = match_relationships(session, rel_type="to")
@@ -85,6 +90,11 @@ def test_match_relationships(session):
     rels = match_relationships(session, rel_type="to", id=1)
     assert(len(rels) == 1)
     assert(check_rel(rels, 1))  
+
+    # match by multiple properties
+    rels = match_relationships(session, rel_type="to", id=1, name="test")
+    assert(len(rels) == 1)
+    assert(check_rel(rels, 1))
 
     # match by from node
     n1 = match_nodes(session, "test", id=1)[0]
@@ -98,3 +108,4 @@ def test_match_relationships(session):
     rels = match_relationships(session, to_node=n2)
     assert(len(rels) == 1)
     assert(check_rel(rels, 1))
+
