@@ -398,6 +398,8 @@ class PropertyDict:
         self.properties.update(properties)
         
     def __getitem__(self, key):
+        if key not in self.properties:
+            return None
         return self.properties[key]
     
     def __setitem__(self, key, value):
