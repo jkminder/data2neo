@@ -1,5 +1,5 @@
-[![Tests Neo4j 5.13](https://github.com/sg-dev/data2neo/actions/workflows/tests_neo4j5.yaml/badge.svg)](https://github.com/sg-dev/data2neo/actions/workflows/tests_neo4j5.yaml)
-[![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%C2%A03.9%C2%A0%7C%C2%A03.10%C2%A0%7C%203.11%C2%A0%7C%203.12-orange)](https://github.com/sg-dev/data2neo/actions/workflows) 
+[![Tests Neo4j 5.13](https://github.com/jkminder/data2neo/actions/workflows/tests_neo4j5.yaml/badge.svg)](https://github.com/jkminder/data2neo/actions/workflows/tests_neo4j5.yaml)
+[![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%C2%A03.9%C2%A0%7C%C2%A03.10%C2%A0%7C%203.11%C2%A0%7C%203.12-orange)](https://github.com/jkminder/data2neo/actions/workflows) 
 
 ---
 <p align="center">
@@ -12,7 +12,7 @@
 The library is built specifically for converting data into a [neo4j](https://neo4j.com/) graph (minimum version 5.2). The library further supports extensive customization capabilities to clean and remodel data. As neo4j python client it uses the native [neo4j python client](https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/).
 
 
- - [Latest Releases](https://github.com/sg-dev/Data2Neo/tags)
+ - [Latest Releases](https://github.com/jkminder/data2neo/tags)
  - [Documentation](https://Data2Neo.jkminder.ch)
 
 This library has been developed at the [Chair of Systems Design at ETH Zürich](https://www.sg.ethz.ch).
@@ -20,7 +20,7 @@ This library has been developed at the [Chair of Systems Design at ETH Zürich](
 ## Installation
 If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v1.3.3][latest_tag]):
 ```
-pip install git+ssh://git@github.com/sg-dev/Data2Neo@v1.3.3
+pip install git+ssh://git@github.com/jkminder/data2neo@v1.3.3
 ```
 
 If you don't have ssh set up, download the latest wheel [here][latest_wheel] and install the wheel with:
@@ -92,9 +92,9 @@ converter = Converter(load_file("schema.yaml"), iterator, uri, auth)
 converter()
 ```
 # Known issues
-If you encounter a bug or an unexplainable behavior, please check the [known issues](https://github.com/sg-dev/Data2Neo/labels/bug) list. If your issue is not found, submit a new one.
+If you encounter a bug or an unexplainable behavior, please check the [known issues](https://github.com/jkminder/Data2Neo/labels/bug) list. If your issue is not found, submit a new one.
 
 [latest_version]: v1.3.3
-[latest_tag]: https://github.com/sg-dev/Data2Neo/releases/tag/v1.3.3
-[latest_wheel]: https://github.com/sg-dev/Data2Neo/releases/download/v1.3.3/Data2Neo-1.3.3-py3-none-any.whl
+[latest_tag]: https://github.com/jkminder/Data2Neo/releases/tag/v1.3.3
+[latest_wheel]: https://github.com/jkminder/Data2Neo/releases/download/v1.3.3/Data2Neo-1.3.3-py3-none-any.whl
 [wiki]: https://Data2Neo.jkminder.ch/index.html
