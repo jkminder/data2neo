@@ -5,13 +5,13 @@ Quick Start
 
     This is a quick start guide for the library. For more details, please checkout the full documentation.
 
-As a first example, we will convert the **Northwind Traders** dataset into a Neo4j graph. The complete example code can be found `here <https://github.com/sg-dev/rel2graph/blob/main/examples/example_northwind.ipynb>`_.
+As a first example, we will convert the **Northwind Traders** dataset into a Neo4j graph. The complete example code can be found `here <https://github.com/sg-dev/data2neo/blob/main/examples/example_northwind.ipynb>`_.
 The official Neo4j documentation has a `tutorial <https://neo4j.com/docs/getting-started/current/appendix/tutorials/guide-import-relational-and-etl/>`_ on how to import the Northwind Traders dataset using **direct import** with CYPHER.
-We will use the same dataset, but instead of using CYPHER, we will use the rel2graph library to convert the data into a graph.
+We will use the same dataset, but instead of using CYPHER, we will use the Data2Neo library to convert the data into a graph.
 
-Rel2graph decomposes the data integration process into three distinct parts:
+Data2Neo decomposes the data integration process into three distinct parts:
 
-- **Resource Abstraction:** We encapsulate each relational entity in a |Resource|, with each |Resource| possessing a type corresponding to, for example, its table name. A |ResourceIterator| is employed to iterate over all Resources to be converted. This abstraction provides us with the flexibility to accommodate various data sources. Rel2graph currently has pre-implemented iterators for :ref:`SQLite databases <resource:SQLite>` and :ref:`pandas Dataframes <resource:Pandas>`.
+- **Resource Abstraction:** We encapsulate each relational entity in a |Resource|, with each |Resource| possessing a type corresponding to, for example, its table name. A |ResourceIterator| is employed to iterate over all Resources to be converted. This abstraction provides us with the flexibility to accommodate various data sources. Data2Neo currently has pre-implemented iterators for :ref:`SQLite databases <resource:SQLite>` and :ref:`pandas Dataframes <resource:Pandas>`.
 - **Conversion Schema:** The :doc:`Convertion Schema <conversion_schema>` outlines how each Resource type should be managed, effectively serving as a blueprint for integrating each Resource type.
 - **Converter:** The |Converter| takes data from the |ResourceIterator| and integrates it into an existing knowledge graph, based on the specifications provided in the :doc:`Convertion Schema <conversion_schema>`.
 
@@ -55,18 +55,18 @@ The relationship should have the attributes **unitPrice** and **quantity**. The 
         RELATIONSHIP(MATCH("Employee", employeeID = Orders.EmployeeID), "SOLD", order):
 
 Refer to the :doc:`conversion schema chapter <conversion_schema>`  for more details on the syntax.
-The full schema for all tables can be found `here <https://github.com/sg-dev/rel2graph/blob/main/examples/example_northwind.ipynb>`_. If performance is an issue, refer to the :ref:`performance chapter <converter:peformance optimization>` for more details on how to optimize the schema.
+The full schema for all tables can be found `here <https://github.com/sg-dev/data2neo/blob/main/examples/example_northwind.ipynb>`_. If performance is an issue, refer to the :ref:`performance chapter <converter:peformance optimization>` for more details on how to optimize the schema.
 
 Note that we have used the keywords ``FLOAT`` and ``INT`` in the schema. These are so called :doc:`wrappers <wrapper>`. Wrappers can be used to insert arbitrary Python code into the conversion process, in this case to convert the data to the correct datatype.
-Fortunatly, the library comes with a set of  :doc:`pre-implemented wrappers <common_modules>`. To use the ``INT`` and ``FLOAT`` wrappers we simply need to import ``import rel2graph.common_modules.types``. 
+Fortunatly, the library comes with a set of  :doc:`pre-implemented wrappers <common_modules>`. To use the ``INT`` and ``FLOAT`` wrappers we simply need to import ``import data2neo.common_modules.types``. 
 
-We can also define our Python functions and register them with rel2graph. As an example, let's consider a scenario where the UnitPrice column in the Orders table contains values in different currencies. 
+We can also define our Python functions and register them with Data2Neo. As an example, let's consider a scenario where the UnitPrice column in the Orders table contains values in different currencies. 
 We can define a function, CONVERTCURRENCY, to standardise these values into a single currency, register it, and then use it in the conversion schema.
 :doc:`Read more about wrappers here <wrapper>`.
 
 .. code-block:: python
 
-    from rel2graph import register_attribute_postprocessor, Attribute
+    from Data2Neo import register_attribute_postprocessor, Attribute
 
     @register_attribute_postprocessor
     def CONVERTCURRENCY(attribute, currency):
@@ -87,8 +87,8 @@ We can define a function, CONVERTCURRENCY, to standardise these values into a si
 
 
 Finally, we need to create a |ResourceIterator| that iterates over the data in the Northwind database.  
-We will use the :py:class:`PandasDataFrameIterator <rel2graph.relational_modules.pandas.PandasDataFrameIterator>` from ``rel2graph.relational_modules.pandas``. We will also use the :py:class:`IteratorIterator <rel2graph.IteratorIterator>`, which can wrap multiple iterators to handle multiple dataframes.
-Since pandas DataFrames have no types/table names associated with it, we need to specify the name when creating a :py:class:`PandasDataFrameIterator <rel2graph.relational_modules.pandas.PandasDataFrameIterator>`.
+We will use the :py:class:`PandasDataFrameIterator <data2neo.relational_modules.pandas.PandasDataFrameIterator>` from ``data2neo.relational_modules.pandas``. We will also use the :py:class:`IteratorIterator <data2neo.IteratorIterator>`, which can wrap multiple iterators to handle multiple dataframes.
+Since pandas DataFrames have no types/table names associated with it, we need to specify the name when creating a :py:class:`PandasDataFrameIterator <data2neo.relational_modules.pandas.PandasDataFrameIterator>`.
 The Python code looks like this:
 
 .. code-block:: python
@@ -97,12 +97,12 @@ The Python code looks like this:
     import pandas as pd
     from tqdm.notebook import tqdm
 
-    from rel2graph.relational_modules.pandas import PandasDataFrameIterator
-    from rel2graph import IteratorIterator
-    from rel2graph import Converter
-    from rel2graph.utils import load_file
+    from data2neo.relational_modules.pandas import PandasDataFrameIterator
+    from data2neo import IteratorIterator
+    from data2neo import Converter
+    from data2neo.utils import load_file
     
-    import rel2graph.common_modules.types # For FLOAT, INT, etc. wrappers
+    import data2neo.common_modules.types # For FLOAT, INT, etc. wrappers
     # This is required because the pandas dataframe iterator will convert all values 
     # to int64 which is not supported by neo4j
 
@@ -126,8 +126,8 @@ The Python code looks like this:
     # Start the conversion
     converter(progress_bar=tqdm)
 
-`Full Code Example <https://github.com/sg-dev/rel2graph/blob/main/examples/example_northwind.ipynb>`_
+`Full Code Example <https://github.com/sg-dev/data2neo/blob/main/examples/example_northwind.ipynb>`_
 
-.. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
-.. |Converter| replace:: :py:class:`Converter <rel2graph.Converter>`
-.. |ResourceIterator| replace:: :py:class:`ResourceIterator <rel2graph.ResourceIterator>`
+.. |Resource| replace:: :py:class:`Resource <data2neo.Resource>`
+.. |Converter| replace:: :py:class:`Converter <data2neo.Converter>`
+.. |ResourceIterator| replace:: :py:class:`ResourceIterator <data2neo.ResourceIterator>`

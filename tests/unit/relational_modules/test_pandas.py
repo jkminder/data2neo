@@ -9,7 +9,7 @@ authors: Julian Minder
 
 import pytest
 
-from rel2graph.relational_modules.pandas import PandasSeriesResource, PandasDataFrameIterator
+from data2neo.relational_modules.pandas import PandasSeriesResource, PandasDataFrameIterator
 import pandas as pd
 import pickle
 

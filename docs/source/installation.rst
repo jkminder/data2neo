@@ -9,13 +9,13 @@ To install the software, follow these steps:
 
     .. code-block:: bash
 
-        git clone git@github.com:sg-dev/rel2graph.git
+        git clone git@github.com:sg-dev/data2neo.git
 
 2. Change to the project directory:
 
     .. code-block:: bash
 
-        cd rel2graph
+        cd data2neo
 
 3. Install the library:
 

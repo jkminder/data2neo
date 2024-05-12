@@ -5,8 +5,8 @@ import neo4j
 import os 
 import pytest
 
-from rel2graph import register_subgraph_postprocessor
-from rel2graph.neo4j import Node, Relationship, Subgraph
+from data2neo import register_subgraph_postprocessor
+from data2neo.neo4j import Node, Relationship, Subgraph
 
 import warnings
 

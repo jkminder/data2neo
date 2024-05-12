@@ -17,7 +17,7 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'rel2graph'
+project = 'data2neo'
 copyright = '2024, Julian Minder'
 author = 'Julian Minder'
 
@@ -76,7 +76,7 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_logo = "./assets/images/rel2graph_banner.png"
+html_logo = "./assets/images/data2neo_banner.png"
 html_theme_options = {
     'logo_only': True,
     'display_version': False,

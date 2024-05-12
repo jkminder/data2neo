@@ -9,8 +9,8 @@ authors: Julian Minder
 
 import pytest
 
-from rel2graph.common_modules import datetime
-from rel2graph import Attribute
+from data2neo.common_modules import datetime
+from data2neo import Attribute
 
 from datetime import datetime as dt
 

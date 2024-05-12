@@ -9,7 +9,7 @@ authors: Julian Minder
 
 import pytest
 
-from rel2graph.relational_modules.sqlite import SQLiteResource, SQLiteIterator
+from data2neo.relational_modules.sqlite import SQLiteResource, SQLiteIterator
 import sqlite3
 import pickle
 

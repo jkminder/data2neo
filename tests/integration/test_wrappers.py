@@ -10,13 +10,13 @@ authors: Julian Minder
 import pytest 
 import pandas as pd
 
-from rel2graph import Converter
-from rel2graph import AttributeFactoryWrapper, SubgraphFactoryWrapper
-from rel2graph.neo4j import Node, Relationship, Subgraph
-from rel2graph.utils import load_file
-from rel2graph.relational_modules.pandas import PandasDataFrameIterator
-from rel2graph import register_wrapper, register_attribute_postprocessor, register_attribute_preprocessor, register_subgraph_postprocessor, register_subgraph_preprocessor
-from rel2graph import Attribute
+from data2neo import Converter
+from data2neo import AttributeFactoryWrapper, SubgraphFactoryWrapper
+from data2neo.neo4j import Node, Relationship, Subgraph
+from data2neo.utils import load_file
+from data2neo.relational_modules.pandas import PandasDataFrameIterator
+from data2neo import register_wrapper, register_attribute_postprocessor, register_attribute_preprocessor, register_subgraph_postprocessor, register_subgraph_preprocessor
+from data2neo import Attribute
 
 from helpers import *
 # Turn off reinstantiation warnings

@@ -13,8 +13,8 @@ import neo4j
 import os
 import warnings
 
-from rel2graph.core.factories import Matcher, AttributeFactory
-from rel2graph import Resource
+from data2neo.core.factories import Matcher, AttributeFactory
+from data2neo import Resource
 
 def delete_all(session):
     session.run("MATCH (n) DETACH DELETE n")

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Integration tests for global state in rel2graph
+Integration tests for global state in data2neo
 
 authors: Julian Minder
 """
@@ -12,8 +12,8 @@ import pytest
 import pandas as pd
 import multiprocessing as mp
 
-from rel2graph import Converter, GlobalSharedState, register_subgraph_postprocessor
-from rel2graph.relational_modules.pandas import PandasDataFrameIterator
+from data2neo import Converter, GlobalSharedState, register_subgraph_postprocessor
+from data2neo.relational_modules.pandas import PandasDataFrameIterator
 
 from helpers import *
 

@@ -11,10 +11,10 @@ import pytest
 
 import pandas as pd
 
-from rel2graph import Converter, IteratorIterator, register_attribute_postprocessor, Attribute
-from rel2graph.relational_modules.pandas import PandasDataFrameIterator
-import rel2graph.common_modules.types
-from rel2graph.common_modules import MERGE_RELATIONS
+from data2neo import Converter, IteratorIterator, register_attribute_postprocessor, Attribute
+from data2neo.relational_modules.pandas import PandasDataFrameIterator
+import data2neo.common_modules.types
+from data2neo.common_modules import MERGE_RELATIONS
 
 from helpers import *
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Factory submodule of rel2graph. This module keeps track off all factories.
+Factory submodule of data2neo. This module keeps track off all factories.
 
 authors: Julian Minder
 """

@@ -15,7 +15,7 @@ This chapter will guide you through the creation of your own wrappers.
 Background
 ~~~~~~~~~~
 
-First, we need to be aware of the different factory types *rel2graph* uses. 
+First, we need to be aware of the different factory types *Data2Neo* uses. 
 The input of every factory is always a resource, but depending on the type the output varies. 
 To write wrappers, we need to distinguish the two main factory types: **SubgraphFactories** and **AttributeFactories**. 
 
@@ -30,7 +30,7 @@ AttributeFactories
 
 .. code-block:: python
 
-    from rel2graph import Attribute
+    from data2neo import Attribute
     myattr = Attribute("mykey", "myvalue")
     key = myattr.key # get the key of the attribute
     value = myattr.value # get the value of the attribute
@@ -75,7 +75,7 @@ The library will not check if your registered functions/classes match the expect
 If the function behaves other than expected, this will result in undefined behaviour during runtime. 
 Make sure you define your functions/classes correctly.
 
-**Attention**: If you require shared state between wrappers or wrapper calls you need to explicitly tell rel2graph, e.g. a wrapper that counts the number of processed resources. Read more about it in the :ref:`Global Shared State <converter:Global Shared State>` chapter.
+**Attention**: If you require shared state between wrappers or wrapper calls you need to explicitly tell Data2Neo, e.g. a wrapper that counts the number of processed resources. Read more about it in the :ref:`Global Shared State <converter:Global Shared State>` chapter.
 
 Preprocessors
 ~~~~~~~~~~~~~
@@ -93,7 +93,7 @@ Some examples:
 
 .. code-block:: python
 
-    from rel2graph import register_attribute_preprocessor, register_subgraph_preprocessor
+    from data2neo import register_attribute_preprocessor, register_subgraph_preprocessor
 
     @register_attribute_preprocessor
     def my_attr_preprocessor(resource: Resource) -> Resource:
@@ -129,7 +129,7 @@ Some examples:
 
 .. code-block:: python
 
-    from rel2graph import register_attribute_postprocessor, register_subgraph_postprocessor, Attribute
+    from data2neo import register_attribute_postprocessor, register_subgraph_postprocessor, Attribute
 
     @register_attribute_postprocessor
     def attr_append_postprocessor(attribute: Attribute, value=" appendix": str) -> Attribute:
@@ -170,7 +170,7 @@ Obviously, everything that can be done with pre/postprocessor functions can also
 
 .. code-block:: python
 
-    from rel2graph import SubGraphFactoryWrapper, register_wrapper
+    from data2neo import SubGraphFactoryWrapper, register_wrapper
 
     @register_wrapper
     class REQUIRED(SubgraphFactoryWrapper):
@@ -196,15 +196,15 @@ schema.yaml
         REQUIRED(RELATIONSHIP(from, "relationship type", MATCH("other", key="value")), "No match for label other and key=value"):
 
 
-.. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
-.. |Converter| replace:: :py:class:`Converter <rel2graph.Converter>`
-.. |ResourceIterator| replace:: :py:class:`ResourceIterator <rel2graph.ResourceIterator>`
-.. |Attribute| replace:: :py:class:`Attribute <rel2graph.Attribute>`
-.. |SubgraphWrapper| replace:: :py:class:`SubgraphFactoryWrapper <rel2graph.SubgraphFactoryWrapper>`
-.. |AttributeWrapper| replace:: :py:class:`AttributeFactoryWrapper <rel2graph.AttributeFactoryWrapper>`
-.. |Subgraph| replace:: :py:class:`Subgraph <rel2graph.neo4j.Subgraph>`
-.. |Node| replace:: :py:class:`Node <rel2graph.neo4j.Node>`
-.. |Relationship| replace:: :py:class:`Relationship <rel2graph.neo4j.Relationship>`
+.. |Resource| replace:: :py:class:`Resource <data2neo.Resource>`
+.. |Converter| replace:: :py:class:`Converter <data2neo.Converter>`
+.. |ResourceIterator| replace:: :py:class:`ResourceIterator <data2neo.ResourceIterator>`
+.. |Attribute| replace:: :py:class:`Attribute <data2neo.Attribute>`
+.. |SubgraphWrapper| replace:: :py:class:`SubgraphFactoryWrapper <data2neo.SubgraphFactoryWrapper>`
+.. |AttributeWrapper| replace:: :py:class:`AttributeFactoryWrapper <data2neo.AttributeFactoryWrapper>`
+.. |Subgraph| replace:: :py:class:`Subgraph <data2neo.neo4j.Subgraph>`
+.. |Node| replace:: :py:class:`Node <data2neo.neo4j.Node>`
+.. |Relationship| replace:: :py:class:`Relationship <data2neo.neo4j.Relationship>`
 
 .. _neo4j: https://neo4j.com/
 .. _py2neo: https://py2neo.org/2021.1/index.html

@@ -11,8 +11,8 @@ import pytest
 import datetime
 from neo4j import GraphDatabase, time
 
-from rel2graph.neo4j import Node, Relationship, Subgraph, create, merge, push, pull
-from rel2graph.common_modules import MERGE_RELATIONSHIPS
+from data2neo.neo4j import Node, Relationship, Subgraph, create, merge, push, pull
+from data2neo.common_modules import MERGE_RELATIONSHIPS
 
 @pytest.fixture
 def session():

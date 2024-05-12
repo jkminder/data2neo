@@ -9,9 +9,9 @@ authors: Julian Minder
 
 import pytest
 
-from rel2graph.core.schema_compiler import compile_schema, SchemaConfigParser, _precompile
-from rel2graph import register_attribute_preprocessor, SchemaConfigException
-from rel2graph.utils import load_file
+from data2neo.core.schema_compiler import compile_schema, SchemaConfigParser, _precompile
+from data2neo import register_attribute_preprocessor, SchemaConfigException
+from data2neo.utils import load_file
 
 
 ######## TESTS PRECOMPILER ##########

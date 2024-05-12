@@ -1,12 +1,12 @@
-.. rel2graph documentation master file, created by
+.. data2neo documentation master file, created by
    sphinx-quickstart on Wed Apr 20 19:25:41 2022.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to **rel2graph**'s documentation!
+Welcome to **data2neo**'s documentation!
 =========================================
 
-**rel2graph** is a library that simplifies the conversion of data in relational format 
+**Data2Neo** is a library that simplifies the conversion of data in relational format 
 to a graph knowledge database. It relieves you of the cumbersome manual work of writing the conversion code 
 and lets you focus on the conversion schema and data processing.
 
@@ -50,8 +50,8 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
-.. |Converter| replace:: :py:class:`Converter <rel2graph.Converter>`
-.. |ResourceIterator| replace:: :py:class:`ResourceIterator <rel2graph.ResourceIterator>`
+.. |Resource| replace:: :py:class:`Resource <data2neo.Resource>`
+.. |Converter| replace:: :py:class:`Converter <data2neo.Converter>`
+.. |ResourceIterator| replace:: :py:class:`ResourceIterator <data2neo.ResourceIterator>`
 .. _neo4j: https://neo4j.com/
 .. _py2neo: https://py2neo.org/2021.1/index.html

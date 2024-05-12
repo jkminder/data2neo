@@ -7,13 +7,13 @@ requirements = [
 ]
 
 setup(
-    name = "rel2graph", 
+    name = "data2neo", 
     packages = find_packages(),
-    version = "1.3.3",
+    version = "1.4.0",
     description = "Library for converting relational data into graph data (neo4j)",
     author = "Julian Minder",
     author_email = "jminder@ethz.ch",   
-    url = "github.com/sg-dev/rel2graph",    
+    url = "https://github.com/jkminder/data2neo",    
     install_requires = requirements,
     python_requires = ">=3.8"
 )

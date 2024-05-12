@@ -2,7 +2,7 @@
 Utils
 -----------------
 
-General utility functions for working with rel2graph.
+General utility functions for working with Data2Neo.
 
 
-.. autofunction:: rel2graph.utils.load_file
+.. autofunction:: data2neo.utils.load_file

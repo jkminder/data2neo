@@ -1,9 +1,9 @@
 Introduction
 ============
 
-This chapter will give you an overview of how *rel2graph* works and a first intuition on 
+This chapter will give you an overview of how *Data2Neo* works and a first intuition on 
 how to interact with it. Details on how the individual parts of the library work can be 
-found in later chapters. At the heart of rel2graph is the concept of a factory that
+found in later chapters. At the heart of Data2Neo is the concept of a factory that
 converts an input (relational data) into an output (a neo4j_
 graph). 
 The factory input is called a |Resource| which can represent
@@ -18,10 +18,10 @@ must connect to their data source.
 
 .. image:: assets/images/overview.png
     :width: 800
-    :alt: rel2graph overview
+    :alt: Data2Neo overview
 
 The library supports the use of different resource types,
-allowing the user to process various entities. Rel2graph then
+allowing the user to process various entities. Data2Neo then
 constructs one factory per resource type.
 At the core of the library lies the |Converter|. The |Converter| is the main object the
 developer interacts with and is responsible for constructing and
@@ -39,7 +39,7 @@ it. The |Converter| iteratively asks the |ResourceIterator|
 for the next resource until the iterator reports no more resources to process.
 
 Lastly, it is possible to extend the factories by injecting custom pre- or postprocessing functions, called Wrappers, into
-the rel2graph pipeline. :doc:`Wrappers <wrapper>` allow the user to specify
+the Data2Neo pipeline. :doc:`Wrappers <wrapper>` allow the user to specify
 arbitrary procedures that are applied to a Resource just before
 it is passed to the wrapped factory, or to the immediate output
 of the factory before it is passed back to the Converter.
@@ -48,12 +48,12 @@ complex data integration pipelines. :doc:`Read more here. <wrapper>`
 
 .. image:: assets/images/wrapper.png
     :width: 800
-    :alt: rel2graph wrapper
+    :alt: Data2Neo wrapper
 
 
-.. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
-.. |Converter| replace:: :py:class:`Converter <rel2graph.Converter>`
-.. |ResourceIterator| replace:: :py:class:`ResourceIterator <rel2graph.ResourceIterator>`
+.. |Resource| replace:: :py:class:`Resource <Data2Neo.Resource>`
+.. |Converter| replace:: :py:class:`Converter <Data2Neo.Converter>`
+.. |ResourceIterator| replace:: :py:class:`ResourceIterator <Data2Neo.ResourceIterator>`
 .. |convschema| replace:: :doc:`conversion schema <conversion_schema>`
 .. _neo4j: https://neo4j.com/
 .. _py2neo: https://py2neo.org/2021.1/index.html

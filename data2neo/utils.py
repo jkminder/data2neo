@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Utility functions for working with rel2graph.
+Utility functions for working with data2neo.
 
 authors: Julian Minder
 """

@@ -11,8 +11,8 @@ import os
 import pytest
 import pickle
 
-from rel2graph.neo4j import Node, Relationship, Subgraph
-from rel2graph import Attribute
+from data2neo.neo4j import Node, Relationship, Subgraph
+from data2neo import Attribute
 
 def test_attributes():
     attr = Attribute("key", "value")

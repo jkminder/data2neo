@@ -13,11 +13,11 @@ import pandas as pd
 import logging
 import numpy as np
 
-from rel2graph import Converter, IteratorIterator, register_attribute_postprocessor, Attribute, register_subgraph_preprocessor, GlobalSharedState, register_subgraph_postprocessor
-from rel2graph.utils import load_file
-from rel2graph.relational_modules.pandas import PandasDataFrameIterator
-from rel2graph.neo4j import match_relationships, push, pull
-from rel2graph.common_modules import MERGE_RELATIONSHIPS
+from data2neo import Converter, IteratorIterator, register_attribute_postprocessor, Attribute, register_subgraph_preprocessor, GlobalSharedState, register_subgraph_postprocessor
+from data2neo.utils import load_file
+from data2neo.relational_modules.pandas import PandasDataFrameIterator
+from data2neo.neo4j import match_relationships, push, pull
+from data2neo.common_modules import MERGE_RELATIONSHIPS
 
 from helpers import *
 

@@ -10,8 +10,8 @@ authors: Julian Minder
 import pytest
 import datetime
 
-from rel2graph.common_modules import types
-from rel2graph import Attribute
+from data2neo.common_modules import types
+from data2neo import Attribute
 
 @pytest.fixture
 def s_attr():

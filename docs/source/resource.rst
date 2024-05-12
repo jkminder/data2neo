@@ -4,7 +4,7 @@ Customising Resource and ResourceIterator
 The |Resource| and |ResourceIterator| classes are abstract classes and need to be implemented for your specific relational input data type. 
 The library comes with implementations for a few :ref:`existing relational modules <resource:existing relational modules>`. 
 If you data type is not supported, you can easily create implementations for your data; 
-see below for an explanation or check out `one of the already implemented modules <https://github.com/sg-dev/rel2graph/tree/main/rel2graph/relational_modules>`_. 
+see below for an explanation or check out `one of the already implemented modules <https://github.com/sg-dev/data2neo/tree/main/data2neo/relational_modules>`_. 
 
 
 If you think your implementations could be helpful for others as well, read through the chapter :doc:`Information for Developers <information_for_developers>` and create a pull request.
@@ -17,7 +17,7 @@ The parent constructor must be called with no arguments. Additionally, you need 
 
 .. code-block:: python 
 
-    from rel2graph import Resource
+    from data2neo import Resource
 
     class MyResource(Resource):
         def __init__(...your constructor parameters...):
@@ -74,7 +74,7 @@ Note that your iterator can also traverse resources of different types.
 
 .. code-block:: python
 
-    from rel2graph import ResourceIterator
+    from data2neo import ResourceIterator
 
     class MyIterator(ResourceIterator):
         def __init__(self, ...your constructor parameters...) -> None:
@@ -112,7 +112,7 @@ There are no restrictions on the "sub"-iterators, as long as they are of type |R
 
 .. code-block:: python
 
-    from rel2graph import IteratorIterator
+    from data2neo import IteratorIterator
     iterator1 = ... # An iterator
     iterator2 = ... # Another iterator
     itit = IteratorIterator([iterator1, iterator2])
@@ -124,39 +124,39 @@ Existing relational modules
 Pandas
 ------
 
-With the :py:class:`PandasDataFrameIterator <rel2graph.relational_modules.pandas.PandasDataFrameIterator>` you can wrap a `pandas dataframe <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html?highlight=dataframe#pandas>`_. 
-If you pass a pandas dataframe to the :py:class:`PandasDataFrameIterator <rel2graph.relational_modules.pandas.PandasDataFrameIterator>` it will automatically create :py:class:`PandasSeriesResource <rel2graph.relational_modules.pandas.PandasSeriesResource>` out of all rows (series) and iterate over them. 
+With the :py:class:`PandasDataFrameIterator <data2neo.relational_modules.pandas.PandasDataFrameIterator>` you can wrap a `pandas dataframe <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html?highlight=dataframe#pandas>`_. 
+If you pass a pandas dataframe to the :py:class:`PandasDataFrameIterator <data2neo.relational_modules.pandas.PandasDataFrameIterator>` it will automatically create :py:class:`PandasSeriesResource <data2neo.relational_modules.pandas.PandasSeriesResource>` out of all rows (series) and iterate over them. 
 Since a dataframe has no type associated, you need to also provide a type name.
 
 .. code-block:: python
 
-    from rel2graph.relational_modules.pandas import PandasDataFrameIterator
+    from data2neo.relational_modules.pandas import PandasDataFrameIterator
     iterator = PandasDataFrameIterator(pandas.DataFrame(...), "MyType")
 
 
 SQLite
 ------
 
-With the :py:class:`SQLiteIterator <rel2graph.relational_modules.sqlite.SQLiteIterator>` you can iterate over a sqlite database. You need to provide a connection to the database.
-You can also provide a list of tables to iterate over. If you do not provide a list of tables, the iterator will iterate over all tables in the database. Rel2graph requires primary keys, so if your tables do not have primary keys, you need to provide a dictionary with table, primary key pairs.
+With the :py:class:`SQLiteIterator <data2neo.relational_modules.sqlite.SQLiteIterator>` you can iterate over a sqlite database. You need to provide a connection to the database.
+You can also provide a list of tables to iterate over. If you do not provide a list of tables, the iterator will iterate over all tables in the database. data2neo requires primary keys, so if your tables do not have primary keys, you need to provide a dictionary with table, primary key pairs.
 
 By default the Iterator will mix all tables together. If you want to iterate over tables one after another, you can set the ``mix_tables`` parameter to ``False``. 
 
-The python implementation of sqlite will often throw warnings if a new process is spawned. You can disable these warnings by setting the ``check_same_thread`` parameter to ``False``. Rel2graph does not share the connection between processes, only the master processes requests data from the database.
+The python implementation of sqlite will often throw warnings if a new process is spawned. You can disable these warnings by setting the ``check_same_thread`` parameter to ``False``. data2neo does not share the connection between processes, only the master processes requests data from the database.
 
 .. code-block:: python
 
-    from rel2graph.relational_modules.sqlite import SQLiteIterator
+    from data2neo.relational_modules.sqlite import SQLiteIterator
     import sqlite3
 
     connection = sqlite3.connect("mydatabase.db", check_same_thread=False)
     iterator = SQLiteIterator(connection, filter=["table1", "table2"], primary_keys={"table3": "id"})
 
 
-.. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
-.. |Converter| replace:: :py:class:`Converter <rel2graph.Converter>`
-.. |ResourceIterator| replace:: :py:class:`ResourceIterator <rel2graph.ResourceIterator>`
-.. |IteratorIterator| replace:: :py:class:`IteratorIterator <rel2graph.IteratorIterator>`
+.. |Resource| replace:: :py:class:`Resource <data2neo.Resource>`
+.. |Converter| replace:: :py:class:`Converter <data2neo.Converter>`
+.. |ResourceIterator| replace:: :py:class:`ResourceIterator <data2neo.ResourceIterator>`
+.. |IteratorIterator| replace:: :py:class:`IteratorIterator <data2neo.IteratorIterator>`
 
 .. _neo4j: https://neo4j.com/
 .. _py2neo: https://py2neo.org/2021.1/index.html

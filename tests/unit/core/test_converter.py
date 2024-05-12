@@ -10,7 +10,7 @@ authors: Julian Minder
 
 import pytest
 import neo4j
-from rel2graph import Converter
+from data2neo import Converter
 
 import warnings
 

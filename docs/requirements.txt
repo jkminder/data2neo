@@ -1,4 +1,4 @@
-rel2graph
+data2neo
 sphinx
 sphinx_autodoc_typehints
 sphinx_rtd_theme

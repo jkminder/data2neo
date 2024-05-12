@@ -1,26 +1,26 @@
-[![Tests Neo4j 5.13](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml/badge.svg)](https://github.com/sg-dev/rel2graph/actions/workflows/tests_neo4j5.yaml)
-[![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%C2%A03.9%C2%A0%7C%C2%A03.10%C2%A0%7C%203.11%C2%A0%7C%203.12-orange)](https://github.com/sg-dev/rel2graph/actions/workflows) 
+[![Tests Neo4j 5.13](https://github.com/sg-dev/Data2Neo/actions/workflows/tests_neo4j5.yaml/badge.svg)](https://github.com/sg-dev/Data2Neo/actions/workflows/tests_neo4j5.yaml)
+[![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%C2%A03.9%C2%A0%7C%C2%A03.10%C2%A0%7C%203.11%C2%A0%7C%203.12-orange)](https://github.com/sg-dev/Data2Neo/actions/workflows) 
 
 ---
 <p align="center">
-  <img src="docs/source/assets/images/rel2graph_banner.png" alt="rel2graph banner"/>
+  <img src="docs/source/assets/images/Data2Neo_banner.png" alt="Data2Neo banner"/>
 </p>
 
 ---
-**Rel2graph** is a library that simplifies the convertion of data in relational format to a graph knowledge database. It reliefs you of the cumbersome manual work of writing the conversion code and let's you focus on the conversion schema and data processing.
+**Data2Neo** is a library that simplifies the convertion of data in relational format to a graph knowledge database. It reliefs you of the cumbersome manual work of writing the conversion code and let's you focus on the conversion schema and data processing.
 
 The library is built specifically for converting data into a [neo4j](https://neo4j.com/) graph (minimum version 5.2). The library further supports extensive customization capabilities to clean and remodel data. As neo4j python client it uses the native [neo4j python client](https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/).
 
 
- - [Latest Releases](https://github.com/sg-dev/rel2graph/tags)
- - [Documentation](https://rel2graph.jkminder.ch)
+ - [Latest Releases](https://github.com/sg-dev/Data2Neo/tags)
+ - [Documentation](https://Data2Neo.jkminder.ch)
 
 This library has been developed at the [Chair of Systems Design at ETH Zürich](https://www.sg.ethz.ch).
 
 ## Installation
 If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v1.3.3][latest_tag]):
 ```
-pip install git+ssh://git@github.com/sg-dev/rel2graph@v1.3.3
+pip install git+ssh://git@github.com/sg-dev/Data2Neo@v1.3.3
 ```
 
 If you don't have ssh set up, download the latest wheel [here][latest_wheel] and install the wheel with:
@@ -32,7 +32,7 @@ If you have cloned the repository you can also build it locally with
 ```
 pip install **path-to-repository**
 ```
-The rel2graph library supports Python 3.8+.
+The Data2Neo library supports Python 3.8+.
 
 ## Quick Start
 A quick example for converting data in a [Pandas](https://pandas.pydata.org) dataframe into a graph. The full example code can be found under [examples](/examples). For more details, please checkout the [full documentation][wiki]. We first define a *convertion schema* in a YAML style config file. In this config file we specify, which entites are converted into which nodes and which relationships. 
@@ -56,17 +56,17 @@ ENTITY("Person"):
     RELATIONSHIP(person, "likes", MATCH("Species", Name=Person.FavoriteFlower)):
         - Since = "4ever"
 ```
-The library itself has 2 basic elements, that are required for the conversion: the `Converter` that handles the conversion itself and an `Iterator` that iterates over the relational data. The iterator can be implemented for arbitrary data in relational format. Rel2graph currently has preimplemented iterators under:
-- `rel2graph.relational_modules.sqlite`  for [SQLite](https://www.sqlite.org/index.html) databases
-- `rel2graph.relational_modules.pandas` for [Pandas](https://pandas.pydata.org) dataframes
+The library itself has 2 basic elements, that are required for the conversion: the `Converter` that handles the conversion itself and an `Iterator` that iterates over the relational data. The iterator can be implemented for arbitrary data in relational format. Data2Neo currently has preimplemented iterators under:
+- `Data2Neo.relational_modules.sqlite`  for [SQLite](https://www.sqlite.org/index.html) databases
+- `Data2Neo.relational_modules.pandas` for [Pandas](https://pandas.pydata.org) dataframes
 
-We will use the `PandasDataFrameIterator` from `rel2graph.relational_modules.pandas`. Further we will use the `IteratorIterator` that can wrap multiple iterators to handle multiple dataframes. Since a pandas dataframe has no type/table name associated, we need to specify the name when creating a `PandasDataFrameIterator`. We also define define a custom function `append` that can be refered to in the schema file and that appends a string to the attribute value. For an entity with `Flower["petal_width"] = 5`, the outputed node will have the attribute `petal_width = "5 milimeters"`.
+We will use the `PandasDataFrameIterator` from `Data2Neo.relational_modules.pandas`. Further we will use the `IteratorIterator` that can wrap multiple iterators to handle multiple dataframes. Since a pandas dataframe has no type/table name associated, we need to specify the name when creating a `PandasDataFrameIterator`. We also define define a custom function `append` that can be refered to in the schema file and that appends a string to the attribute value. For an entity with `Flower["petal_width"] = 5`, the outputed node will have the attribute `petal_width = "5 milimeters"`.
 ```python
 import neo4j
 import pandas as pd 
-from rel2graph.relational_modules.pandas import PandasDataFrameIterator 
-from rel2graph import IteratorIterator, Converter, Attribute, register_attribute_postprocessor
-from rel2graph.utils import load_file
+from Data2Neo.relational_modules.pandas import PandasDataFrameIterator 
+from Data2Neo import IteratorIterator, Converter, Attribute, register_attribute_postprocessor
+from Data2Neo.utils import load_file
 
 # Setup the neo4j uri and credentials
 uri = "bolt:localhost:7687"
@@ -92,9 +92,9 @@ converter = Converter(load_file("schema.yaml"), iterator, uri, auth)
 converter()
 ```
 # Known issues
-If you encounter a bug or an unexplainable behavior, please check the [known issues](https://github.com/sg-dev/rel2graph/labels/bug) list. If your issue is not found, submit a new one.
+If you encounter a bug or an unexplainable behavior, please check the [known issues](https://github.com/sg-dev/Data2Neo/labels/bug) list. If your issue is not found, submit a new one.
 
 [latest_version]: v1.3.3
-[latest_tag]: https://github.com/sg-dev/rel2graph/releases/tag/v1.3.3
-[latest_wheel]: https://github.com/sg-dev/rel2graph/releases/download/v1.3.3/rel2graph-1.3.3-py3-none-any.whl
-[wiki]: https://rel2graph.jkminder.ch/index.html
+[latest_tag]: https://github.com/sg-dev/Data2Neo/releases/tag/v1.3.3
+[latest_wheel]: https://github.com/sg-dev/Data2Neo/releases/download/v1.3.3/Data2Neo-1.3.3-py3-none-any.whl
+[wiki]: https://Data2Neo.jkminder.ch/index.html

@@ -14,8 +14,8 @@ import pandas as pd
 import neo4j
 import os
 
-from rel2graph import Converter, IteratorIterator, register_attribute_postprocessor, Attribute
-from rel2graph.relational_modules.pandas import PandasDataFrameIterator
+from data2neo import Converter, IteratorIterator, register_attribute_postprocessor, Attribute
+from data2neo.relational_modules.pandas import PandasDataFrameIterator
 
 from helpers import *
 

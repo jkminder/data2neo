@@ -6,7 +6,7 @@ It is initialised with the *conversion schema* as a string, the iterator, the gr
 
 .. code-block:: python
 
-    from rel2graph import Converter
+    from data2neo import Converter
 
     converter = Converter(conversion_schema, iterator, uri, auth)
 
@@ -22,8 +22,8 @@ The progress bar class must be an instance of the `tqdm <https://tqdm.github.io>
 
 .. code-block:: python
 
-    from rel2graph import Converter
-    from rel2graph.utils import load_file
+    from data2neo import Converter
+    from data2neo.utils import load_file
     from tqdm import tqdm
 
     converter = Converter(load_file(conversion_schema_file), iterator, uri, auth)
@@ -70,7 +70,7 @@ For converting strings to datetime/date the library provides some predefined wra
 Global Shared State
 ~~~~~~~~~~~~~~~~~~~
 
-If you need to share state between your wrappers you must notify rel2graph explicitly about this. An example of this is a wrapper that needs to keep track of the number of resources it has processed. Because the |Converter| uses multiple workers
+If you need to share state between your wrappers you must notify data2neo explicitly about this. An example of this is a wrapper that needs to keep track of the number of resources it has processed. Because the |Converter| uses multiple workers
 the wrapper may be called in different processes and the state is not shared between the processes (note that parallel processes do not share the same memory). To share state between the processes you need to use the ``GlobalSharedState``. The ``GlobalSharedState`` is a singleton class that can be used to share state between the processes.
 Before calling the |Converter| you need to register your state with the ``GlobalSharedState`` by simply defining an attribute on it ``GlobalSharedState.my_state = my_state``. By default the ``GlobalSharedState`` will provide the `neo4j driver <https://neo4j.com/docs/api/python-driver/current/api.html#driver>`_ object to every process under ``GlobalSharedState.graph_driver``. 
 
@@ -79,7 +79,7 @@ Other options include ``multiprocessing.Array``, ``multiprocessing.Queue``, ``mu
 
 .. code-block:: python
 
-    from rel2graph import GlobalSharedState, register_subgraph_preprocessor
+    from data2neo import GlobalSharedState, register_subgraph_preprocessor
 
 
     @register_subgraph_preprocessor
@@ -114,14 +114,14 @@ Other options include ``multiprocessing.Array``, ``multiprocessing.Queue``, ``mu
 Logging
 ~~~~~~~
 
-The whole rel2graph library uses the standard python `logging <https://docs.python.org/3/howto/logging.html>`_ library. 
+The whole data2neo library uses the standard python `logging <https://docs.python.org/3/howto/logging.html>`_ library. 
 See an example of how to use it below. For more information, check out the `official documentation <https://docs.python.org/3/howto/logging.html>`_.
 
 .. code-block:: python
         
     import logging
 
-    logger = logging.getLogger("rel2graph") # Get Logger
+    logger = logging.getLogger("data2neo") # Get Logger
     logger.setLevel(logging.DEBUG) # Set the log level to DEBUG
     log_formatter = logging.Formatter("%(asctime)s [%(threadName)s]::[%(levelname)s]::%(filename)s: %(message)s") # Specify the format
     console_handler = logging.StreamHandler() # Create console handler (will output directly to console)
@@ -160,9 +160,9 @@ With this:
         
         RELATIONSHIP(source, "TO", target):
 
-.. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
-.. |Converter| replace:: :py:class:`Converter <rel2graph.Converter>`
-.. |ResourceIterator| replace:: :py:class:`ResourceIterator <rel2graph.ResourceIterator>`
+.. |Resource| replace:: :py:class:`Resource <data2neo.Resource>`
+.. |Converter| replace:: :py:class:`Converter <data2neo.Converter>`
+.. |ResourceIterator| replace:: :py:class:`ResourceIterator <data2neo.ResourceIterator>`
 .. _neo4j: https://neo4j.com/
 .. _py2neo: https://py2neo.org/2021.1/index.html
 .. _tqdm: https://tqdm.github.io

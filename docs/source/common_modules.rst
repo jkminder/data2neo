@@ -1,14 +1,14 @@
 Common modules
 ==============
 
-The rel2graph library comes with some predefined wrappers. To use them you must import them from the ``rel2graph.common_modules`` module. The following wrappers are available:
+The data2neo library comes with some predefined wrappers. To use them you must import them from the ``data2neo.common_modules`` module. The following wrappers are available:
 
 
 general
 -------
 .. code-block:: python
 
-    import rel2graph.common_modules
+    import data2neo.common_modules
 
 **MERGE_RELATIONSHIPS**
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -37,7 +37,7 @@ types
 --------
 .. code-block:: python
 
-    import rel2graph.common_modules.types
+    import data2neo.common_modules.types
 
 
 **INT**
@@ -65,7 +65,7 @@ datetime
 --------
 .. code-block:: python
 
-    import rel2graph.common_modules.datetime
+    import data2neo.common_modules.datetime
 
 
 **DATETIME**

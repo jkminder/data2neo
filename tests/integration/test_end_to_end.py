@@ -9,12 +9,12 @@ authors: Julian Minder
 
 import pytest 
 
-from rel2graph import Converter
-from rel2graph.relational_modules.pandas import PandasDataFrameIterator
-from rel2graph.utils import load_file
-from rel2graph import IteratorIterator
-from rel2graph import register_subgraph_postprocessor
-from rel2graph.common_modules import MERGE_RELATIONSHIPS
+from data2neo import Converter
+from data2neo.relational_modules.pandas import PandasDataFrameIterator
+from data2neo.utils import load_file
+from data2neo import IteratorIterator
+from data2neo import register_subgraph_postprocessor
+from data2neo.common_modules import MERGE_RELATIONSHIPS
 
 from resources.data_end_to_end import no_duplicates, duplicates, before_update, person_only_nodes_only_result, schema_file_name
 from resources.data_end_to_end import iris, flower_only_result, full_result, result_parallel
@@ -26,7 +26,7 @@ from helpers import *
 
 # Set logging level
 import logging
-logging.getLogger("rel2graph").setLevel(logging.DEBUG)
+logging.getLogger("data2neo").setLevel(logging.DEBUG)
 
 
 @pytest.mark.parametrize("workers",[1,5])

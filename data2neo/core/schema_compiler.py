@@ -30,7 +30,7 @@ class SchemaConfigException(ValueError):
 
 class SchemaConfigParser:
     """
-    Parses the schema config file into rel2graph instructions that can directly be converted into factories and their arguments. Uses ply to
+    Parses the schema config file into data2neo instructions that can directly be converted into factories and their arguments. Uses ply to
     parse and lex the grammar.
 
     All t_{name} methods/attributes of the class are used by lex to parser the document into tokens. All p_{name} functions define the grammar for 

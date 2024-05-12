@@ -207,8 +207,8 @@ Assuming you have defined the attributewrappers ``ATTRWRAPPER1`` and ``ATTRWRAPP
 
 Note that the library does no semantic checking of your schema. If you apply an attribute wrapper to a node or a relationship, the outcome is undefined and might result in unexpected behaviour/exceptions during runtime.
 
-.. |Resource| replace:: :py:class:`Resource <rel2graph.Resource>`
-.. |Converter| replace:: :py:class:`Converter <rel2graph.Converter>`
-.. |ResourceIterator| replace:: :py:class:`ResourceIterator <rel2graph.ResourceIterator>`
+.. |Resource| replace:: :py:class:`Resource <data2neo.Resource>`
+.. |Converter| replace:: :py:class:`Converter <data2neo.Converter>`
+.. |ResourceIterator| replace:: :py:class:`ResourceIterator <data2neo.ResourceIterator>`
 .. _neo4j: https://neo4j.com/
 .. _py2neo: https://py2neo.org/2021.1/index.html

@@ -452,7 +452,7 @@ class Node(PropertyDict, Subgraph):
     All positional arguments passed to the constructor are interpreted
     as labels and all keyword arguments as properties::
 
-        >>> from rel2graph.neo4j import Node
+        >>> from data2neo.neo4j import Node
         >>> a = Node("Person", name="Alice")
 
     """

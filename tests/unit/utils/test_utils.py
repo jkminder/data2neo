@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 """
-Tests for rel2graph.utils module
+Tests for data2neo.utils module
 
 authors: Julian Minder
 """
 
 import pytest
 
-from rel2graph.utils import load_file
+from data2neo.utils import load_file
 
 def test_load_file():
     """
