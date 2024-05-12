@@ -1,9 +1,9 @@
-[![Tests Neo4j 5.13](https://github.com/sg-dev/Data2Neo/actions/workflows/tests_neo4j5.yaml/badge.svg)](https://github.com/sg-dev/Data2Neo/actions/workflows/tests_neo4j5.yaml)
-[![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%C2%A03.9%C2%A0%7C%C2%A03.10%C2%A0%7C%203.11%C2%A0%7C%203.12-orange)](https://github.com/sg-dev/Data2Neo/actions/workflows) 
+[![Tests Neo4j 5.13](https://github.com/sg-dev/data2neo/actions/workflows/tests_neo4j5.yaml/badge.svg)](https://github.com/sg-dev/data2neo/actions/workflows/tests_neo4j5.yaml)
+[![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%C2%A03.9%C2%A0%7C%C2%A03.10%C2%A0%7C%203.11%C2%A0%7C%203.12-orange)](https://github.com/sg-dev/data2neo/actions/workflows) 
 
 ---
 <p align="center">
-  <img src="docs/source/assets/images/Data2Neo_banner.png" alt="Data2Neo banner"/>
+  <img src="docs/source/assets/images/data2neo_banner.png" alt="Data2Neo banner"/>
 </p>
 
 ---
