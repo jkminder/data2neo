@@ -64,9 +64,9 @@ We will use the `PandasDataFrameIterator` from `Data2Neo.relational_modules.pand
 ```python
 import neo4j
 import pandas as pd 
-from Data2Neo.relational_modules.pandas import PandasDataFrameIterator 
-from Data2Neo import IteratorIterator, Converter, Attribute, register_attribute_postprocessor
-from Data2Neo.utils import load_file
+from data2neo.relational_modules.pandas import PandasDataFrameIterator 
+from data2neo import IteratorIterator, Converter, Attribute, register_attribute_postprocessor
+from data2neo.utils import load_file
 
 # Setup the neo4j uri and credentials
 uri = "bolt:localhost:7687"
@@ -95,6 +95,6 @@ converter()
 If you encounter a bug or an unexplainable behavior, please check the [known issues](https://github.com/jkminder/Data2Neo/labels/bug) list. If your issue is not found, submit a new one.
 
 [latest_version]: v1.3.3
-[latest_tag]: https://github.com/jkminder/Data2Neo/releases/tag/v1.3.3
-[latest_wheel]: https://github.com/jkminder/Data2Neo/releases/download/v1.3.3/Data2Neo-1.3.3-py3-none-any.whl
+[latest_tag]: https://github.com/jkminder/data2neo/releases/tag/v1.3.3
+[latest_wheel]: https://github.com/jkminder/data2neo/releases/download/v1.3.3/Data2Neo-1.3.3-py3-none-any.whl
 [wiki]: https://Data2Neo.jkminder.ch/index.html
