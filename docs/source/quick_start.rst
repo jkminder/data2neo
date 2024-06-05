@@ -66,7 +66,7 @@ We can define a function, CONVERTCURRENCY, to standardise these values into a si
 
 .. code-block:: python
 
-    from Data2Neo import register_attribute_postprocessor, Attribute
+    from data2neo import register_attribute_postprocessor, Attribute
 
     @register_attribute_postprocessor
     def CONVERTCURRENCY(attribute, currency):

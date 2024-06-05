@@ -18,19 +18,8 @@ The library is built specifically for converting data into a [neo4j](https://neo
 This library has been developed at the [Chair of Systems Design at ETH Zürich](https://www.sg.ethz.ch).
 
 ## Installation
-If you have setup a private ssh key for your github, copy-paste the command below to install the latest version ([v1.3.3][latest_tag]):
 ```
-pip install git+ssh://git@github.com/jkminder/data2neo@v1.3.3
-```
-
-If you don't have ssh set up, download the latest wheel [here][latest_wheel] and install the wheel with:
-```
-pip install **path-to-wheel**
-```
-
-If you have cloned the repository you can also build it locally with
-```
-pip install **path-to-repository**
+pip install data2neo
 ```
 The Data2Neo library supports Python 3.8+.
 
@@ -94,7 +83,4 @@ converter()
 # Known issues
 If you encounter a bug or an unexplainable behavior, please check the [known issues](https://github.com/jkminder/Data2Neo/labels/bug) list. If your issue is not found, submit a new one.
 
-[latest_version]: v1.3.3
-[latest_tag]: https://github.com/jkminder/data2neo/releases/tag/v1.3.3
-[latest_wheel]: https://github.com/jkminder/data2neo/releases/download/v1.3.3/Data2Neo-1.3.3-py3-none-any.whl
-[wiki]: https://Data2Neo.jkminder.ch/index.html
+[wiki]: https://data2neo.jkminder.ch/index.html

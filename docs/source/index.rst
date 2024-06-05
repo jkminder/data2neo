@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to **data2neo**'s documentation!
+Welcome to **Data2Neo**'s documentation!
 =========================================
 
 **Data2Neo** is a library that simplifies the conversion of data in relational format 
