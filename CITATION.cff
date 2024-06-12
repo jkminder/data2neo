@@ -1,0 +1,8 @@
+@misc{minder2024data2neo,
+      title={Data2Neo - A Tool for Complex Neo4j Data Integration}, 
+      author={Julian Minder and Laurence Brandenberger and Luis Salamanca and Frank Schweitzer},
+      year={2024},
+      eprint={2406.04995},
+      archivePrefix={arXiv},
+      primaryClass={cs.DB}
+}
