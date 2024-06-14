@@ -73,7 +73,7 @@ def append(attribute, append_string):
     return new_attribute
 
 # Create IteratorIterator
-iterator = IteratorIterator([pandas_iterator, iris_iterator])
+iterator = IteratorIterator([people_iterator, iris_iterator])
 
 # Create converter instance with schema, the final iterator and the graph
 converter = Converter(load_file("schema.yaml"), iterator, uri, auth)
