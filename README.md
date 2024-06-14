@@ -69,7 +69,7 @@ iris_iterator = PandasDataFrameIterator(iris, "Flower")
 # register a custom data processing function
 @register_attribute_postprocessor
 def append(attribute, append_string):
-    new_attribute = Attribute(attribute.key, attribute.value + append_string)
+    new_attribute = Attribute(attribute.key, str(attribute.value) + append_string)
     return new_attribute
 
 # Create IteratorIterator
