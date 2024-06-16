@@ -7,7 +7,7 @@
 </p>
 
 ---
-**Data2Neo** is a library that simplifies the convertion of data in relational format to a graph knowledge database. It reliefs you of the cumbersome manual work of writing the conversion code and let's you focus on the conversion schema and data processing. 
+**Data2Neo** is a library that simplifies the conversion of data in relational format to a graph knowledge database. It reliefs you of the cumbersome manual work of writing the conversion code and let's you focus on the conversion schema and data processing. 
 
 The library is built specifically for converting data into a [neo4j](https://neo4j.com/) graph (minimum version 5.2). The library further supports extensive customization capabilities to clean and remodel data. As neo4j python client it uses the native [neo4j python client](https://neo4j.com/docs/getting-started/languages-guides/neo4j-python/).
 
