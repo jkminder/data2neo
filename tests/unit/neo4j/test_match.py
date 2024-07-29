@@ -78,6 +78,43 @@ def test_match_nodes(session):
     nodes = match_nodes(session, name="test1", anotherattr="test")
     assert(len(nodes) == 1)
     assert(check_node(nodes, 1))
+    
+def test_match_nodes_with_iterator(session):
+    # match by single label
+    nodes = match_nodes(session, "test", return_iterator=True)
+    assert(len(nodes) == 2)
+    nodes = list(nodes)
+    assert(len(nodes) == 2)
+    assert(check_node(nodes, 1))
+    assert(check_node(nodes, 2))
+
+    # match by multiple labels
+    nodes = match_nodes(session, "test", "second", return_iterator=True)
+    assert(len(nodes) == 1)
+    nodes = list(nodes)
+    assert(len(nodes) == 1)
+    assert(check_node(nodes, 1))
+
+    # match by properties with no label
+    nodes = match_nodes(session, name="test3", return_iterator=True)
+    assert(len(nodes) == 1)
+    nodes = list(nodes)
+    assert(len(nodes) == 1)
+    assert(check_node(nodes, 3))
+
+    # match by properties with label
+    nodes = match_nodes(session, "test", name="test1", return_iterator=True)
+    assert(len(nodes) == 1)
+    nodes = list(nodes)
+    assert(len(nodes) == 1)
+    assert(check_node(nodes, 1))
+
+    # match by two properties
+    nodes = match_nodes(session, name="test1", anotherattr="test", return_iterator=True)
+    assert(len(nodes) == 1)
+    nodes = list(nodes)
+    assert(len(nodes) == 1)
+    assert(check_node(nodes, 1))
 
 def test_match_relationships(session):
     # match by type
@@ -109,3 +146,42 @@ def test_match_relationships(session):
     assert(len(rels) == 1)
     assert(check_rel(rels, 1))
 
+def test_match_relationships_with_iterator(session):
+    # match by type
+    rels = match_relationships(session, rel_type="to", return_iterator=True)
+    assert(len(rels) == 2)
+    assert(len(rels) == 2)
+    assert(check_rel(rels, 1))
+    rels = list(rels)
+    assert(check_rel(rels, 2))
+
+    # match by properties
+    rels = match_relationships(session, rel_type="to", id=1, return_iterator=True)
+    assert(len(rels) == 1)
+    rels = list(rels)
+    assert(len(rels) == 1)
+    assert(check_rel(rels, 1))  
+
+    # match by multiple properties
+    rels = match_relationships(session, rel_type="to", id=2, anotherattr="test", return_iterator=True)
+    assert(len(rels) == 1)
+    rels = list(rels)
+    assert(len(rels) == 1)
+    assert(check_rel(rels,2))
+
+    # match by from node
+    n1 = match_nodes(session, "test", id=1)[0]
+    rels = match_relationships(session, from_node=n1, return_iterator=True)
+    assert(len(rels) == 2)
+    rels = list(rels)
+    assert(len(rels) == 2)
+    assert(check_rel(rels, 1))
+    assert(check_rel(rels, 2))
+
+    # match by to node
+    n2 = match_nodes(session, "test", id=2)[0]
+    rels = match_relationships(session, to_node=n2, return_iterator=True)
+    assert(len(rels) == 1)
+    rels = list(rels)
+    assert(len(rels) == 1)
+    assert(check_rel(rels, 1))
