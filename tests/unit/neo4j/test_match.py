@@ -150,9 +150,9 @@ def test_match_relationships_with_iterator(session):
     # match by type
     rels = match_relationships(session, rel_type="to", return_iterator=True)
     assert(len(rels) == 2)
+    rels = list(rels)
     assert(len(rels) == 2)
     assert(check_rel(rels, 1))
-    rels = list(rels)
     assert(check_rel(rels, 2))
 
     # match by properties
